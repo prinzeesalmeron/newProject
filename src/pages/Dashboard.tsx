@@ -11,15 +11,15 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('properties');
 
-  // Mock data for charts
+  // Performance data matching the chart in the image
   const performanceData = [
-    { date: '2024-01-01', value: 15000 },
-    { date: '2024-01-15', value: 16200 },
-    { date: '2024-02-01', value: 17500 },
-    { date: '2024-02-15', value: 18300 },
-    { date: '2024-03-01', value: 19100 },
-    { date: '2024-03-15', value: 19800 },
-    { date: '2024-04-01', value: 19525 }
+    { date: '2024-01-01', value: 2000 },
+    { date: '2024-01-15', value: 3000 },
+    { date: '2024-02-01', value: 4500 },
+    { date: '2024-02-15', value: 5800 },
+    { date: '2024-03-01', value: 5500 },
+    { date: '2024-03-15', value: 5900 },
+    { date: '2024-04-01', value: 6000 }
   ];
 
   const allocationData = [
@@ -108,67 +108,59 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <section className="bg-white py-12">
+      <section className="bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-start">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Investment Dashboard</h1>
-              <p className="text-gray-600">Track your real estate portfolio performance and manage your investments</p>
-            </motion.div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Welcome back,</p>
-              <p className="font-semibold text-gray-900">
-                {user.user_metadata?.full_name || user.email}
-              </p>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Investment Dashboard</h1>
+            <p className="text-gray-600">Track your real estate portfolio performance and manage your investments</p>
+          </motion.div>
         </div>
       </section>
 
       {/* Stats Cards */}
-      <section className="py-8">
+      <section className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium text-gray-500">Total Portfolio Value</div>
-                <DollarSign className="h-5 w-5 text-green-500" />
+                <DollarSign className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</div>
-              <div className="text-sm text-green-500">+15.2% from last month</div>
+              <div className="text-sm text-green-600">+15.2% from last month</div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium text-gray-500">Monthly Income</div>
-                <TrendingUp className="h-5 w-5 text-blue-500" />
+                <TrendingUp className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">${stats.monthlyIncome}</div>
-              <div className="text-sm text-blue-500">+8.2% from last month</div>
+              <div className="text-sm text-green-600">+8.2% from last month</div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium text-gray-500">Properties Owned</div>
-                <Home className="h-5 w-5 text-purple-500" />
+                <Home className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.propertiesOwned}</div>
               <div className="text-sm text-gray-500">Across 3 different markets</div>
@@ -178,11 +170,11 @@ export const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium text-gray-500">Average Yield</div>
-                <BarChart3 className="h-5 w-5 text-yellow-500" />
+                <BarChart3 className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.averageYield}%</div>
               <div className="text-sm text-gray-500">Above market average</div>
@@ -192,21 +184,21 @@ export const Dashboard = () => {
       </section>
 
       {/* Charts Section */}
-      <section className="py-8">
+      <section className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Performance Chart */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Portfolio Performance</h3>
-                  <div className="flex items-center space-x-4 mt-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Portfolio Performance</h3>
+                  <div className="flex items-center space-x-4">
                     <button className="text-sm text-gray-500 hover:text-gray-700">7d</button>
-                    <button className="text-sm bg-blue-600 text-white px-3 py-1 rounded">30d</button>
+                    <button className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md">30d</button>
                     <button className="text-sm text-gray-500 hover:text-gray-700">90d</button>
                     <button className="text-sm text-gray-500 hover:text-gray-700">1y</button>
                   </div>
@@ -215,11 +207,26 @@ export const Dashboard = () => {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="date" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#666' }}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#666' }}
+                    />
                     <Tooltip />
-                    <Line type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#3B82F6" 
+                      strokeWidth={2}
+                      dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -229,10 +236,10 @@ export const Dashboard = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Portfolio Allocation</h3>
-              <div className="h-64">
+              <div className="h-64 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -251,17 +258,17 @@ export const Dashboard = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-3">
                 {allocationData.map((item, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div 
-                        className="w-3 h-3 rounded-full mr-2"
+                        className="w-3 h-3 rounded-full mr-3"
                         style={{ backgroundColor: item.color }}
                       ></div>
                       <span className="text-sm text-gray-600">{item.name}</span>
                     </div>
-                    <span className="text-sm font-semibold">{item.value}%</span>
+                    <span className="text-sm font-semibold text-gray-900">{item.value}%</span>
                   </div>
                 ))}
               </div>
@@ -271,12 +278,12 @@ export const Dashboard = () => {
       </section>
 
       {/* Properties Table */}
-      <section className="py-8">
+      <section className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <div className="flex space-x-6">
+                <div className="flex space-x-8">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
@@ -291,7 +298,7 @@ export const Dashboard = () => {
                     </button>
                   ))}
                 </div>
-                <button className="flex items-center space-x-2 text-gray-500 hover:text-gray-700">
+                <button className="flex items-center space-x-2 text-gray-500 hover:text-gray-700 text-sm">
                   <Download className="h-4 w-4" />
                   <span>Export</span>
                 </button>
@@ -300,9 +307,9 @@ export const Dashboard = () => {
 
             {activeTab === 'properties' && (
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">My Properties</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">My Properties</h3>
                 <div className="space-y-4">
-                  {/* Sample property rows */}
+                  {/* Property rows matching the design */}
                   {[
                     {
                       name: "Modern Luxury Villa",
@@ -327,26 +334,24 @@ export const Dashboard = () => {
                       location: "Denver, CO",
                       tokens: 200,
                       value: "$7,600",
-                      yield: "9.1%",
+                      yield: "8.1%",
                       income: "+$57.67/mo",
                       status: "Active"
                     }
                   ].map((property, index) => (
                     <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{property.name}</h4>
-                          <p className="text-sm text-gray-500">{property.location}</p>
-                        </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{property.name}</h4>
+                        <p className="text-sm text-gray-500">{property.location}</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm font-semibold">{property.tokens} tokens</p>
+                      <div className="text-center px-4">
+                        <p className="text-sm font-semibold text-gray-900">{property.tokens} tokens</p>
                         <p className="text-sm text-gray-500">{property.value} value</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm font-semibold">{property.yield} yield</p>
+                      <div className="text-center px-4">
+                        <p className="text-sm font-semibold text-gray-900">{property.yield} yield</p>
                       </div>
-                      <div className="text-center">
+                      <div className="text-center px-4">
                         <p className="text-sm font-semibold text-green-600">{property.income}</p>
                         <p className="text-sm text-gray-500">{property.status}</p>
                       </div>

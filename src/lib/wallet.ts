@@ -111,6 +111,11 @@ export const useWallet = create<WalletState>()(
       provider: null,
       
       connectWallet: async (providerType: WalletProvider) => {
+        // Prevent multiple concurrent connection attempts
+        if (get().connecting) {
+          return;
+        }
+        
         const walletProvider = walletProviders[providerType];
         
         if (!walletProvider.check()) {

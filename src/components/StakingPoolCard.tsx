@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, TrendingUp } from 'lucide-react';
-import { StakingPool } from '../lib/supabase';
+import { StakingPool } from '../lib/mockData';
 
 interface StakingPoolCardProps {
   pool: StakingPool;

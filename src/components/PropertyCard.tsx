@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, TrendingUp, MapPin, Star } from 'lucide-react';
-import { Property } from '../lib/supabase';
+import { Property } from '../lib/mockData';
 import { motion } from 'framer-motion';
 
 interface PropertyCardProps {

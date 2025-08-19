@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, DollarSign, Lock } from 'lucide-react';
 import { StakingPoolCard } from '../components/StakingPoolCard';
-import { StakingPool, supabase } from '../lib/supabase';
+import { StakingPool, mockApi } from '../lib/mockData';
 import { motion } from 'framer-motion';
 
 export const Staking = () => {
@@ -23,13 +23,8 @@ export const Staking = () => {
 
   const fetchStakingPools = async () => {
     try {
-      const { data, error } = await supabase
-        .from('staking_pools')
-        .select('*')
-        .eq('is_active', true);
-      
-      if (error) throw error;
-      setPools(data || []);
+      const data = await mockApi.getStakingPools();
+      setPools(data);
       if (data && data.length > 0) {
         setSelectedPool(data[0].id);
       }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Book, Clock, Users, Star, Play, ChevronDown, ChevronUp } from 'lucide-react';
-import { Course, Article, supabase } from '../lib/supabase';
+import { Course, Article, mockApi } from '../lib/mockData';
 import { motion } from 'framer-motion';
 
 export const Learn = () => {
@@ -30,16 +30,13 @@ export const Learn = () => {
 
   const fetchEducationalContent = async () => {
     try {
-      const [coursesResponse, articlesResponse] = await Promise.all([
-        supabase.from('courses').select('*').order('created_at', { ascending: false }),
-        supabase.from('articles').select('*').order('published_date', { ascending: false })
+      const [courses, articles] = await Promise.all([
+        mockApi.getCourses(),
+        mockApi.getArticles()
       ]);
 
-      if (coursesResponse.error) throw coursesResponse.error;
-      if (articlesResponse.error) throw articlesResponse.error;
-
-      setCourses(coursesResponse.data || []);
-      setArticles(articlesResponse.data || []);
+      setCourses(courses);
+      setArticles(articles);
     } catch (error) {
       console.error('Error fetching educational content:', error);
     } finally {

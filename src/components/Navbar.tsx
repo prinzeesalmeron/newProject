@@ -1,27 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, User, LogOut } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../lib/auth';
 
 export const Navbar = () => {
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
+  const { user, signOut } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
   };
 
   const isActive = (path: string) => location.pathname === path;

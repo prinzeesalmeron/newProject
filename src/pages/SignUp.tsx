@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 export const SignUp = () => {
@@ -10,6 +10,7 @@ export const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,32 +18,9 @@ export const SignUp = () => {
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
+      const { error } = await signUp(email, password, fullName);
 
       if (error) throw error;
-
-      if (data.user) {
-        // Insert user profile
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              full_name: fullName,
-            },
-          ]);
-
-        if (profileError) throw profileError;
-      }
 
       navigate('/dashboard');
     } catch (error: any) {

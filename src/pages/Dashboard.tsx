@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Home, BarChart3, Download, MoreHorizontal } from 'lucide-react';
-import { Investment, UserProfile, supabase } from '../lib/supabase';
+import { Investment, UserProfile, mockApi } from '../lib/mockData';
+import { useAuth } from '../lib/auth';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 
 export const Dashboard = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,37 +42,18 @@ export const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
+      if (!user) {
         setLoading(false);
         return;
       }
 
-      setUser(userData.user);
-
       // Fetch user profile
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userData.user.id)
-        .single();
-
-      if (profileData) {
-        setProfile(profileData);
-      }
+      const profileData = await mockApi.getUserProfile();
+      setProfile(profileData);
 
       // Fetch investments with property details
-      const { data: investmentsData } = await supabase
-        .from('investments')
-        .select(`
-          *,
-          property:properties(*)
-        `)
-        .eq('user_id', userData.user.id);
-
-      if (investmentsData) {
-        setInvestments(investmentsData);
-      }
+      const investmentsData = await mockApi.getInvestments();
+      setInvestments(investmentsData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { PropertyCard } from '../components/PropertyCard';
-import { Property, supabase } from '../lib/supabase';
+import { Property, mockApi } from '../lib/mockData';
 import { motion } from 'framer-motion';
 
 export const Marketplace = () => {
@@ -27,13 +27,8 @@ export const Marketplace = () => {
 
   const fetchProperties = async () => {
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('status', 'active');
-      
-      if (error) throw error;
-      setProperties(data || []);
+      const data = await mockApi.getProperties();
+      setProperties(data);
     } catch (error) {
       console.error('Error fetching properties:', error);
     } finally {

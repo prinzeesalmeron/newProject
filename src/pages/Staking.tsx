@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, DollarSign, Lock } from 'lucide-react';
 import { StakingPoolCard } from '../components/StakingPoolCard';
 import { StakingPool, mockApi } from '../lib/mockData';
+import { useWallet } from '../lib/wallet';
 import { motion } from 'framer-motion';
 
 export const Staking = () => {
+  const { isConnected, blockBalance } = useWallet();
   const [pools, setPools] = useState<StakingPool[]>([]);
   const [selectedPool, setSelectedPool] = useState<string>('');
   const [stakeAmount, setStakeAmount] = useState<string>('');
@@ -14,7 +16,7 @@ export const Staking = () => {
     totalStaked: '7,500',
     totalRewards: '173.56',
     averageAPY: '7.8%',
-    availableBalance: '2,340'
+    availableBalance: blockBalance?.toString() || '2,340'
   };
 
   useEffect(() => {
@@ -177,9 +179,9 @@ export const Staking = () => {
                     </span>
                   </div>
                   <div className="mt-2 flex justify-between text-sm">
-                    <span className="text-gray-500">Available: 2,340 BLOCK</span>
+                    <span className="text-gray-500">Available: {stakingStats.availableBalance} BLOCK</span>
                     <button
-                      onClick={() => setStakeAmount('2340')}
+                      onClick={() => setStakeAmount(stakingStats.availableBalance)}
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Use Max
@@ -190,11 +192,11 @@ export const Staking = () => {
 
               <button
                 onClick={handleStake}
-                disabled={!stakeAmount || !selectedPool}
+                disabled={!stakeAmount || !selectedPool || !isConnected}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
               >
                 <Lock className="h-4 w-4" />
-                <span>Stake Tokens</span>
+                <span>{!isConnected ? 'Connect Wallet to Stake' : 'Stake Tokens'}</span>
               </button>
             </motion.div>
 

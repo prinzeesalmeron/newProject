@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, User, LogOut } from 'lucide-react';
-import { useAuth } from '../lib/auth';
+import { Search } from 'lucide-react';
+import { useWallet } from '../lib/wallet';
+import { WalletButton } from './WalletButton';
 
 export const Navbar = () => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { isConnected } = useWallet();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -58,7 +55,7 @@ export const Navbar = () => {
             >
               Learn
             </Link>
-            {user && (
+            {isConnected && (
               <Link
                 to="/dashboard"
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
@@ -86,36 +83,9 @@ export const Navbar = () => {
             </div>
           </div>
 
-          {/* Auth Buttons */}
+          {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-700">
-                  {user.user_metadata?.full_name || user.email}
-                </span>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
+            <WalletButton />
           </div>
         </div>
       </div>

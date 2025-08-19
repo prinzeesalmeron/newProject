@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Home, BarChart3, Download, MoreHorizontal } from 'lucide-react';
 import { Investment, UserProfile, mockApi } from '../lib/mockData';
-import { useAuth } from '../lib/auth';
+import { useWallet } from '../lib/wallet';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 
 export const Dashboard = () => {
-  const { user } = useAuth();
+  const { isConnected, address, blockBalance } = useWallet();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +42,7 @@ export const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      if (!user) {
+      if (!isConnected) {
         setLoading(false);
         return;
       }
@@ -62,10 +62,11 @@ export const Dashboard = () => {
   };
 
   const stats = {
-    totalValue: profile?.total_portfolio_value || 19525,
+    totalValue: 19525,
     monthlyIncome: 134.17,
     propertiesOwned: investments.length || 3,
-    averageYield: 8.3
+    averageYield: 8.3,
+    blockBalance: blockBalance || 2340
   };
 
   if (loading) {
@@ -76,12 +77,40 @@ export const Dashboard = () => {
     );
   }
 
-  if (!user) {
+  if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h2>
-          <p className="text-gray-600">You need to be signed in to view your dashboard.</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <TrendingUp className="h-8 w-8 text-blue-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Connect Your Wallet</h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Connect your Web3 wallet to view your real estate investment portfolio, track your BLOCK tokens, and manage your properties.
+            </p>
+            <div className="bg-white rounded-xl p-8 shadow-lg max-w-md mx-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Connect Your Wallet?</h3>
+              <ul className="text-left space-y-3 text-gray-600">
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                  View your property investments
+                </li>
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                  Track BLOCK token balance
+                </li>
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                  Monitor rental income
+                </li>
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                  Access staking rewards
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -155,11 +184,11 @@ export const Dashboard = () => {
               className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Average Yield</div>
+                <div className="text-sm font-medium text-gray-500">BLOCK Balance</div>
                 <BarChart3 className="h-5 w-5 text-gray-400" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stats.averageYield}%</div>
-              <div className="text-sm text-gray-500">Above market average</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.blockBalance.toLocaleString()}</div>
+              <div className="text-sm text-gray-500">BLOCK tokens</div>
             </motion.div>
           </div>
         </div>

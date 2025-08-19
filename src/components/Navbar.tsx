@@ -67,18 +67,6 @@ export const Navbar = () => {
                 Dashboard
               </Link>
             )}
-            {isConnected && (
-              <Link
-                to="/investment-dashboard"
-                className={`px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive('/investment-dashboard') 
-                    ? 'text-blue-600 border-b-2 border-blue-600' 
-                    : 'text-gray-600 hover:text-blue-600'
-                }`}
-              >
-                Investments
-              </Link>
-            )}
           </div>
 
           {/* Search Bar */}

@@ -17,8 +17,7 @@ function App() {
           <Route path="/" element={<Marketplace />} />
           <Route path="/staking" element={<Staking />} />
           <Route path="/learn" element={<Learn />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/investment-dashboard" element={<InvestmentDashboard />} />
+          <Route path="/dashboard" element={<InvestmentDashboard />} />
         </Routes>
         <Footer />
       </div>

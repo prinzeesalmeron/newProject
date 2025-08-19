@@ -123,11 +123,11 @@ export const Navbar = () => {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden" style={{ zIndex: 9999 }}>
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}></div>
           
           {/* Mobile Menu Panel */}
-          <div className="mobile-menu fixed top-0 right-0 h-full w-80 max-w-sm bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+          <div className="mobile-menu fixed top-0 right-0 h-full w-80 max-w-sm bg-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <Link to="/" className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -158,53 +158,61 @@ export const Navbar = () => {
             </div>
 
             {/* Mobile Navigation Links */}
-            <div className="flex flex-col py-4">
+            <div className="flex flex-col py-2">
               <Link
                 to="/"
-                className={`px-6 py-3 text-base font-medium transition-colors ${
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/') 
-                    ? 'text-blue-600 bg-blue-50 border-r-2 border-blue-600' 
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
                 }`}
               >
-                Marketplace
+                🏠 Marketplace
               </Link>
               <Link
                 to="/staking"
-                className={`px-6 py-3 text-base font-medium transition-colors ${
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/staking') 
-                    ? 'text-blue-600 bg-blue-50 border-r-2 border-blue-600' 
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
                 }`}
               >
-                Staking
+                💰 Staking
               </Link>
               <Link
                 to="/learn"
-                className={`px-6 py-3 text-base font-medium transition-colors ${
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/learn') 
-                    ? 'text-blue-600 bg-blue-50 border-r-2 border-blue-600' 
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
                 }`}
               >
-                Learn
+                📚 Learn
               </Link>
-              {isConnected && (
-                <Link
-                  to="/dashboard"
-                  className={`px-6 py-3 text-base font-medium transition-colors ${
-                    isActive('/dashboard') 
-                      ? 'text-blue-600 bg-blue-50 border-r-2 border-blue-600' 
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-              )}
+              <Link
+                to="/dashboard"
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
+                  isActive('/dashboard') 
+                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
+                }`}
+              >
+                📊 Dashboard {!isConnected && <span className="text-xs text-gray-500 ml-2">(Connect wallet)</span>}
+              </Link>
+            </div>
+
+            {/* Mobile Menu Footer Info */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-600 mb-2">
+                <strong>BlockEstate</strong> - Real Estate Investment Platform
+              </div>
+              <div className="text-xs text-gray-500">
+                Connect your wallet to start investing in tokenized real estate
+              </div>
             </div>
 
             {/* Mobile Wallet Section */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50">
+            <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white shadow-lg">
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-3">
                   {isConnected ? 'Wallet Connected' : 'Connect your wallet to get started'}

@@ -3,11 +3,11 @@ import { Search, Filter, SlidersHorizontal, Plus } from 'lucide-react';
 import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
 import { Property, mockApi } from '../lib/mockData';
-import { useWallet } from '../lib/wallet';
+import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 export const Marketplace = () => {
-  const { isConnected } = useWallet();
+  const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>('All Markets');
@@ -58,8 +58,8 @@ export const Marketplace = () => {
 
   const handleInvest = (propertyId: string) => {
     console.log('Investing in property:', propertyId);
-    if (!isConnected) {
-      alert('Please connect your wallet to invest in properties');
+    if (!user) {
+      alert('Please sign in to invest in properties');
       return;
     }
     // Handle investment logic here

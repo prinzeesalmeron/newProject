@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Home, BarChart3, Download, MoreHorizontal, Plus } from 'lucide-react';
 import { Investment, UserProfile, mockApi } from '../lib/mockData';
-import { useWallet } from '../lib/wallet';
+import { useAuth } from '../lib/auth';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 
 export const InvestmentDashboard = () => {
-  const { isConnected, address, blockBalance } = useWallet();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ export const InvestmentDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      if (!isConnected) {
+      if (!user) {
         setLoading(false);
         return;
       }
@@ -54,7 +54,7 @@ export const InvestmentDashboard = () => {
     monthlyIncome: investments.reduce((sum, inv) => sum + inv.monthly_income, 0),
     propertiesOwned: investments.length,
     averageYield: investments.length > 0 ? investments.reduce((sum, inv) => sum + inv.total_return, 0) / investments.length : 0,
-    blockBalance: blockBalance || 0
+    blockBalance: 0
   };
 
   if (loading) {
@@ -65,7 +65,7 @@ export const InvestmentDashboard = () => {
     );
   }
 
-  if (!isConnected) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -73,12 +73,12 @@ export const InvestmentDashboard = () => {
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <TrendingUp className="h-8 w-8 text-blue-600" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Connect Your Wallet</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Sign In Required</h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Connect your Web3 wallet to view your real estate investment portfolio, track your BLOCK tokens, and manage your properties.
+              Sign in to your account to view your real estate investment portfolio and manage your properties.
             </p>
             <div className="bg-white rounded-xl p-8 shadow-lg max-w-md mx-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Connect Your Wallet?</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Sign In?</h3>
               <ul className="text-left space-y-3 text-gray-600">
                 <li className="flex items-center">
                   <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
@@ -86,7 +86,7 @@ export const InvestmentDashboard = () => {
                 </li>
                 <li className="flex items-center">
                   <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Track BLOCK token balance
+                  Track your portfolio performance
                 </li>
                 <li className="flex items-center">
                   <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
@@ -94,7 +94,7 @@ export const InvestmentDashboard = () => {
                 </li>
                 <li className="flex items-center">
                   <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Access staking rewards
+                  Manage your account settings
                 </li>
               </ul>
             </div>

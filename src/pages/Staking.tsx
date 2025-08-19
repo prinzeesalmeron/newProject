@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, DollarSign, Lock } from 'lucide-react';
 import { StakingPoolCard } from '../components/StakingPoolCard';
 import { StakingPool, mockApi } from '../lib/mockData';
-import { useWallet } from '../lib/wallet';
+import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 export const Staking = () => {
-  const { isConnected, blockBalance } = useWallet();
+  const { user } = useAuth();
   const [pools, setPools] = useState<StakingPool[]>([]);
   const [selectedPool, setSelectedPool] = useState<string>('');
   const [stakeAmount, setStakeAmount] = useState<string>('');
@@ -16,7 +16,7 @@ export const Staking = () => {
     totalStaked: '0',
     totalRewards: '0',
     averageAPY: '0%',
-    availableBalance: blockBalance?.toString() || '2,340'
+    availableBalance: '2,340'
   };
 
   useEffect(() => {
@@ -198,13 +198,13 @@ export const Staking = () => {
 
               <button
                 onClick={handleStake}
-                disabled={!stakeAmount || !selectedPool || !isConnected || pools.length === 0}
+                disabled={!stakeAmount || !selectedPool || !user || pools.length === 0}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
               >
                 <Lock className="h-4 w-4" />
                 <span>
-                  {!isConnected 
-                    ? 'Connect Wallet to Stake' 
+                  {!user 
+                    ? 'Sign In to Stake' 
                     : pools.length === 0 
                     ? 'No Pools Available' 
                     : 'Stake Tokens'

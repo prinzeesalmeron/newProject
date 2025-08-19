@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Menu, X } from 'lucide-react';
-import { useWallet } from '../lib/wallet';
-import { WalletButton } from './WalletButton';
+import { Search, Menu, X, User, LogIn } from 'lucide-react';
+import { useAuth } from '../lib/auth';
+import { AuthModal } from './AuthModal';
+import { UserProfile } from './UserProfile';
 
 export const Navbar = () => {
   const location = useLocation();
-  const { isConnected } = useWallet();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -74,7 +78,7 @@ export const Navbar = () => {
             >
               Learn
             </Link>
-            {isConnected && (
+            {user && (
               <Link
                 to="/dashboard"
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
@@ -102,7 +106,7 @@ export const Navbar = () => {
             </div>
           </div>
 
-          {/* Wallet Connection */}
+          {/* User Authentication */}
           <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
             <button
@@ -116,7 +120,37 @@ export const Navbar = () => {
               )}
             </button>
             
-            <WalletButton />
+            {user ? (
+              <button
+                onClick={() => setShowProfile(true)}
+                className="flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors"
+              >
+                <User className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-900">Profile</span>
+              </button>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setShowAuthModal(true);
+                  }}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('register');
+                    setShowAuthModal(true);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign Up</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -198,6 +232,7 @@ export const Navbar = () => {
                 }`}
               >
                 📊 Dashboard {!isConnected && <span className="text-xs text-gray-500 ml-2">(Connect wallet)</span>}
+                📊 Dashboard {!user && <span className="text-xs text-gray-500 ml-2">(Sign in required)</span>}
               </Link>
             </div>
 
@@ -207,24 +242,64 @@ export const Navbar = () => {
                 <strong>BlockEstate</strong> - Real Estate Investment Platform
               </div>
               <div className="text-xs text-gray-500">
-                Connect your wallet to start investing in tokenized real estate
+                {user ? 'Welcome back! Start investing in tokenized real estate' : 'Sign in to start investing in tokenized real estate'}
               </div>
             </div>
 
-            {/* Mobile Wallet Section */}
+            {/* Mobile Auth Section */}
             <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white shadow-lg">
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-3">
-                  {isConnected ? 'Wallet Connected' : 'Connect your wallet to get started'}
+                  {user ? 'Signed In' : 'Sign in to get started'}
                 </p>
                 <div className="flex justify-center">
-                  <WalletButton />
+                  {user ? (
+                    <button
+                      onClick={() => setShowProfile(true)}
+                      className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </button>
+                  ) : (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setAuthMode('login');
+                          setShowAuthModal(true);
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAuthMode('register');
+                          setShowAuthModal(true);
+                        }}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Sign Up
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authMode}
+      />
+
+      <UserProfile
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+      />
     </nav>
   );
 };

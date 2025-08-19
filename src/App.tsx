@@ -7,15 +7,8 @@ import { Learn } from './pages/Learn';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
-import { useAuth } from './lib/auth';
 
 function App() {
-  const { initialize } = useAuth();
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
   const { initialize } = useAuth();
 
   useEffect(() => {

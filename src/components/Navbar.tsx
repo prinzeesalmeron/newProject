@@ -4,6 +4,7 @@ import { Search, Menu, X, User, LogIn } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { AuthModal } from './AuthModal';
 import { UserProfile } from './UserProfile';
+import { ThemeToggle } from './ThemeToggle';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -35,15 +36,15 @@ export const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 relative">
+    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 relative transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">BE</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">BlockEstate</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">BlockEstate</span>
           </Link>
 
           {/* Navigation Links */}
@@ -52,8 +53,8 @@ export const Navbar = () => {
               to="/"
               className={`px-3 py-2 text-sm font-medium transition-colors ${
                 isActive('/') 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-600 hover:text-blue-600'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
               Marketplace
@@ -62,8 +63,8 @@ export const Navbar = () => {
               to="/staking"
               className={`px-3 py-2 text-sm font-medium transition-colors ${
                 isActive('/staking') 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-600 hover:text-blue-600'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
               Staking
@@ -72,8 +73,8 @@ export const Navbar = () => {
               to="/learn"
               className={`px-3 py-2 text-sm font-medium transition-colors ${
                 isActive('/learn') 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-600 hover:text-blue-600'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
               Learn
@@ -83,8 +84,8 @@ export const Navbar = () => {
                 to="/dashboard"
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                   isActive('/dashboard') 
-                    ? 'text-blue-600 border-b-2 border-blue-600' 
-                    : 'text-gray-600 hover:text-blue-600'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               >
                 Dashboard
@@ -95,23 +96,26 @@ export const Navbar = () => {
           {/* Search Bar */}
           <div className="hidden md:flex items-center max-w-md flex-1 mx-8">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Search properties..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
           </div>
 
           {/* User Authentication */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden mobile-menu-button p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              className="md:hidden mobile-menu-button p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -123,10 +127,10 @@ export const Navbar = () => {
             {user ? (
               <button
                 onClick={() => setShowProfile(true)}
-                className="flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors"
+                className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg px-3 py-2 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
-                <User className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">Profile</span>
+                <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Profile</span>
               </button>
             ) : (
               <div className="flex items-center space-x-2">
@@ -135,7 +139,7 @@ export const Navbar = () => {
                     setAuthMode('login');
                     setShowAuthModal(true);
                   }}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Sign In
                 </button>
@@ -144,7 +148,7 @@ export const Navbar = () => {
                     setAuthMode('register');
                     setShowAuthModal(true);
                   }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center space-x-2"
                 >
                   <LogIn className="h-4 w-4" />
                   <span>Sign Up</span>
@@ -161,32 +165,32 @@ export const Navbar = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}></div>
           
           {/* Mobile Menu Panel */}
-          <div className="mobile-menu fixed top-0 right-0 h-full w-80 max-w-sm bg-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="mobile-menu fixed top-0 right-0 h-full w-80 max-w-sm bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">BE</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900">BlockEstate</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">BlockEstate</span>
               </Link>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
 
             {/* Mobile Search */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search properties..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
             </div>
@@ -197,8 +201,8 @@ export const Navbar = () => {
                 to="/"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/') 
-                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
                 🏠 Marketplace
@@ -207,8 +211,8 @@ export const Navbar = () => {
                 to="/staking"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/staking') 
-                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
                 💰 Staking
@@ -217,8 +221,8 @@ export const Navbar = () => {
                 to="/learn"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/learn') 
-                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
                 📚 Learn
@@ -227,35 +231,35 @@ export const Navbar = () => {
                 to="/dashboard"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
                   isActive('/dashboard') 
-                    ? 'text-blue-600 bg-blue-50 border-l-blue-600' 
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-transparent'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
-                📊 Dashboard {!user && <span className="text-xs text-gray-500 ml-2">(Sign in required)</span>}
+                📊 Dashboard {!user && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Sign in required)</span>}
               </Link>
             </div>
 
             {/* Mobile Menu Footer Info */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="text-sm text-gray-600 mb-2">
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                 <strong>BlockEstate</strong> - Real Estate Investment Platform
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
                 {user ? 'Welcome back! Start investing in tokenized real estate' : 'Sign in to start investing in tokenized real estate'}
               </div>
             </div>
 
             {/* Mobile Auth Section */}
-            <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white shadow-lg">
+            <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   {user ? 'Signed In' : 'Sign in to get started'}
                 </p>
                 <div className="flex justify-center">
                   {user ? (
                     <button
                       onClick={() => setShowProfile(true)}
-                      className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                     >
                       <User className="h-4 w-4" />
                       <span>Profile</span>
@@ -267,7 +271,7 @@ export const Navbar = () => {
                           setAuthMode('login');
                           setShowAuthModal(true);
                         }}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         Sign In
                       </button>
@@ -276,7 +280,7 @@ export const Navbar = () => {
                           setAuthMode('register');
                           setShowAuthModal(true);
                         }}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                       >
                         Sign Up
                       </button>

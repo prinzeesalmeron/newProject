@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface WalletState {
+interface WalletState {
   isConnected: boolean;
   address: string | null;
-  ethBalance: number;
+  balance: string;
   blockBalance: number;
-  isConnecting: boolean;
-  connect: () => Promise<void>;
-  disconnect: () => void;
+  connecting: boolean;
+  connectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
 }
 
 // Generate a realistic wallet address
@@ -23,7 +23,7 @@ const generateWalletAddress = (): string => {
 
 // Generate realistic balances
 const generateBalances = () => ({
-  ethBalance: Math.random() * 10 + 0.1, // 0.1 to 10.1 ETH
+  balance: (Math.random() * 10 + 0.1).toFixed(4), // 0.1 to 10.1 ETH
   blockBalance: Math.random() * 10000 + 100, // 100 to 10,100 BLOCK
 });
 
@@ -32,12 +32,12 @@ export const useWallet = create<WalletState>()(
     (set, get) => ({
       isConnected: false,
       address: null,
-      ethBalance: 0,
+      balance: '0.0000',
       blockBalance: 0,
-      isConnecting: false,
+      connecting: false,
       
-      connect: async () => {
-        set({ isConnecting: true });
+      connectWallet: async () => {
+        set({ connecting: true });
         
         // Simulate wallet connection delay
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -49,17 +49,17 @@ export const useWallet = create<WalletState>()(
           isConnected: true,
           address,
           ...balances,
-          isConnecting: false,
+          connecting: false,
         });
       },
       
-      disconnect: () => {
+      disconnectWallet: () => {
         set({
           isConnected: false,
           address: null,
-          ethBalance: 0,
+          balance: '0.0000',
           blockBalance: 0,
-          isConnecting: false,
+          connecting: false,
         });
       },
     }),

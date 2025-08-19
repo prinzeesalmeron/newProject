@@ -1,7 +1,6 @@
 import React from 'react';
 import { Wallet, LogOut, Copy, Check } from 'lucide-react';
 import { useWallet } from '../lib/wallet';
-import { motion } from 'framer-motion';
 
 export const WalletButton = () => {
   const { isConnected, address, balance, blockBalance, connecting, connectWallet, disconnectWallet } = useWallet();

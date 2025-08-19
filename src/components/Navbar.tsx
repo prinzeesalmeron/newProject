@@ -220,11 +220,3 @@ export const Navbar = () => {
     </nav>
   );
 };
-          <div className="flex items-center space-x-4">
-            <WalletButton />
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-};

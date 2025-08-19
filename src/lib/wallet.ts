@@ -11,13 +11,15 @@ interface WalletState {
   disconnectWallet: () => void;
 }
 
-// Mock wallet addresses for demo
-const mockWallets = [
-  '0x742d35Cc6634C0532925a3b8D4C9db96590b5c8e',
-  '0x8ba1f109551bD432803012645Hac136c22C501e',
-  '0x1234567890123456789012345678901234567890',
-  '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
-];
+// Generate a random wallet address
+const generateWalletAddress = (): string => {
+  const chars = '0123456789abcdef';
+  let address = '0x';
+  for (let i = 0; i < 40; i++) {
+    address += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return address;
+};
 
 export const useWallet = create<WalletState>()(
   persist(
@@ -31,8 +33,51 @@ export const useWallet = create<WalletState>()(
       connectWallet: async () => {
         set({ connecting: true });
         
-        // Simulate wallet connection delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+          // Simulate wallet connection process
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Check if MetaMask or other wallet is available (in real app)
+          // For now, we'll simulate the connection
+          
+          const address = generateWalletAddress();
+          const balance = Math.random() * 5 + 0.1; // 0.1 - 5.1 ETH
+          const blockBalance = Math.floor(Math.random() * 1000 + 100); // 100 - 1100 BLOCK
+          
+          set({
+            isConnected: true,
+            address,
+            balance: parseFloat(balance.toFixed(4)),
+            blockBalance,
+            connecting: false
+          });
+        } catch (error) {
+          console.error('Failed to connect wallet:', error);
+          set({ connecting: false });
+        }
+      },
+
+      disconnectWallet: () => {
+        set({
+          isConnected: false,
+          address: null,
+          balance: 0,
+          blockBalance: 0,
+          connecting: false
+        });
+      }
+    }),
+    {
+      name: 'wallet-storage',
+      partialize: (state) => ({
+        isConnected: state.isConnected,
+        address: state.address,
+        balance: state.balance,
+        blockBalance: state.blockBalance
+      })
+    }
+  )
+);
         
         // Mock wallet connection
         const randomAddress = mockWallets[Math.floor(Math.random() * mockWallets.length)];

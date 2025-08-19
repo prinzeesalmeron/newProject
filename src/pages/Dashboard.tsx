@@ -62,10 +62,10 @@ export const Dashboard = () => {
   };
 
   const stats = {
-    totalValue: 19525,
-    monthlyIncome: 134.17,
+    totalValue: investments.reduce((sum, inv) => sum + inv.current_value, 0),
+    monthlyIncome: investments.reduce((sum, inv) => sum + inv.monthly_income, 0),
     propertiesOwned: investments.length || 3,
-    averageYield: 8.3,
+    averageYield: investments.length > 0 ? investments.reduce((sum, inv) => sum + inv.total_return, 0) / investments.length : 0,
     blockBalance: blockBalance || 2340
   };
 
@@ -146,7 +146,9 @@ export const Dashboard = () => {
                 <DollarSign className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</div>
-              <div className="text-sm text-green-600">+15.2% from last month</div>
+              <div className="text-sm text-green-600">
+                {stats.totalValue > 0 ? '+15.2% from last month' : 'No investments yet'}
+              </div>
             </motion.div>
 
             <motion.div
@@ -160,7 +162,9 @@ export const Dashboard = () => {
                 <TrendingUp className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">${stats.monthlyIncome}</div>
-              <div className="text-sm text-green-600">+8.2% from last month</div>
+              <div className="text-sm text-green-600">
+                {stats.monthlyIncome > 0 ? '+8.2% from last month' : 'No income yet'}
+              </div>
             </motion.div>
 
             <motion.div
@@ -174,7 +178,9 @@ export const Dashboard = () => {
                 <Home className="h-5 w-5 text-gray-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.propertiesOwned}</div>
-              <div className="text-sm text-gray-500">Across 3 different markets</div>
+              <div className="text-sm text-gray-500">
+                {stats.propertiesOwned > 0 ? `Across ${Math.min(stats.propertiesOwned, 3)} different markets` : 'Start investing today'}
+              </div>
             </motion.div>
 
             <motion.div
@@ -319,59 +325,41 @@ export const Dashboard = () => {
             {activeTab === 'properties' && (
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">My Properties</h3>
-                <div className="space-y-4">
-                  {/* Property rows matching the design */}
-                  {[
-                    {
-                      name: "Modern Luxury Villa",
-                      location: "Miami, FL",
-                      tokens: 150,
-                      value: "$7,050",
-                      yield: "8.5%",
-                      income: "+$47.25/mo",
-                      status: "Active"
-                    },
-                    {
-                      name: "Contemporary Family Home",
-                      location: "Austin, TX",
-                      tokens: 75,
-                      value: "$4,875",
-                      yield: "7.2%",
-                      income: "+$29.25/mo",
-                      status: "Active"
-                    },
-                    {
-                      name: "Investment Property Complex",
-                      location: "Denver, CO",
-                      tokens: 200,
-                      value: "$7,600",
-                      yield: "8.1%",
-                      income: "+$57.67/mo",
-                      status: "Active"
-                    }
-                  ].map((property, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{property.name}</h4>
-                        <p className="text-sm text-gray-500">{property.location}</p>
+                {investments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 text-6xl mb-4">📊</div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No investments yet</h4>
+                    <p className="text-gray-600 mb-6">Start building your real estate portfolio by investing in tokenized properties.</p>
+                    <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                      Browse Properties
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {investments.map((investment, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{investment.property?.title || 'Property'}</h4>
+                          <p className="text-sm text-gray-500">{investment.property?.location || 'Location'}</p>
+                        </div>
+                        <div className="text-center px-4">
+                          <p className="text-sm font-semibold text-gray-900">{investment.tokens_owned} tokens</p>
+                          <p className="text-sm text-gray-500">${investment.current_value.toLocaleString()} value</p>
+                        </div>
+                        <div className="text-center px-4">
+                          <p className="text-sm font-semibold text-gray-900">{investment.total_return}% yield</p>
+                        </div>
+                        <div className="text-center px-4">
+                          <p className="text-sm font-semibold text-green-600">+${investment.monthly_income}/mo</p>
+                          <p className="text-sm text-gray-500">Active</p>
+                        </div>
+                        <button className="p-2 text-gray-400 hover:text-gray-600">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
                       </div>
-                      <div className="text-center px-4">
-                        <p className="text-sm font-semibold text-gray-900">{property.tokens} tokens</p>
-                        <p className="text-sm text-gray-500">{property.value} value</p>
-                      </div>
-                      <div className="text-center px-4">
-                        <p className="text-sm font-semibold text-gray-900">{property.yield} yield</p>
-                      </div>
-                      <div className="text-center px-4">
-                        <p className="text-sm font-semibold text-green-600">{property.income}</p>
-                        <p className="text-sm text-gray-500">{property.status}</p>
-                      </div>
-                      <button className="p-2 text-gray-400 hover:text-gray-600">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

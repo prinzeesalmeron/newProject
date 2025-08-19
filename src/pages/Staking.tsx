@@ -13,9 +13,9 @@ export const Staking = () => {
   const [loading, setLoading] = useState(true);
 
   const stakingStats = {
-    totalStaked: '7,500',
-    totalRewards: '173.56',
-    averageAPY: '7.8%',
+    totalStaked: '0',
+    totalRewards: '0',
+    averageAPY: '0%',
     availableBalance: blockBalance?.toString() || '2,340'
   };
 
@@ -85,7 +85,7 @@ export const Staking = () => {
                 <TrendingUp className="h-5 w-5 text-blue-500" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stakingStats.totalStaked} BLOCK</div>
-              <div className="text-sm text-gray-500">$18,750 USD value</div>
+              <div className="text-sm text-gray-500">No tokens staked</div>
             </motion.div>
 
             <motion.div
@@ -99,7 +99,7 @@ export const Staking = () => {
                 <DollarSign className="h-5 w-5 text-green-500" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stakingStats.totalRewards} BLOCK</div>
-              <div className="text-sm text-green-500">+12.3% this month</div>
+              <div className="text-sm text-gray-500">No rewards yet</div>
             </motion.div>
 
             <motion.div
@@ -113,7 +113,7 @@ export const Staking = () => {
                 <TrendingUp className="h-5 w-5 text-yellow-500" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stakingStats.averageAPY}</div>
-              <div className="text-sm text-gray-500">Weighted average</div>
+              <div className="text-sm text-gray-500">No active stakes</div>
             </motion.div>
 
             <motion.div
@@ -159,6 +159,12 @@ export const Staking = () => {
                         onSelect={setSelectedPool}
                       />
                     ))}
+                    {pools.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No staking pools available yet.</p>
+                        <p className="text-sm mt-2">Staking pools will be added by the platform administrators.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -192,11 +198,18 @@ export const Staking = () => {
 
               <button
                 onClick={handleStake}
-                disabled={!stakeAmount || !selectedPool || !isConnected}
+                disabled={!stakeAmount || !selectedPool || !isConnected || pools.length === 0}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
               >
                 <Lock className="h-4 w-4" />
-                <span>{!isConnected ? 'Connect Wallet to Stake' : 'Stake Tokens'}</span>
+                <span>
+                  {!isConnected 
+                    ? 'Connect Wallet to Stake' 
+                    : pools.length === 0 
+                    ? 'No Pools Available' 
+                    : 'Stake Tokens'
+                  }
+                </span>
               </button>
             </motion.div>
 
@@ -215,9 +228,15 @@ export const Staking = () => {
 
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📊</div>
-                <p className="text-gray-600 mb-4">
-                  Enter an amount and select a pool to calculate rewards
-                </p>
+                {pools.length === 0 ? (
+                  <p className="text-gray-600 mb-4">
+                    No staking pools available for rewards calculation
+                  </p>
+                ) : (
+                  <p className="text-gray-600 mb-4">
+                    Enter an amount and select a pool to calculate rewards
+                  </p>
+                )}
                 {selectedPoolData && stakeAmount && (
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="text-lg font-semibold text-gray-900">

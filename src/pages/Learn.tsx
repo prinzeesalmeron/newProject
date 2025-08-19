@@ -45,8 +45,8 @@ export const Learn = () => {
   };
 
   const featuredCourse = courses.find(course => course.is_featured);
-  const popularCourses = courses.filter(course => !course.is_featured).slice(0, 3);
-  const featuredArticles = articles.filter(article => article.is_featured).slice(0, 2);
+  const popularCourses = courses.filter(course => !course.is_featured);
+  const featuredArticles = articles.filter(article => article.is_featured);
 
   if (loading) {
     return (
@@ -137,128 +137,156 @@ export const Learn = () => {
       )}
 
       {/* Popular Courses */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">Popular Courses</h2>
-            <button className="text-blue-600 hover:text-blue-700 font-medium">
-              View All Courses
-            </button>
-          </div>
+      {courses.length > 0 && (
+        <section className="py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {featuredCourse ? 'Popular Courses' : 'Available Courses'}
+              </h2>
+              <button className="text-blue-600 hover:text-blue-700 font-medium">
+                View All Courses
+              </button>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {popularCourses.map((course, index) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-              >
-                <div className="relative">
-                  {course.image_url && (
-                    <img
-                      src={course.image_url}
-                      alt={course.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
-                  <div className="absolute top-3 left-3 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
-                    {course.difficulty}
-                  </div>
-                  <div className="absolute top-3 right-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                    {course.duration}
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{course.description}</p>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm text-gray-600">{course.rating}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {(featuredCourse ? popularCourses : courses).map((course, index) => (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="relative">
+                    {course.image_url && (
+                      <img
+                        src={course.image_url}
+                        alt={course.title}
+                        className="w-full h-48 object-cover"
+                      />
+                    )}
+                    <div className="absolute top-3 left-3 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+                      {course.difficulty}
                     </div>
-                    <div className="flex items-center text-gray-500 text-sm">
-                      <Users className="h-4 w-4 mr-1" />
-                      <span>{course.students_count.toLocaleString()} students</span>
+                    <div className="absolute top-3 right-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                      {course.duration}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {course.topics.slice(0, 3).map((topic, topicIndex) => (
-                      <span
-                        key={topicIndex}
-                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{course.description}</p>
 
-                  <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
-                    <Book className="h-4 w-4" />
-                    <span>Start Course</span>
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Latest Articles */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">Latest Articles</h2>
-            <button className="text-blue-600 hover:text-blue-700 font-medium">
-              View All Articles
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredArticles.map((article, index) => (
-              <motion.div
-                key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-              >
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
-                      {article.category}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {new Date(article.published_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{article.title}</h3>
-                  <p className="text-gray-600 mb-4">{article.excerpt}</p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-500">By {article.author}</span>
-                      <span className="text-sm text-gray-500">{article.read_time}</span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-sm text-gray-600">{course.rating}</span>
+                      </div>
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Users className="h-4 w-4 mr-1" />
+                        <span>{course.students_count.toLocaleString()} students</span>
+                      </div>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-700 font-medium">
-                      Read More
+
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {course.topics.slice(0, 3).map((topic, topicIndex) => (
+                        <span
+                          key={topicIndex}
+                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+                      <Book className="h-4 w-4" />
+                      <span>Start Course</span>
                     </button>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {courses.length === 0 && (
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="text-gray-400 text-8xl mb-6">📚</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">No courses available yet</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Educational courses will be added by platform administrators to help you learn about real estate investing and blockchain technology.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Latest Articles */}
+      {articles.length > 0 ? (
+        <section className="py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">Latest Articles</h2>
+              <button className="text-blue-600 hover:text-blue-700 font-medium">
+                View All Articles
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {(featuredArticles.length > 0 ? featuredArticles : articles.slice(0, 2)).map((article, index) => (
+                <motion.div
+                  key={article.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                        {article.category}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(article.published_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{article.title}</h3>
+                    <p className="text-gray-600 mb-4">{article.excerpt}</p>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-sm text-gray-500">By {article.author}</span>
+                        <span className="text-sm text-gray-500">{article.read_time}</span>
+                      </div>
+                      <button className="text-blue-600 hover:text-blue-700 font-medium">
+                        Read More
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="py-16 bg-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="text-gray-400 text-8xl mb-6">📰</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">No articles available yet</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Educational articles and market insights will be published by our team to keep you informed about real estate investment trends.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* FAQ Section */}
       <section className="py-16 bg-white">

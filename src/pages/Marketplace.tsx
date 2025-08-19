@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Plus } from 'lucide-react';
 import { PropertyCard } from '../components/PropertyCard';
+import { AddPropertyModal } from '../components/AddPropertyModal';
 import { Property, mockApi } from '../lib/mockData';
 import { useWallet } from '../lib/wallet';
 import { motion } from 'framer-motion';
@@ -12,6 +13,7 @@ export const Marketplace = () => {
   const [selectedType, setSelectedType] = useState<string>('All Markets');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const propertyTypes = [
     'All Markets',
@@ -35,6 +37,15 @@ export const Marketplace = () => {
       console.error('Error fetching properties:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddProperty = async (propertyData: Omit<Property, 'id'>) => {
+    try {
+      const newProperty = await mockApi.addProperty(propertyData);
+      setProperties(prev => [...prev, newProperty]);
+    } catch (error) {
+      console.error('Error adding property:', error);
     }
   };
 
@@ -147,40 +158,68 @@ export const Marketplace = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               {filteredProperties.length} Properties Available
             </h2>
-            <div className="text-sm text-gray-600">
-              Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
+              </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Property</span>
+              </button>
             </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {filteredProperties.map((property) => (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                onInvest={handleInvest}
-              />
-            ))}
-          </motion.div>
-
           {filteredProperties.length === 0 && (
-            <div className="text-center py-16">
-              <div className="text-gray-400 text-6xl mb-4">🏠</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No properties found</h3>
-              <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+            <div className="text-center py-20">
+              <div className="text-gray-400 text-8xl mb-6">🏠</div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">No properties available yet</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                Get started by adding the first property to the marketplace. Properties you add will appear here for investors to discover.
+              </p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
+              >
+                <Plus className="h-5 w-5" />
+                <span>Add First Property</span>
+              </button>
             </div>
           )}
 
-          <div className="text-center mt-12">
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-              Load More Properties
-            </button>
-          </div>
+          {filteredProperties.length > 0 && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {filteredProperties.map((property) => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    onInvest={handleInvest}
+                  />
+                ))}
+              </motion.div>
+
+              <div className="text-center mt-12">
+                <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                  Load More Properties
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </section>
+
+      <AddPropertyModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddProperty}
+      />
     </div>
   );
 };

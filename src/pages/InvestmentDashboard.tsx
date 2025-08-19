@@ -98,26 +98,6 @@ export const InvestmentDashboard = () => {
                 </li>
               </ul>
             </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Sign In?</h3>
-              <ul className="text-left space-y-3 text-gray-600">
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  View your property investments
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Track your portfolio performance
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Monitor rental income
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Manage your account settings
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>

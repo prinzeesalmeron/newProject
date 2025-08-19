@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { supabase } from './supabase';
 
 interface AuthState {
   user: any | null;
@@ -9,6 +8,7 @@ interface AuthState {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
+  updateUser: (userData: any) => void;
 }
 
 export const useAuth = create<AuthState>((set, get) => ({
@@ -18,13 +18,31 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      set({ user, initialized: true });
+      // Check if user is stored in localStorage
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        set({ user, initialized: true });
+      } else {
+        set({ initialized: true });
+      }
 
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange((event, session) => {
-        set({ user: session?.user || null });
-      });
+      // Listen for auth events
+      const handleAuthEvent = () => {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          set({ user });
+        } else {
+          set({ user: null });
+        }
+      };
+
+      window.addEventListener('userAuthenticated', handleAuthEvent);
+      window.addEventListener('userSignedOut', handleAuthEvent);
+      window.addEventListener('userUpdated', handleAuthEvent);
+
+      // Cleanup function would be needed in a real app
     } catch (error) {
       console.error('Auth initialization error:', error);
       set({ initialized: true });
@@ -34,11 +52,19 @@ export const useAuth = create<AuthState>((set, get) => ({
   signIn: async (email: string, password: string) => {
     set({ loading: true });
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock successful login
+      const userData = {
+        id: '1',
         email,
-        password,
-      });
-      if (error) throw error;
+        fullName: 'Demo User',
+        createdAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      set({ user: userData });
     } catch (error) {
       throw error;
     } finally {
@@ -49,34 +75,19 @@ export const useAuth = create<AuthState>((set, get) => ({
   signUp: async (email: string, password: string, fullName: string) => {
     set({ loading: true });
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock successful registration
+      const userData = {
+        id: Date.now().toString(),
         email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([
-            {
-              id: data.user.id,
-              email,
-              full_name: fullName,
-            }
-          ]);
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-        }
-      }
+        fullName,
+        createdAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      set({ user: userData });
     } catch (error) {
       throw error;
     } finally {
@@ -87,13 +98,16 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     set({ loading: true });
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      localStorage.removeItem('user');
       set({ user: null });
     } catch (error) {
       throw error;
     } finally {
       set({ loading: false });
     }
+  },
+
+  updateUser: (userData: any) => {
+    set({ user: userData });
   },
 }));

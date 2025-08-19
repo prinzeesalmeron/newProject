@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { User, Settings, LogOut, Wallet, Copy, Check, Edit2, Save, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useWallet } from '../lib/wallet';
 import { WalletButton } from './WalletButton';
 
@@ -12,11 +11,10 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
   const { isConnected, address, balance, blockBalance, provider, disconnectWallet } = useWallet();
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
-    full_name: '',
+    fullName: '',
     email: ''
   });
   const [copied, setCopied] = useState(false);
@@ -29,20 +27,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
 
   const fetchUserData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        setProfile(profile);
+      // Get user from localStorage (mock data)
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
         setEditForm({
-          full_name: profile?.full_name || '',
-          email: profile?.email || user.email || ''
+          fullName: parsedUser.fullName || '',
+          email: parsedUser.email || ''
         });
       }
     } catch (error) {
@@ -54,8 +46,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      localStorage.removeItem('user');
       disconnectWallet();
+      setUser(null);
+      window.dispatchEvent(new CustomEvent('userSignedOut'));
       onClose();
     } catch (error) {
       console.error('Error signing out:', error);
@@ -66,22 +60,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          full_name: editForm.full_name,
-          email: editForm.email
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      setProfile({
-        ...profile,
-        full_name: editForm.full_name,
+      const updatedUser = {
+        ...user,
+        fullName: editForm.fullName,
         email: editForm.email
-      });
+      };
+      
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
       setEditing(false);
+      
+      // Trigger update event
+      window.dispatchEvent(new CustomEvent('userUpdated'));
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile');
@@ -137,8 +127,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
               <div className="space-y-3">
                 <input
                   type="text"
-                  value={editForm.full_name}
-                  onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                  value={editForm.fullName}
+                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                   placeholder="Full Name"
                 />
@@ -169,9 +159,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
             ) : (
               <>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {profile?.full_name || 'User'}
+                  {user?.fullName || 'User'}
                 </h3>
-                <p className="text-gray-600">{profile?.email || user?.email}</p>
+                <p className="text-gray-600">{user?.email}</p>
                 <button
                   onClick={() => setEditing(true)}
                   className="mt-2 flex items-center space-x-1 text-blue-600 hover:text-blue-700 mx-auto"

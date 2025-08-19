@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -61,50 +60,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrors({});
 
     try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       if (mode === 'register') {
-        const { data, error } = await supabase.auth.signUp({
+        // Mock registration
+        const userData = {
+          id: Date.now().toString(),
           email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.fullName,
-            }
-          }
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          // Create user profile
-          const { error: profileError } = await supabase
-            .from('users')
-            .insert([
-              {
-                id: data.user.id,
-                email: formData.email,
-                full_name: formData.fullName,
-              }
-            ]);
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-          }
-
-          alert('Registration successful! Please check your email to verify your account.');
-          onClose();
-        }
+          fullName: formData.fullName,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        alert('Registration successful!');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        // Mock login
+        const userData = {
+          id: '1',
           email: formData.email,
-          password: formData.password,
-        });
-
-        if (error) throw error;
-
-        onClose();
+          fullName: 'Demo User',
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
       }
+      
+      // Trigger a custom event to notify other components
+      window.dispatchEvent(new CustomEvent('userAuthenticated'));
+      onClose();
     } catch (error: any) {
-      setErrors({ submit: error.message });
+      setErrors({ submit: 'Authentication failed. Please try again.' });
     } finally {
       setLoading(false);
     }

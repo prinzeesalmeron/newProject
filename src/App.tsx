@@ -4,12 +4,18 @@ import { Navbar } from './components/Navbar';
 import { Marketplace } from './pages/Marketplace';
 import { Staking } from './pages/Staking';
 import { Learn } from './pages/Learn';
-import { Dashboard } from './pages/Dashboard';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
+import { useAuth } from './lib/auth';
 
 function App() {
+  const { initialize } = useAuth();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   const { initialize } = useAuth();
 
   useEffect(() => {

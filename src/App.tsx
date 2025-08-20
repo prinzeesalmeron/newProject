@@ -5,7 +5,6 @@ import { Marketplace } from './pages/Marketplace';
 import { Staking } from './pages/Staking';
 import { Learn } from './pages/Learn';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
-import { SmartContracts } from './pages/SmartContracts';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
 
@@ -25,7 +24,6 @@ function App() {
           <Route path="/staking" element={<Staking />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/dashboard" element={<InvestmentDashboard />} />
-          <Route path="/contracts" element={<SmartContracts />} />
         </Routes>
         <Footer />
       </div>

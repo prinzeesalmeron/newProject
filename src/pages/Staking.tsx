@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Clock, DollarSign, Lock } from 'lucide-react';
+import { TrendingUp, Clock, DollarSign, Lock, Code, Zap } from 'lucide-react';
 import { StakingPoolCard } from '../components/StakingPoolCard';
+import { SmartContractInterface } from '../components/SmartContractInterface';
 import { StakingPool, mockApi } from '../lib/mockData';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
@@ -250,6 +251,101 @@ export const Staking = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Smart Contract Interface */}
+      <section className="py-12 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <Code className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Smart Contract Interface</h2>
+            </div>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Interact directly with staking smart contracts. Manage your stakes, claim rewards, and transfer tokens.
+            </p>
+          </div>
+          
+          <SmartContractInterface />
+        </div>
+      </section>
+
+      {/* Contract Information */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <Zap className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Staking Contract Features</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Multiple Pool Support</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Stake in different pools with varying APY rates and lock periods to maximize your returns.
+                  </p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Automated Rewards</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Rewards are calculated and distributed automatically based on your staked amount and time.
+                  </p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Flexible Unstaking</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Unstake your tokens at any time, subject to the specific pool's lock period requirements.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <Lock className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Security & Transparency</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mt-2"></div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Audited Smart Contracts</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      All staking contracts undergo thorough security audits by leading blockchain security firms.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mt-2"></div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">On-Chain Transparency</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      All transactions and rewards are recorded on the blockchain for complete transparency.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mt-2"></div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">Non-Custodial</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      You maintain full control of your tokens. We never hold custody of your assets.
+                    </p>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>

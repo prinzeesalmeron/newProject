@@ -12,6 +12,7 @@ export const InvestmentDashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('properties');
 
   // Empty performance data - will be populated when user has investments
   const performanceData: any[] = [];

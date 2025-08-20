@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { contractService } from './contracts';
 
 declare global {
   interface Window {
@@ -156,7 +157,16 @@ export const useWallet = create<WalletState>()(
           }
           
           // Simulate BLOCK token balance
-          const blockBalance = Math.floor(Math.random() * 10000) + 100;
+          let blockBalance = Math.floor(Math.random() * 10000) + 100;
+          
+          // Try to get real BLOCK token balance from smart contract
+          try {
+            await contractService.initialize(provider);
+            const realBalance = await contractService.getBlockTokenBalance(address);
+            blockBalance = Math.floor(parseFloat(realBalance));
+          } catch (error) {
+            console.log('Using simulated BLOCK balance - contracts not available:', error);
+          }
           
           set({
             isConnected: true,

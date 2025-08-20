@@ -105,16 +105,16 @@ export const InvestmentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <section className="bg-white py-8">
+      <section className="bg-white dark:bg-gray-800 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Investment Dashboard</h1>
-            <p className="text-gray-600">Track your real estate portfolio performance and manage your investments</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Investment Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-400">Track your real estate portfolio performance and manage your investments</p>
           </motion.div>
         </div>
       </section>
@@ -127,14 +127,14 @@ export const InvestmentDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Total Portfolio Value</div>
-                <DollarSign className="h-5 w-5 text-gray-400" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Portfolio Value</div>
+                <DollarSign className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</div>
-              <div className="text-sm text-gray-500">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalValue.toLocaleString()}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 {stats.totalValue > 0 ? '+0% from last month' : 'No investments yet'}
               </div>
             </motion.div>
@@ -143,14 +143,14 @@ export const InvestmentDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Monthly Income</div>
-                <TrendingUp className="h-5 w-5 text-gray-400" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Income</div>
+                <TrendingUp className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">${stats.monthlyIncome.toLocaleString()}</div>
-              <div className="text-sm text-gray-500">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">${stats.monthlyIncome.toLocaleString()}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 {stats.monthlyIncome > 0 ? '+0% from last month' : 'No income yet'}
               </div>
             </motion.div>
@@ -159,14 +159,14 @@ export const InvestmentDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Properties Owned</div>
-                <Home className="h-5 w-5 text-gray-400" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Properties Owned</div>
+                <Home className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stats.propertiesOwned}</div>
-              <div className="text-sm text-gray-500">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.propertiesOwned}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 {stats.propertiesOwned > 0 ? `Across ${Math.min(stats.propertiesOwned, 3)} different markets` : 'Start investing today'}
               </div>
             </motion.div>
@@ -175,14 +175,14 @@ export const InvestmentDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Average Yield</div>
-                <BarChart3 className="h-5 w-5 text-gray-400" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Average Yield</div>
+                <BarChart3 className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stats.averageYield.toFixed(1)}%</div>
-              <div className="text-sm text-gray-500">Portfolio average</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.averageYield.toFixed(1)}%</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Portfolio average</div>
             </motion.div>
           </div>
         </div>
@@ -196,16 +196,16 @@ export const InvestmentDashboard = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Portfolio Performance</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Portfolio Performance</h3>
                   <div className="flex items-center space-x-4">
-                    <button className="text-sm text-gray-500 hover:text-gray-700">7d</button>
-                    <button className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md">30d</button>
-                    <button className="text-sm text-gray-500 hover:text-gray-700">90d</button>
-                    <button className="text-sm text-gray-500 hover:text-gray-700">1y</button>
+                    <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">7d</button>
+                    <button className="text-sm bg-blue-600 dark:bg-blue-500 text-white px-3 py-1 rounded-md">30d</button>
+                    <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">90d</button>
+                    <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">1y</button>
                   </div>
                 </div>
               </div>
@@ -213,8 +213,8 @@ export const InvestmentDashboard = () => {
                 {performanceData.length === 0 ? (
                   <div className="text-center">
                     <div className="text-gray-400 text-6xl mb-4">📈</div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No performance data yet</h4>
-                    <p className="text-gray-600">Start investing to see your portfolio performance over time.</p>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No performance data yet</h4>
+                    <p className="text-gray-600 dark:text-gray-400">Start investing to see your portfolio performance over time.</p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -249,15 +249,15 @@ export const InvestmentDashboard = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Portfolio Allocation</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Portfolio Allocation</h3>
               <div className="h-64 flex items-center justify-center">
                 {allocationData.length === 0 ? (
                   <div className="text-center">
                     <div className="text-gray-400 text-6xl mb-4">🥧</div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No allocation data yet</h4>
-                    <p className="text-gray-600">Invest in different property types to see your portfolio allocation.</p>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No allocation data yet</h4>
+                    <p className="text-gray-600 dark:text-gray-400">Invest in different property types to see your portfolio allocation.</p>
                   </div>
                 ) : (
                   <>
@@ -286,9 +286,9 @@ export const InvestmentDashboard = () => {
                               className="w-3 h-3 rounded-full mr-3"
                               style={{ backgroundColor: item.color }}
                             ></div>
-                            <span className="text-sm text-gray-600">{item.name}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{item.name}</span>
                           </div>
-                          <span className="text-sm font-semibold text-gray-900">{item.value}%</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">{item.value}%</span>
                         </div>
                       ))}
                     </div>
@@ -303,8 +303,8 @@ export const InvestmentDashboard = () => {
       {/* Properties Table */}
       <section className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center">
                 <div className="flex space-x-8">
                   {tabs.map((tab) => (
@@ -313,15 +313,15 @@ export const InvestmentDashboard = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`pb-2 border-b-2 font-medium text-sm transition-colors ${
                         activeTab === tab.id
-                          ? 'border-blue-600 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                       }`}
                     >
                       {tab.label}
                     </button>
                   ))}
                 </div>
-                <button className="flex items-center space-x-2 text-gray-500 hover:text-gray-700 text-sm">
+                <button className="flex items-center space-x-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">
                   <Download className="h-4 w-4" />
                   <span>Export</span>
                 </button>
@@ -331,8 +331,8 @@ export const InvestmentDashboard = () => {
             {activeTab === 'properties' && (
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">My Properties</h3>
-                  <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">My Properties</h3>
+                  <button className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
                     <Plus className="h-4 w-4" />
                     <span>Add Investment</span>
                   </button>
@@ -340,32 +340,32 @@ export const InvestmentDashboard = () => {
                 {investments.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="text-gray-400 text-6xl mb-4">🏠</div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No investments yet</h4>
-                    <p className="text-gray-600 mb-6">Start building your real estate portfolio by investing in tokenized properties.</p>
-                    <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No investments yet</h4>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">Start building your real estate portfolio by investing in tokenized properties.</p>
+                    <button className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
                       Browse Properties
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {investments.map((investment, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={index} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{investment.property?.title || 'Property'}</h4>
-                          <p className="text-sm text-gray-500">{investment.property?.location || 'Location'}</p>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">{investment.property?.title || 'Property'}</h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{investment.property?.location || 'Location'}</p>
                         </div>
                         <div className="text-center px-4">
-                          <p className="text-sm font-semibold text-gray-900">{investment.tokens_owned} tokens</p>
-                          <p className="text-sm text-gray-500">${investment.current_value.toLocaleString()} value</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{investment.tokens_owned} tokens</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">${investment.current_value.toLocaleString()} value</p>
                         </div>
                         <div className="text-center px-4">
-                          <p className="text-sm font-semibold text-gray-900">{investment.total_return}% yield</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{investment.total_return}% yield</p>
                         </div>
                         <div className="text-center px-4">
-                          <p className="text-sm font-semibold text-green-600">+${investment.monthly_income}/mo</p>
-                          <p className="text-sm text-gray-500">Active</p>
+                          <p className="text-sm font-semibold text-green-600 dark:text-green-400">+${investment.monthly_income}/mo</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Active</p>
                         </div>
-                        <button className="p-2 text-gray-400 hover:text-gray-600">
+                        <button className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                           <MoreHorizontal className="h-4 w-4" />
                         </button>
                       </div>
@@ -377,22 +377,22 @@ export const InvestmentDashboard = () => {
 
             {activeTab === 'transactions' && (
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Transaction History</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Transaction History</h3>
                 <div className="text-center py-12">
                   <div className="text-gray-400 text-6xl mb-4">💳</div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No transactions yet</h4>
-                  <p className="text-gray-600">Your investment transactions will appear here once you start investing.</p>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No transactions yet</h4>
+                  <p className="text-gray-600 dark:text-gray-400">Your investment transactions will appear here once you start investing.</p>
                 </div>
               </div>
             )}
 
             {activeTab === 'income' && (
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Income History</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Income History</h3>
                 <div className="text-center py-12">
                   <div className="text-gray-400 text-6xl mb-4">💰</div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No income history yet</h4>
-                  <p className="text-gray-600">Your rental income and dividend payments will be tracked here.</p>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No income history yet</h4>
+                  <p className="text-gray-600 dark:text-gray-400">Your rental income and dividend payments will be tracked here.</p>
                 </div>
               </div>
             )}

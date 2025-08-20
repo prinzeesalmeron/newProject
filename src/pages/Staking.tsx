@@ -53,17 +53,17 @@ export const Staking = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <section className="bg-white py-16">
+      <section className="bg-white dark:bg-gray-800 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Staking Rewards</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Staking Rewards</h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Stake your BLOCK tokens to earn passive rewards and participate in platform governance.
             </p>
           </motion.div>
@@ -78,56 +78,56 @@ export const Staking = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Total Staked</div>
-                <TrendingUp className="h-5 w-5 text-blue-500" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Staked</div>
+                <TrendingUp className="h-5 w-5 text-blue-500 dark:text-blue-400" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stakingStats.totalStaked} BLOCK</div>
-              <div className="text-sm text-gray-500">No tokens staked</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stakingStats.totalStaked} BLOCK</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">No tokens staked</div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Total Rewards</div>
-                <DollarSign className="h-5 w-5 text-green-500" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Rewards</div>
+                <DollarSign className="h-5 w-5 text-green-500 dark:text-green-400" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stakingStats.totalRewards} BLOCK</div>
-              <div className="text-sm text-gray-500">No rewards yet</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stakingStats.totalRewards} BLOCK</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">No rewards yet</div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Average APY</div>
-                <TrendingUp className="h-5 w-5 text-yellow-500" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Average APY</div>
+                <TrendingUp className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stakingStats.averageAPY}</div>
-              <div className="text-sm text-gray-500">No active stakes</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stakingStats.averageAPY}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">No active stakes</div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500">Available Balance</div>
-                <Lock className="h-5 w-5 text-purple-500" />
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Available Balance</div>
+                <Lock className="h-5 w-5 text-purple-500 dark:text-purple-400" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stakingStats.availableBalance} BLOCK</div>
-              <div className="text-sm text-gray-500">Ready to stake</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stakingStats.availableBalance} BLOCK</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Ready to stake</div>
             </motion.div>
           </div>
         </div>
@@ -141,13 +141,13 @@ export const Staking = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
             >
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Stake Your Tokens</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Stake Your Tokens</h3>
               
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Staking Pool
                   </label>
                   <div className="space-y-3">
@@ -160,7 +160,7 @@ export const Staking = () => {
                       />
                     ))}
                     {pools.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <p>No staking pools available yet.</p>
                         <p className="text-sm mt-2">Staking pools will be added by the platform administrators.</p>
                       </div>
@@ -169,7 +169,7 @@ export const Staking = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Amount to Stake
                   </label>
                   <div className="relative">
@@ -178,17 +178,17 @@ export const Staking = () => {
                       value={stakeAmount}
                       onChange={(e) => setStakeAmount(e.target.value)}
                       placeholder="Enter amount"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                       BLOCK
                     </span>
                   </div>
                   <div className="mt-2 flex justify-between text-sm">
-                    <span className="text-gray-500">Available: {stakingStats.availableBalance} BLOCK</span>
+                    <span className="text-gray-500 dark:text-gray-400">Available: {stakingStats.availableBalance} BLOCK</span>
                     <button
                       onClick={() => setStakeAmount(stakingStats.availableBalance)}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                     >
                       Use Max
                     </button>
@@ -199,7 +199,7 @@ export const Staking = () => {
               <button
                 onClick={handleStake}
                 disabled={!stakeAmount || !selectedPool || !user || pools.length === 0}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
               >
                 <Lock className="h-4 w-4" />
                 <span>
@@ -217,35 +217,35 @@ export const Staking = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
             >
               <div className="flex items-center space-x-2 mb-6">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Rewards Calculator</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Rewards Calculator</h3>
               </div>
 
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📊</div>
                 {pools.length === 0 ? (
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
                     No staking pools available for rewards calculation
                   </p>
                 ) : (
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
                     Enter an amount and select a pool to calculate rewards
                   </p>
                 )}
                 {selectedPoolData && stakeAmount && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-lg font-semibold text-gray-900">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
                       Estimated Annual Rewards
                     </div>
-                    <div className="text-2xl font-bold text-blue-600 mt-2">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
                       {(parseFloat(stakeAmount) * selectedPoolData.apy / 100).toFixed(2)} BLOCK
                     </div>
-                    <div className="text-sm text-gray-500 mt-1">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       APY: {selectedPoolData.apy}%
                     </div>
                   </div>

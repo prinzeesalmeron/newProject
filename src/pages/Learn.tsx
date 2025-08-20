@@ -57,14 +57,14 @@ export const Learn = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <section className="bg-white py-16">
+      <section className="bg-white dark:bg-gray-800 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold text-gray-900 mb-4"
+            className="text-4xl font-bold text-gray-900 dark:text-white mb-4"
           >
             Learn & Grow
           </motion.h1>
@@ -72,7 +72,7 @@ export const Learn = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-xl text-gray-600 max-w-3xl mx-auto"
+            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
           >
             Master real estate investing with our comprehensive educational resources, courses, and expert insights.
           </motion.p>
@@ -94,21 +94,21 @@ export const Learn = () => {
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">{featuredCourse.title}</h2>
-                  <p className="text-lg mb-6 opacity-90">{featuredCourse.description}</p>
+                  <h2 className="text-3xl font-bold text-white mb-4">{featuredCourse.title}</h2>
+                  <p className="text-lg text-white/90 mb-6">{featuredCourse.description}</p>
                   
                   <div className="flex items-center space-x-6 mb-6">
                     <div className="flex items-center">
-                      <Clock className="h-5 w-5 mr-2" />
-                      <span>{featuredCourse.duration}</span>
+                      <Clock className="h-5 w-5 mr-2 text-white" />
+                      <span className="text-white">{featuredCourse.duration}</span>
                     </div>
                     <div className="flex items-center">
-                      <Users className="h-5 w-5 mr-2" />
-                      <span>{featuredCourse.students_count.toLocaleString()} students</span>
+                      <Users className="h-5 w-5 mr-2 text-white" />
+                      <span className="text-white">{featuredCourse.students_count.toLocaleString()} students</span>
                     </div>
                     <div className="flex items-center">
                       <Star className="h-5 w-5 mr-2 text-yellow-400 fill-current" />
-                      <span>{featuredCourse.rating} rating</span>
+                      <span className="text-white">{featuredCourse.rating} rating</span>
                     </div>
                   </div>
 
@@ -119,10 +119,10 @@ export const Learn = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">What you'll learn:</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">What you'll learn:</h3>
                   <ul className="space-y-2">
                     {featuredCourse.topics.map((topic, index) => (
-                      <li key={index} className="flex items-center">
+                      <li key={index} className="flex items-center text-white">
                         <div className="w-2 h-2 bg-white rounded-full mr-3"></div>
                         {topic}
                       </li>
@@ -141,10 +141,10 @@ export const Learn = () => {
         <section className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {featuredCourse ? 'Popular Courses' : 'Available Courses'}
               </h2>
-              <button className="text-blue-600 hover:text-blue-700 font-medium">
+              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                 View All Courses
               </button>
             </div>
@@ -156,7 +156,7 @@ export const Learn = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
                 >
                   <div className="relative">
                     {course.image_url && (
@@ -166,7 +166,7 @@ export const Learn = () => {
                         className="w-full h-48 object-cover"
                       />
                     )}
-                    <div className="absolute top-3 left-3 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+                    <div className="absolute top-3 left-3 bg-blue-600 dark:bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
                       {course.difficulty}
                     </div>
                     <div className="absolute top-3 right-3 bg-black/50 text-white px-2 py-1 rounded text-xs">
@@ -175,15 +175,15 @@ export const Learn = () => {
                   </div>
 
                   <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{course.description}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{course.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{course.description}</p>
 
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm text-gray-600">{course.rating}</span>
+                        <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">{course.rating}</span>
                       </div>
-                      <div className="flex items-center text-gray-500 text-sm">
+                      <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm">
                         <Users className="h-4 w-4 mr-1" />
                         <span>{course.students_count.toLocaleString()} students</span>
                       </div>
@@ -193,14 +193,14 @@ export const Learn = () => {
                       {course.topics.slice(0, 3).map((topic, topicIndex) => (
                         <span
                           key={topicIndex}
-                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                          className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full"
                         >
                           {topic}
                         </span>
                       ))}
                     </div>
 
-                    <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+                    <button className="w-full bg-blue-600 dark:bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2">
                       <Book className="h-4 w-4" />
                       <span>Start Course</span>
                     </button>
@@ -216,8 +216,8 @@ export const Learn = () => {
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="text-gray-400 text-8xl mb-6">📚</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No courses available yet</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">No courses available yet</h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Educational courses will be added by platform administrators to help you learn about real estate investing and blockchain technology.
             </p>
           </div>
@@ -229,8 +229,8 @@ export const Learn = () => {
         <section className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Latest Articles</h2>
-              <button className="text-blue-600 hover:text-blue-700 font-medium">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Latest Articles</h2>
+              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                 View All Articles
               </button>
             </div>
@@ -242,14 +242,14 @@ export const Learn = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
                 >
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
                         {article.category}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(article.published_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -258,15 +258,15 @@ export const Learn = () => {
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{article.title}</h3>
-                    <p className="text-gray-600 mb-4">{article.excerpt}</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{article.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">{article.excerpt}</p>
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-500">By {article.author}</span>
-                        <span className="text-sm text-gray-500">{article.read_time}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">By {article.author}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">{article.read_time}</span>
                       </div>
-                      <button className="text-blue-600 hover:text-blue-700 font-medium">
+                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                         Read More
                       </button>
                     </div>
@@ -277,11 +277,11 @@ export const Learn = () => {
           </div>
         </section>
       ) : (
-        <section className="py-16 bg-gray-100">
+        <section className="py-16 bg-gray-100 dark:bg-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="text-gray-400 text-8xl mb-6">📰</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No articles available yet</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">No articles available yet</h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Educational articles and market insights will be published by our team to keep you informed about real estate investment trends.
             </p>
           </div>
@@ -289,11 +289,11 @@ export const Learn = () => {
       )}
 
       {/* FAQ Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white dark:bg-gray-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-            <p className="text-lg text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
               Get answers to the most common questions about real estate tokenization.
             </p>
           </div>
@@ -305,22 +305,22 @@ export const Learn = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 rounded-lg"
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg"
               >
                 <button
                   onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                  className="w-full text-left p-6 flex justify-between items-center hover:bg-gray-100 transition-colors"
+                  className="w-full text-left p-6 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                 >
-                  <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{faq.question}</h3>
                   {expandedFaq === index ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                    <ChevronUp className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                    <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   )}
                 </button>
                 {expandedFaq === index && (
                   <div className="px-6 pb-6">
-                    <p className="text-gray-600">{faq.answer}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{faq.answer}</p>
                   </div>
                 )}
               </motion.div>
@@ -330,17 +330,17 @@ export const Learn = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-blue-600">
+      <section className="py-16 bg-blue-600 dark:bg-blue-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Investing?</h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-blue-100 dark:text-blue-200 mb-8">
             Join thousands of investors already building wealth with fractional real estate.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <button className="bg-white text-blue-600 dark:text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               Browse Properties
             </button>
-            <button className="bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors">
+            <button className="bg-blue-700 dark:bg-blue-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 dark:hover:bg-blue-900 transition-colors">
               Join Community
             </button>
           </div>

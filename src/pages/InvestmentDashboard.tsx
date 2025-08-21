@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Home, BarChart3, Download, MoreHorizontal, Plus, Code, Zap } from 'lucide-react';
-import { Investment, UserProfile, mockApi } from '../lib/mockData';
+import { Investment, UserProfile } from '../lib/supabase';
+import { PortfolioAPI, TransactionAPI, NotificationAPI } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useWallet } from '../lib/wallet';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -9,8 +10,9 @@ import { motion } from 'framer-motion';
 export const InvestmentDashboard = () => {
   const { user } = useAuth();
   const { isConnected, address, blockBalance } = useWallet();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [investments, setInvestments] = useState<Investment[]>([]);
+  const [portfolio, setPortfolio] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('properties');
 
@@ -38,13 +40,17 @@ export const InvestmentDashboard = () => {
         return;
       }
 
-      // Fetch user profile
-      const profileData = await mockApi.getUserProfile();
-      setProfile(profileData);
+      // Fetch portfolio data
+      const portfolioData = await PortfolioAPI.getUserPortfolio();
+      setPortfolio(portfolioData);
 
-      // Fetch investments with property details
-      const investmentsData = await mockApi.getInvestments();
-      setInvestments(investmentsData);
+      // Fetch transactions
+      const transactionData = await TransactionAPI.getUserTransactions();
+      setTransactions(transactionData);
+
+      // Fetch notifications
+      const notificationData = await NotificationAPI.getUserNotifications();
+      setNotifications(notificationData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -53,10 +59,10 @@ export const InvestmentDashboard = () => {
   };
 
   const stats = {
-    totalValue: investments.reduce((sum, inv) => sum + inv.current_value, 0),
-    monthlyIncome: investments.reduce((sum, inv) => sum + inv.monthly_income, 0),
-    propertiesOwned: investments.length,
-    averageYield: investments.length > 0 ? investments.reduce((sum, inv) => sum + inv.total_return, 0) / investments.length : 0,
+    totalValue: portfolio?.summary?.current_value || 0,
+    monthlyIncome: portfolio?.summary?.total_rental_income || 0,
+    propertiesOwned: portfolio?.summary?.properties_count || 0,
+    averageYield: portfolio?.summary?.total_return || 0,
     blockBalance: blockBalance || 0
   };
 

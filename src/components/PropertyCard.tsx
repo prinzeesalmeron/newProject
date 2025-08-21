@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, TrendingUp, MapPin, Star } from 'lucide-react';
-import { Property } from '../lib/mockData';
+import { Property } from '../lib/supabase';
 import { motion } from 'framer-motion';
 import { useAuth } from '../lib/auth';
 

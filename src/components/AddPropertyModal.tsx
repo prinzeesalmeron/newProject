@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { X, Upload } from 'lucide-react';
-import { Property } from '../lib/mockData';
+import { Property } from '../lib/supabase';
 
 interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (property: Omit<Property, 'id'>) => void;
+  onAdd: (property: Omit<Property, 'id' | 'created_at' | 'updated_at'>) => void;
 }
 
 export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
@@ -34,7 +34,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const property: Omit<Property, 'id'> = {
+    const property: Omit<Property, 'id' | 'created_at' | 'updated_at'> = {
       ...formData,
       features: formData.features.split(',').map(f => f.trim()).filter(f => f),
       yield_percentage: formData.yield_percentage || `${formData.rental_yield}%`

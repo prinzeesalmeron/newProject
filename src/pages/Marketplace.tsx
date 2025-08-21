@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, SlidersHorizontal, Plus } from 'lucide-react';
 import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
-import { Property, mockApi } from '../lib/mockData';
+import { Property } from '../lib/supabase';
+import { PropertyAPI } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
@@ -31,7 +32,7 @@ export const Marketplace = () => {
 
   const fetchProperties = async () => {
     try {
-      const data = await mockApi.getProperties();
+      const data = await PropertyAPI.getAllProperties();
       setProperties(data);
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -42,7 +43,7 @@ export const Marketplace = () => {
 
   const handleAddProperty = async (propertyData: Omit<Property, 'id'>) => {
     try {
-      const newProperty = await mockApi.addProperty(propertyData);
+      const newProperty = await PropertyAPI.createProperty(propertyData);
       setProperties(prev => [...prev, newProperty]);
     } catch (error) {
       console.error('Error adding property:', error);
@@ -62,7 +63,23 @@ export const Marketplace = () => {
       alert('Please sign in to invest in properties');
       return;
     }
-    // Handle investment logic here
+    
+    // In a real implementation, this would open an investment modal
+    // For now, we'll simulate an investment
+    const tokenAmount = 10; // Example: buying 10 tokens
+    const property = properties.find(p => p.id === propertyId);
+    if (property) {
+      const totalCost = tokenAmount * property.price_per_token;
+      PropertyAPI.investInProperty(propertyId, tokenAmount, totalCost)
+        .then(() => {
+          alert(`Successfully invested $${totalCost} in ${property.title}!`);
+          fetchProperties(); // Refresh properties to update available tokens
+        })
+        .catch(error => {
+          console.error('Investment failed:', error);
+          alert('Investment failed. Please try again.');
+        });
+    }
   };
 
   if (loading) {

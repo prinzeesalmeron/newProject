@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, DollarSign, Lock, Code, Zap } from 'lucide-react';
 import { StakingPoolCard } from '../components/StakingPoolCard';
 import { SmartContractInterface } from '../components/SmartContractInterface';
-import { StakingPool, mockApi } from '../lib/mockData';
+import { StakingPool } from '../lib/supabase';
+import { StakingAPI } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
@@ -26,7 +27,7 @@ export const Staking = () => {
 
   const fetchStakingPools = async () => {
     try {
-      const data = await mockApi.getStakingPools();
+      const data = await StakingAPI.getStakingPools();
       setPools(data);
       if (data && data.length > 0) {
         setSelectedPool(data[0].id);
@@ -39,8 +40,18 @@ export const Staking = () => {
   };
 
   const handleStake = () => {
-    console.log('Staking:', stakeAmount, 'in pool:', selectedPool);
-    // Handle staking logic
+    if (!user || !stakeAmount || !selectedPool) return;
+    
+    StakingAPI.stakeTokens(selectedPool, parseFloat(stakeAmount))
+      .then(() => {
+        alert(`Successfully staked ${stakeAmount} BLOCK tokens!`);
+        setStakeAmount('');
+        fetchStakingPools(); // Refresh data
+      })
+      .catch(error => {
+        console.error('Staking failed:', error);
+        alert('Staking failed. Please try again.');
+      });
   };
 
   const selectedPoolData = pools.find(pool => pool.id === selectedPool);

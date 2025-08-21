@@ -1,4 +1,5 @@
 import { supabase, Property, StakingPool, Course, Article, Investment } from './supabase';
+import { DatabaseService } from './database';
 import { mockProperties, mockStakingPools, mockCourses, mockArticles } from './mockData';
 
 export class PropertyAPI {
@@ -209,6 +210,27 @@ export class InvestmentAPI {
       return data || [];
     } catch (error) {
       console.error('Error fetching user investments:', error);
+      return [];
+    }
+  }
+}
+
+export class NotificationAPI {
+  static async getUserNotifications(userId: string) {
+    if (!supabase) {
+      // Return mock notifications when Supabase is not configured
+      return [];
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      return await DatabaseService.getUserNotifications(user.id);
+    } catch (error) {
+      console.error('Error fetching user notifications:', error);
       return [];
     }
   }

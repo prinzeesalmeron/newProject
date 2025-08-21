@@ -235,3 +235,59 @@ export class NotificationAPI {
     }
   }
 }
+
+export class PortfolioAPI {
+  static async getUserPortfolio() {
+    if (!supabase) {
+      // Return mock portfolio when Supabase is not configured
+      return {
+        summary: {
+          current_value: 0,
+          total_rental_income: 0,
+          properties_count: 0,
+          total_return: 0
+        }
+      };
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      return await DatabaseService.getUserPortfolioSummary(user.id);
+    } catch (error) {
+      console.error('Error fetching user portfolio:', error);
+      return {
+        summary: {
+          current_value: 0,
+          total_rental_income: 0,
+          properties_count: 0,
+          total_return: 0
+        }
+      };
+    }
+  }
+}
+
+export class TransactionAPI {
+  static async getUserTransactions() {
+    if (!supabase) {
+      // Return mock transactions when Supabase is not configured
+      return [];
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      return await DatabaseService.getUserTransactions(user.id);
+    } catch (error) {
+      console.error('Error fetching user transactions:', error);
+      return [];
+    }
+  }
+}

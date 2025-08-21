@@ -1,247 +1,215 @@
-import { supabase } from './supabase';
-import { DatabaseService } from './database';
-import { getAuthToken } from './auth';
+import { supabase, Property, StakingPool, Course, Article, Investment } from './supabase';
+import { mockProperties, mockStakingPools, mockCourses, mockArticles } from './mockData';
 
-// Property Management APIs
 export class PropertyAPI {
-  static async getAllProperties() {
-    return await DatabaseService.getProperties();
+  static async getAllProperties(): Promise<Property[]> {
+    if (!supabase) {
+      console.log('Supabase not configured, using mock data');
+      return mockProperties;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'active');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching properties from Supabase:', error);
+      console.log('Falling back to mock data');
+      return mockProperties;
+    }
   }
 
-  static async getProperty(id: string) {
-    return await DatabaseService.getProperty(id);
+  static async getPropertyById(id: string): Promise<Property | null> {
+    if (!supabase) {
+      return mockProperties.find(p => p.id === id) || null;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching property:', error);
+      return mockProperties.find(p => p.id === id) || null;
+    }
   }
 
-  static async createProperty(propertyData: any) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
+  static async createProperty(property: Omit<Property, 'id'>): Promise<Property> {
+    if (!supabase) {
+      const newProperty: Property = {
+        ...property,
+        id: Math.random().toString(36).substr(2, 9)
+      };
+      mockProperties.push(newProperty);
+      return newProperty;
+    }
 
-    return await DatabaseService.createProperty(propertyData);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .insert([property])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating property:', error);
+      throw error;
+    }
   }
 
-  static async updateProperty(id: string, updates: any) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
+  static async investInProperty(propertyId: string, tokenAmount: number, totalCost: number): Promise<void> {
+    if (!supabase) {
+      console.log(`Mock investment: ${tokenAmount} tokens in property ${propertyId} for $${totalCost}`);
+      // Update mock data
+      const property = mockProperties.find(p => p.id === propertyId);
+      if (property) {
+        property.available_tokens = Math.max(0, property.available_tokens - tokenAmount);
+      }
+      return;
+    }
 
-    return await DatabaseService.updateProperty(id, updates);
-  }
+    try {
+      // In a real implementation, this would create an investment record
+      // and update the property's available tokens
+      const { error } = await supabase.rpc('invest_in_property', {
+        property_id: propertyId,
+        token_amount: tokenAmount,
+        total_cost: totalCost
+      });
 
-  static async investInProperty(propertyId: string, tokenAmount: number, totalCost: number) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    // Start transaction
-    const { data, error } = await supabase.rpc('invest_in_property', {
-      p_user_id: user.id,
-      p_property_id: propertyId,
-      p_token_amount: tokenAmount,
-      p_total_cost: totalCost
-    });
-
-    if (error) throw error;
-    return data;
-  }
-
-  static async getPropertyPerformance(propertyId: string) {
-    return await DatabaseService.getPropertyPerformance(propertyId);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error investing in property:', error);
+      throw error;
+    }
   }
 }
 
-// Transaction Engine APIs
-export class TransactionAPI {
-  static async createTransaction(transactionData: any) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    return await DatabaseService.createTransaction({
-      ...transactionData,
-      user_id: user.id
-    });
-  }
-
-  static async getUserTransactions() {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    return await DatabaseService.getUserTransactions(user.id);
-  }
-
-  static async updateTransactionStatus(id: string, status: string, txHash?: string) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    return await DatabaseService.updateTransactionStatus(id, status, txHash);
-  }
-
-  static async processRentalDistribution(propertyId: string, monthYear: string) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    return await DatabaseService.distributeRentalIncome(propertyId, monthYear);
-  }
-}
-
-// Staking APIs
 export class StakingAPI {
-  static async getStakingPools() {
-    return await DatabaseService.getStakingPools();
+  static async getAllPools(): Promise<StakingPool[]> {
+    if (!supabase) {
+      return mockStakingPools;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('staking_pools')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching staking pools:', error);
+      return mockStakingPools;
+    }
   }
 
-  static async getUserStakes() {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
+  static async stakeTokens(poolId: string, amount: number): Promise<void> {
+    if (!supabase) {
+      console.log(`Mock staking: ${amount} tokens in pool ${poolId}`);
+      return;
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
+    try {
+      const { error } = await supabase.rpc('stake_tokens', {
+        pool_id: poolId,
+        stake_amount: amount
+      });
 
-    return await DatabaseService.getUserStakes(user.id);
-  }
-
-  static async stakeTokens(poolId: string, amount: number) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    // Calculate unlock date based on pool lock period
-    const pools = await DatabaseService.getStakingPools();
-    const pool = pools.find(p => p.id === poolId);
-    if (!pool) throw new Error('Staking pool not found');
-
-    const unlockDate = pool.lock_period > 0 
-      ? new Date(Date.now() + pool.lock_period * 24 * 60 * 60 * 1000).toISOString()
-      : undefined;
-
-    // Create stake record
-    const stake = await DatabaseService.createStake({
-      user_id: user.id,
-      pool_id: poolId,
-      amount_staked: amount,
-      unlock_date: unlockDate
-    });
-
-    // Create transaction record
-    await DatabaseService.createTransaction({
-      user_id: user.id,
-      transaction_type: 'deposit',
-      amount: amount,
-      status: 'completed',
-      description: `Staked ${amount} BLOCK tokens in ${pool.name}`,
-      metadata: { stake_id: stake.id, pool_name: pool.name }
-    });
-
-    return stake;
-  }
-
-  static async unstakeTokens(stakeId: string) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    // Update stake to inactive
-    const stake = await DatabaseService.updateStake(stakeId, { is_active: false });
-
-    // Create transaction record
-    await DatabaseService.createTransaction({
-      user_id: user.id,
-      transaction_type: 'withdrawal',
-      amount: stake.amount_staked,
-      status: 'completed',
-      description: `Unstaked ${stake.amount_staked} BLOCK tokens`,
-      metadata: { stake_id: stakeId }
-    });
-
-    return stake;
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error staking tokens:', error);
+      throw error;
+    }
   }
 }
 
-// User Portfolio APIs
-export class PortfolioAPI {
-  static async getUserPortfolio() {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
+export class LearningAPI {
+  static async getAllCourses(): Promise<Course[]> {
+    if (!supabase) {
+      return mockCourses;
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    return await DatabaseService.getUserPortfolioSummary(user.id);
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      return mockCourses;
+    }
   }
 
-  static async getUserShares() {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
+  static async getAllArticles(): Promise<Article[]> {
+    if (!supabase) {
+      return mockArticles;
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .order('published_date', { ascending: false });
 
-    return await DatabaseService.getUserShares(user.id);
-  }
-}
-
-// Notification APIs
-export class NotificationAPI {
-  static async getUserNotifications() {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    return await DatabaseService.getUserNotifications(user.id);
-  }
-
-  static async markAsRead(notificationId: string) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    return await DatabaseService.markNotificationAsRead(notificationId);
-  }
-
-  static async sendNotification(userId: string, title: string, message: string, type = 'info') {
-    return await DatabaseService.createNotification({
-      user_id: userId,
-      title,
-      message,
-      type
-    });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      return mockArticles;
+    }
   }
 }
 
-// KYC APIs
-export class KYCAPI {
-  static async submitDocument(documentType: string, documentUrl: string) {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
+export class InvestmentAPI {
+  static async getUserInvestments(userId: string): Promise<Investment[]> {
+    if (!supabase) {
+      // Return mock investments for demo
+      return [
+        {
+          id: '1',
+          user_id: userId,
+          property_id: 'prop1',
+          tokens_owned: 50,
+          purchase_price: 5000,
+          current_value: 5250,
+          monthly_income: 125,
+          total_return: 375,
+          purchase_date: '2024-01-15',
+          property: mockProperties[0]
+        }
+      ];
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
+    try {
+      const { data, error } = await supabase
+        .from('investments')
+        .select(`
+          *,
+          property:properties(*)
+        `)
+        .eq('user_id', userId);
 
-    return await DatabaseService.submitKYCDocument({
-      user_id: user.id,
-      document_type: documentType,
-      document_url: documentUrl
-    });
-  }
-
-  static async getKYCStatus() {
-    const token = await getAuthToken();
-    if (!token) throw new Error('Authentication required');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not found');
-
-    return await DatabaseService.getUserKYCStatus(user.id);
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user investments:', error);
+      return [];
+    }
   }
 }

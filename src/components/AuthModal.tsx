@@ -84,8 +84,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         localStorage.setItem('user', JSON.stringify(userData));
       }
       
-      // Trigger a custom event to notify other components
-      window.dispatchEvent(new CustomEvent('userAuthenticated'));
       onClose();
     } catch (error: any) {
       setErrors({ submit: 'Authentication failed. Please try again.' });

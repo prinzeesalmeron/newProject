@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Settings, LogOut, Wallet, Copy, Check, Edit2, Save, X } from 'lucide-react';
+import { useAuth } from '../lib/auth';
 import { useWallet } from '../lib/wallet';
 import { WalletButton } from './WalletButton';
 
@@ -10,7 +11,7 @@ interface UserProfileProps {
 
 export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
   const { isConnected, address, balance, blockBalance, provider, disconnectWallet } = useWallet();
-  const [user, setUser] = useState<any>(null);
+  const { user, profile, signOut, updateProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -21,35 +22,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
 
   useEffect(() => {
     if (isOpen) {
-      fetchUserData();
-    }
-  }, [isOpen]);
-
-  const fetchUserData = async () => {
-    try {
-      // Get user from localStorage (mock data)
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+      if (profile) {
         setEditForm({
-          fullName: parsedUser.fullName || '',
-          email: parsedUser.email || ''
+          fullName: profile.full_name || '',
+          email: profile.email || ''
         });
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    } finally {
       setLoading(false);
     }
-  };
+  }, [isOpen, profile]);
 
   const handleSignOut = async () => {
     try {
-      localStorage.removeItem('user');
+      await signOut();
       disconnectWallet();
-      setUser(null);
-      window.dispatchEvent(new CustomEvent('userSignedOut'));
       onClose();
     } catch (error) {
       console.error('Error signing out:', error);
@@ -57,21 +43,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
   };
 
   const handleSaveProfile = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     try {
-      const updatedUser = {
-        ...user,
-        fullName: editForm.fullName,
+      await updateProfile({
+        full_name: editForm.fullName,
         email: editForm.email
-      };
-      
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      });
       setEditing(false);
-      
-      // Trigger update event
-      window.dispatchEvent(new CustomEvent('userUpdated'));
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile');
@@ -159,7 +138,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
             ) : (
               <>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {user?.fullName || 'User'}
+                  {profile?.full_name || user?.email || 'User'}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
                 <button

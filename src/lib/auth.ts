@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { supabase } from './supabase';
-import { DatabaseService } from './database';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
@@ -38,7 +37,16 @@ export const useAuth = create<AuthState>((set, get) => ({
       if (session?.user) {
         // Get user profile from database
         try {
-          const profile = await DatabaseService.getUserProfile(session.user.id);
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', profileError);
+          }
+
           set({ 
             user: session.user, 
             session, 
@@ -64,7 +72,16 @@ export const useAuth = create<AuthState>((set, get) => ({
         
         if (session?.user) {
           try {
-            const profile = await DatabaseService.getUserProfile(session.user.id);
+            const { data: profile, error: profileError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profileError && profileError.code !== 'PGRST116') {
+              console.error('Error fetching profile on auth change:', profileError);
+            }
+
             set({ 
               user: session.user, 
               session, 
@@ -135,22 +152,21 @@ export const useAuth = create<AuthState>((set, get) => ({
       if (data.user) {
         // Create user profile in database
         try {
-          await DatabaseService.createUser({
-            id: data.user.id,
-            email: data.user.email!,
-            full_name: fullName,
-            ...additionalData
-          });
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert([{
+              id: data.user.id,
+              email: data.user.email!,
+              full_name: fullName,
+              ...additionalData
+            }]);
 
-          // Create welcome notification
-          await DatabaseService.createNotification({
-            user_id: data.user.id,
-            title: 'Welcome to BlockEstate!',
-            message: 'Your account has been created successfully. Start exploring investment opportunities.',
-            type: 'success'
-          });
-
-          console.log('User profile created successfully');
+          if (profileError) {
+            console.error('Error creating user profile:', profileError);
+            // Don't throw here as the auth user was created successfully
+          } else {
+            console.log('User profile created successfully');
+          }
         } catch (profileError) {
           console.error('Error creating user profile:', profileError);
           // Don't throw here as the auth user was created successfully
@@ -189,18 +205,17 @@ export const useAuth = create<AuthState>((set, get) => ({
 
     set({ loading: true });
     try {
-      const updatedProfile = await DatabaseService.updateUserProfile(user.id, updates);
-      set({ profile: updatedProfile });
+      const { data, error } = await supabase
+        .from('users')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
       
-      // Create notification for profile update
-      await DatabaseService.createNotification({
-        user_id: user.id,
-        title: 'Profile Updated',
-        message: 'Your profile has been updated successfully.',
-        type: 'success'
-      });
-      
-      return updatedProfile;
+      set({ profile: data });
+      return data;
     } catch (error: any) {
       console.error('Profile update error:', error);
       throw error;
@@ -214,8 +229,18 @@ export const useAuth = create<AuthState>((set, get) => ({
     if (!user) return;
 
     try {
-      const profile = await DatabaseService.getUserProfile(user.id);
-      set({ profile });
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error refreshing profile:', error);
+        return;
+      }
+
+      set({ profile: data });
     } catch (error) {
       console.error('Error refreshing profile:', error);
     }

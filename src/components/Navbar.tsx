@@ -15,6 +15,11 @@ export const Navbar = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
+  // Listen for auth state changes
+  useEffect(() => {
+    // No need for manual event listeners since useAuth handles state automatically
+  }, []);
+
   const isActive = (path: string) => location.pathname === path;
 
   // Close mobile menu when route changes

@@ -25,6 +25,13 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
+      // Check if Supabase is configured
+      if (!supabase) {
+        console.warn('Supabase is not configured. Auth features will be disabled.');
+        set({ initialized: true });
+        return;
+      }
+
       // Get initial session
       const { data: { session }, error } = await supabase.auth.getSession();
       
@@ -111,6 +118,10 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signIn: async (email: string, password: string) => {
+    if (!supabase) {
+      throw new Error('Supabase is not configured');
+    }
+    
     set({ loading: true });
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -133,6 +144,10 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signUp: async (email: string, password: string, fullName: string, additionalData = {}) => {
+    if (!supabase) {
+      throw new Error('Supabase is not configured');
+    }
+    
     set({ loading: true });
     try {
       // Sign up with Supabase Auth
@@ -181,6 +196,10 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    if (!supabase) {
+      throw new Error('Supabase is not configured');
+    }
+    
     set({ loading: true });
     try {
       const { error } = await supabase.auth.signOut();
@@ -202,6 +221,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   updateProfile: async (updates: any) => {
     const { user } = get();
     if (!user) throw new Error('No user logged in');
+    if (!supabase) throw new Error('Supabase is not configured');
 
     set({ loading: true });
     try {
@@ -227,6 +247,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   refreshProfile: async () => {
     const { user } = get();
     if (!user) return;
+    if (!supabase) return;
 
     try {
       const { data, error } = await supabase
@@ -249,6 +270,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
 // JWT token management for API calls
 export const getAuthToken = async (): Promise<string | null> => {
+  if (!supabase) return null;
   const { data: { session } } = await supabase.auth.getSession();
   return session?.access_token || null;
 };

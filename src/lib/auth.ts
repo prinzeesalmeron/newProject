@@ -28,6 +28,25 @@ export const useAuth = create<AuthState>((set, get) => ({
       // Check if Supabase is configured
       if (!supabase) {
         console.warn('Supabase is not configured. Auth features will be disabled.');
+        
+        // Check for mock user in localStorage
+        const mockUserData = localStorage.getItem('mock_user');
+        if (mockUserData) {
+          try {
+            const { user, profile } = JSON.parse(mockUserData);
+            set({ 
+              user, 
+              profile,
+              initialized: true 
+            });
+            console.log('Loaded mock user from localStorage');
+            return;
+          } catch (e) {
+            console.error('Error parsing mock user data:', e);
+            localStorage.removeItem('mock_user');
+          }
+        }
+        
         set({ initialized: true });
         return;
       }
@@ -145,11 +164,43 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signUp: async (email: string, password: string, fullName: string, additionalData = {}) => {
     if (!supabase) {
-      throw new Error('Supabase is not configured');
+      // If Supabase is not configured, simulate successful registration
+      console.warn('Supabase not configured - simulating registration');
+      const mockUser = {
+        id: Date.now().toString(),
+        email,
+        created_at: new Date().toISOString(),
+        user_metadata: { full_name: fullName }
+      };
+      
+      // Store in localStorage for demo purposes
+      localStorage.setItem('mock_user', JSON.stringify({
+        user: mockUser,
+        profile: {
+          id: mockUser.id,
+          email,
+          full_name: fullName,
+          ...additionalData
+        }
+      }));
+      
+      set({ 
+        user: mockUser as any,
+        profile: {
+          id: mockUser.id,
+          email,
+          full_name: fullName,
+          ...additionalData
+        }
+      });
+      
+      return;
     }
     
     set({ loading: true });
     try {
+      console.log('Starting Supabase registration for:', email);
+      
       // Sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -162,11 +213,18 @@ export const useAuth = create<AuthState>((set, get) => ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase auth signup error:', error);
+        throw error;
+      }
+
+      console.log('Supabase auth signup successful:', data.user?.email);
 
       if (data.user) {
         // Create user profile in database
         try {
+          console.log('Creating user profile in database...');
+          
           const { error: profileError } = await supabase
             .from('users')
             .insert([{
@@ -178,32 +236,60 @@ export const useAuth = create<AuthState>((set, get) => ({
 
           if (profileError) {
             console.error('Error creating user profile:', profileError);
-            // Don't throw here as the auth user was created successfully
+            
+            // If it's a duplicate key error, that's actually okay
+            if (profileError.code === '23505') {
+              console.log('User profile already exists, continuing...');
+            } else {
+              // For other errors, we should still notify the user but not fail completely
+              console.warn('Profile creation failed but auth user was created:', profileError.message);
+            }
           } else {
             console.log('User profile created successfully');
           }
         } catch (profileError) {
           console.error('Error creating user profile:', profileError);
-          // Don't throw here as the auth user was created successfully
+          console.warn('Profile creation failed but auth user was created');
+        }
+        
+        // Check if email confirmation is required
+        if (!data.session) {
+          console.log('Email confirmation required');
+          // You might want to show a message to the user about email confirmation
         }
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
-      throw new Error(error.message || 'Failed to create account');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to create account';
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'An account with this email already exists';
+      } else if (error.message?.includes('password')) {
+        errorMessage = 'Password must be at least 6 characters long';
+      } else if (error.message?.includes('email')) {
+        errorMessage = 'Please enter a valid email address';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
     } finally {
       set({ loading: false });
     }
   },
 
   signOut: async () => {
-    if (!supabase) {
-      throw new Error('Supabase is not configured');
-    }
-    
     set({ loading: true });
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (supabase) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      } else {
+        // Clear mock user data
+        localStorage.removeItem('mock_user');
+        console.log('Cleared mock user data');
+      }
       
       set({ 
         user: null, 

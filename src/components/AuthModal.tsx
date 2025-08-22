@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
+import { useAuth } from '../lib/auth';
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,6 +14,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialMode = 'login'
 }) => {
+  const { signUp, signIn, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -60,33 +63,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (mode === 'register') {
-        // Mock registration
-        const userData = {
-          id: Date.now().toString(),
-          email: formData.email,
-          fullName: formData.fullName,
-          createdAt: new Date().toISOString()
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
-        alert('Registration successful!');
+        await signUp(formData.email, formData.password, formData.fullName);
+        alert('Registration successful! Please check your email if confirmation is required.');
       } else {
-        // Mock login
-        const userData = {
-          id: '1',
-          email: formData.email,
-          fullName: 'Demo User',
-          createdAt: new Date().toISOString()
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
+        await signIn(formData.email, formData.password);
       }
       
       onClose();
+      
+      // Reset form
+      setFormData({
+        email: '',
+        password: '',
+        fullName: '',
+        confirmPassword: ''
+      });
     } catch (error: any) {
-      setErrors({ submit: 'Authentication failed. Please try again.' });
+      console.error('Authentication error:', error);
+      setErrors({ submit: error.message || 'Authentication failed. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -230,10 +225,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || authLoading}
             className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-blue-400 dark:disabled:bg-blue-600 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+            {(loading || authLoading) ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
 
           <div className="text-center">

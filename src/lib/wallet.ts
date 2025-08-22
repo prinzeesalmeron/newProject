@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { contractService } from './contracts';
+import { supabase } from './supabase';
 
 declare global {
   interface Window {
@@ -160,12 +161,16 @@ export const useWallet = create<WalletState>()(
           let blockBalance = Math.floor(Math.random() * 10000) + 100;
           
           // Try to get real BLOCK token balance from smart contract
-          try {
-            await contractService.initialize(provider);
-            const realBalance = await contractService.getBlockTokenBalance(address);
-            blockBalance = Math.floor(parseFloat(realBalance));
-          } catch (error) {
-            console.log('Using simulated BLOCK balance - contracts not available:', error);
+          // Only attempt to get real BLOCK token balance if supabase is configured
+          // This prevents call revert exceptions when using placeholder contract addresses
+          if (supabase) {
+            try {
+              await contractService.initialize(provider);
+              const realBalance = await contractService.getBlockTokenBalance(address);
+              blockBalance = Math.floor(parseFloat(realBalance));
+            } catch (error) {
+              console.log('Using simulated BLOCK balance - contracts not available:', error);
+            }
           }
           
           set({

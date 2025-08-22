@@ -196,14 +196,24 @@ export const useAuth = create<AuthState>((set, get) => ({
         try {
           console.log('Creating user profile in database...');
           
-          const { error: profileError } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('users')
             .insert([{
               id: data.user.id,
               email: data.user.email!,
               full_name: fullName,
+              phone: additionalData.phone || null,
+              date_of_birth: additionalData.date_of_birth || null,
+              address: additionalData.address || null,
+              kyc_status: 'pending',
+              role: 'investor',
+              block_balance: 0,
+              total_portfolio_value: 0,
+              is_active: true,
               ...additionalData
-            }]);
+            }])
+            .select()
+            .single();
 
           if (profileError) {
             console.error('Error creating user profile:', profileError);
@@ -211,17 +221,40 @@ export const useAuth = create<AuthState>((set, get) => ({
             // If it's a duplicate key error, that's actually okay
             if (profileError.code === '23505') {
               console.log('User profile already exists, continuing...');
+              
+              // Try to fetch existing profile
+              const { data: existingProfile } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', data.user.id)
+                .single();
+              
+              set({ 
+                user: data.user, 
+                session: data.session,
+                profile: existingProfile 
+              });
             } else {
               // For other errors, we should still notify the user but not fail completely
               console.warn('Profile creation failed but auth user was created:', profileError.message);
+              throw new Error(`Failed to create user profile: ${profileError.message}`);
             }
           } else {
             console.log('User profile created successfully');
+            
+            // Set the user and profile in state
+            set({ 
+              user: data.user, 
+              session: data.session,
+              profile: profileData 
+            });
           }
         } catch (profileError) {
           console.error('Error creating user profile:', profileError);
-          console.warn('Profile creation failed but auth user was created');
+          throw new Error('Failed to create user profile in database');
         }
+      } else {
+        throw new Error('User registration failed - no user data returned');
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -234,6 +267,8 @@ export const useAuth = create<AuthState>((set, get) => ({
         errorMessage = 'Password must be at least 6 characters long';
       } else if (error.message?.includes('email')) {
         errorMessage = 'Please enter a valid email address';
+      } else if (error.message?.includes('user profile')) {
+        errorMessage = error.message;
       } else if (error.message) {
         errorMessage = error.message;
       }

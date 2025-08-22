@@ -81,7 +81,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       });
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setErrors({ submit: error.message || 'Authentication failed. Please try again.' });
+      let errorMessage = error.message || 'Authentication failed. Please try again.';
+      
+      if (error.message === 'Email not confirmed') {
+        errorMessage = 'Your email address has not been confirmed. Please check your inbox for a confirmation link to activate your account.';
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
     }

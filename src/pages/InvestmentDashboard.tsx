@@ -13,6 +13,7 @@ export const InvestmentDashboard = () => {
   const [portfolio, setPortfolio] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [investments, setInvestments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('properties');
 
@@ -43,6 +44,7 @@ export const InvestmentDashboard = () => {
       // Fetch portfolio data
       const portfolioData = await PortfolioAPI.getUserPortfolio();
       setPortfolio(portfolioData);
+      setInvestments(portfolioData.shares || []);
 
       // Fetch transactions
       const transactionData = await TransactionAPI.getUserTransactions();

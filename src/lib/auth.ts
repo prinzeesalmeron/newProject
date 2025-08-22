@@ -67,7 +67,7 @@ export const useAuth = create<AuthState>((set, get) => ({
             .from('users')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (profileError && profileError.code !== 'PGRST116') {
             console.error('Error fetching profile:', profileError);
@@ -102,7 +102,7 @@ export const useAuth = create<AuthState>((set, get) => ({
               .from('users')
               .select('*')
               .eq('id', session.user.id)
-              .single();
+              .maybeSingle();
 
             if (profileError && profileError.code !== 'PGRST116') {
               console.error('Error fetching profile on auth change:', profileError);
@@ -335,7 +335,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         .from('users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error refreshing profile:', error);

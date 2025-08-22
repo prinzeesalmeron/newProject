@@ -209,7 +209,8 @@ export const useAuth = create<AuthState>((set, get) => ({
           data: {
             full_name: fullName,
             ...additionalData
-          }
+          },
+          emailRedirectTo: undefined
         }
       });
 
@@ -250,12 +251,6 @@ export const useAuth = create<AuthState>((set, get) => ({
         } catch (profileError) {
           console.error('Error creating user profile:', profileError);
           console.warn('Profile creation failed but auth user was created');
-        }
-        
-        // Check if email confirmation is required
-        if (!data.session) {
-          console.log('Email confirmation required');
-          // You might want to show a message to the user about email confirmation
         }
       }
     } catch (error: any) {

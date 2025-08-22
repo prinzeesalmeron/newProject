@@ -138,7 +138,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signIn: async (email: string, password: string) => {
     if (!supabase) {
-      throw new Error('Supabase is not configured');
+      throw new Error('Supabase is not configured. Please set up your environment variables.');
     }
     
     set({ loading: true });
@@ -164,37 +164,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signUp: async (email: string, password: string, fullName: string, additionalData = {}) => {
     if (!supabase) {
-      // If Supabase is not configured, simulate successful registration
-      console.warn('Supabase not configured - simulating registration');
-      const mockUser = {
-        id: Date.now().toString(),
-        email,
-        created_at: new Date().toISOString(),
-        user_metadata: { full_name: fullName }
-      };
-      
-      // Store in localStorage for demo purposes
-      localStorage.setItem('mock_user', JSON.stringify({
-        user: mockUser,
-        profile: {
-          id: mockUser.id,
-          email,
-          full_name: fullName,
-          ...additionalData
-        }
-      }));
-      
-      set({ 
-        user: mockUser as any,
-        profile: {
-          id: mockUser.id,
-          email,
-          full_name: fullName,
-          ...additionalData
-        }
-      });
-      
-      return;
+      throw new Error('Supabase is not configured. Please set up your environment variables.');
     }
     
     set({ loading: true });
@@ -275,16 +245,14 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    if (!supabase) {
+      throw new Error('Supabase is not configured. Please set up your environment variables.');
+    }
+    
     set({ loading: true });
     try {
-      if (supabase) {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-      } else {
-        // Clear mock user data
-        localStorage.removeItem('mock_user');
-        console.log('Cleared mock user data');
-      }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
       set({ 
         user: null, 

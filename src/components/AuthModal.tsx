@@ -83,7 +83,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.error('Authentication error:', error);
       let errorMessage = error.message || 'Authentication failed. Please try again.';
       
-      if (error.message === 'Email not confirmed') {
+      if (error.message?.includes('Supabase is not configured')) {
+        errorMessage = 'Authentication service is not configured. Please contact the administrator or set up your Supabase credentials.';
+      } else if (error.message === 'Email not confirmed') {
         errorMessage = 'Your email address has not been confirmed. Please check your inbox for a confirmation link to activate your account.';
       }
       

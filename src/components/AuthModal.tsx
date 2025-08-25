@@ -65,7 +65,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       if (mode === 'register') {
         await signUp(formData.email, formData.password, formData.fullName);
-        alert('Registration successful! Please check your email if confirmation is required.');
+        // Show success message based on whether Supabase is configured
+        if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          alert('Registration successful! Please check your email if confirmation is required.');
+        } else {
+          alert('Registration successful! You can now sign in with your credentials.');
+        }
       } else {
         await signIn(formData.email, formData.password);
       }
@@ -83,10 +88,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.error('Authentication error:', error);
       let errorMessage = error.message || 'Authentication failed. Please try again.';
       
-      if (error.message?.includes('Supabase is not configured')) {
-        errorMessage = 'Authentication service is not configured. Please contact the administrator or set up your Supabase credentials.';
+      if (error.message?.includes('Supabase is not configured') && mode === 'login') {
+        errorMessage = 'No account found with these credentials. Please register first or set up Supabase for full functionality.';
       } else if (error.message === 'Email not confirmed') {
         errorMessage = 'Your email address has not been confirmed. Please check your inbox for a confirmation link to activate your account.';
+      } else if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       }
       
       setErrors({ submit: errorMessage });

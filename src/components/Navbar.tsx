@@ -123,7 +123,9 @@ export const Navbar = () => {
                 className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg px-3 py-2 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
                 <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-gray-900 dark:text-white">Profile</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {profile?.full_name || user.email || 'Profile'}
+                </span>
               </button>
             ) : (
               <div className="flex items-center space-x-2">

@@ -138,7 +138,24 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signIn: async (email: string, password: string) => {
     if (!supabase) {
-      throw new Error('Supabase is not configured. Please set up your environment variables.');
+      // Check for mock user in localStorage
+      const mockUserData = localStorage.getItem('mock_user');
+      if (mockUserData) {
+        try {
+          const { user, profile } = JSON.parse(mockUserData);
+          if (user.email === email) {
+            set({ 
+              user, 
+              profile,
+              session: null 
+            });
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing mock user data:', e);
+        }
+      }
+      throw new Error('Supabase is not configured. Please set up your environment variables or use the demo with mock data.');
     }
     
     set({ loading: true });
@@ -164,7 +181,41 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signUp: async (email: string, password: string, fullName: string, additionalData = {}) => {
     if (!supabase) {
-      throw new Error('Supabase is not configured. Please set up your environment variables.');
+      // Create mock user for demo when Supabase is not configured
+      const mockUser = {
+        id: Math.random().toString(36).substr(2, 9),
+        email,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const mockProfile = {
+        id: mockUser.id,
+        email,
+        full_name: fullName,
+        total_portfolio_value: 0,
+        block_balance: 0,
+        kyc_status: 'pending',
+        role: 'investor',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...additionalData
+      };
+      
+      // Store in localStorage for demo
+      localStorage.setItem('mock_user', JSON.stringify({
+        user: mockUser,
+        profile: mockProfile
+      }));
+      
+      set({ 
+        user: mockUser as any, 
+        profile: mockProfile,
+        session: null 
+      });
+      
+      return;
     }
     
     set({ loading: true });
@@ -202,9 +253,9 @@ export const useAuth = create<AuthState>((set, get) => ({
               id: data.user.id,
               email: data.user.email!,
               full_name: fullName,
-              phone: additionalData.phone || null,
-              date_of_birth: additionalData.date_of_birth || null,
-              address: additionalData.address || null,
+              phone: (additionalData as any).phone || null,
+              date_of_birth: (additionalData as any).date_of_birth || null,
+              address: (additionalData as any).address || null,
               kyc_status: 'pending',
               role: 'investor',
               block_balance: 0,
@@ -280,8 +331,16 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    // Clear mock user data
+    localStorage.removeItem('mock_user');
+    
     if (!supabase) {
-      throw new Error('Supabase is not configured. Please set up your environment variables.');
+      set({ 
+        user: null, 
+        session: null, 
+        profile: null 
+      });
+      return;
     }
     
     set({ loading: true });

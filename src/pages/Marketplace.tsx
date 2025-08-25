@@ -60,7 +60,13 @@ export const Marketplace = () => {
   const handleInvest = (propertyId: string) => {
     console.log('Investing in property:', propertyId);
     if (!user) {
-      alert('Please sign in to invest in properties');
+      // Show auth modal instead of alert
+      const navbar = document.querySelector('[data-auth-modal]');
+      if (navbar) {
+        // Trigger sign in modal - this is a simple approach
+        // In a real app, you might want to use a global state or context
+      }
+      alert('Please sign in to invest in properties. Click "Sign Up" in the navigation to create an account.');
       return;
     }
     

@@ -88,6 +88,11 @@ export const InvestmentDashboard = () => {
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Sign in to your account to view your real estate investment portfolio and manage your properties.
             </p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 max-w-md mx-auto mb-8">
+              <p className="text-sm text-blue-800 dark:text-blue-400">
+                <strong>New to BlockEstate?</strong> You'll need to register first before you can sign in and access your dashboard.
+              </p>
+            </div>
             <div className="bg-white rounded-xl p-8 shadow-lg max-w-md mx-auto">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Sign In?</h3>
               <ul className="text-left space-y-3 text-gray-600">

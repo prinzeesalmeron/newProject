@@ -155,7 +155,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           console.error('Error parsing mock user data:', e);
         }
       }
-      throw new Error('Supabase is not configured. Please set up your environment variables or use the demo with mock data.');
+      throw new Error('No account found with these credentials. Please register first to create an account.');
     }
     
     set({ loading: true });
@@ -173,7 +173,22 @@ export const useAuth = create<AuthState>((set, get) => ({
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
-      throw new Error(error.message || 'Failed to sign in');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to sign in';
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials or register if you don\'t have an account.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link before signing in.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
+      } else if (error.message?.includes('User not found')) {
+        errorMessage = 'No account found with this email. Please register first.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
     } finally {
       set({ loading: false });
     }
@@ -215,6 +230,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         session: null 
       });
       
+      console.log('Mock user registered successfully:', email);
       return;
     }
     

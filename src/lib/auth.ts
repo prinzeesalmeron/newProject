@@ -221,6 +221,8 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ loading: true });
     try {
       console.log('Starting Supabase registration for:', email);
+      console.log('Supabase URL configured:', !!import.meta.env.VITE_SUPABASE_URL);
+      console.log('Supabase Key configured:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
       
       // Sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
@@ -237,15 +239,27 @@ export const useAuth = create<AuthState>((set, get) => ({
 
       if (error) {
         console.error('Supabase auth signup error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          statusText: error.status
+        });
         throw error;
       }
 
       console.log('Supabase auth signup successful:', data.user?.email);
+      console.log('User ID:', data.user?.id);
+      console.log('Session created:', !!data.session);
 
       if (data.user) {
         // Create user profile in database
         try {
           console.log('Creating user profile in database...');
+          console.log('Profile data:', {
+            id: data.user.id,
+            email: data.user.email,
+            full_name: fullName
+          });
           
           const { data: profileData, error: profileError } = await supabase
             .from('users')
@@ -268,6 +282,12 @@ export const useAuth = create<AuthState>((set, get) => ({
 
           if (profileError) {
             console.error('Error creating user profile:', profileError);
+            console.error('Profile error details:', {
+              message: profileError.message,
+              code: profileError.code,
+              details: profileError.details,
+              hint: profileError.hint
+            });
             
             // If it's a duplicate key error, that's actually okay
             if (profileError.code === '23505') {
@@ -288,10 +308,11 @@ export const useAuth = create<AuthState>((set, get) => ({
             } else {
               // For other errors, we should still notify the user but not fail completely
               console.warn('Profile creation failed but auth user was created:', profileError.message);
-              throw new Error(`Failed to create user profile: ${profileError.message}`);
+              throw new Error(`Failed to create user profile: ${profileError.message}. Code: ${profileError.code}. ${profileError.hint || ''}`);
             }
           } else {
             console.log('User profile created successfully');
+            console.log('Profile created:', profileData);
             
             // Set the user and profile in state
             set({ 
@@ -302,7 +323,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           }
         } catch (profileError) {
           console.error('Error creating user profile:', profileError);
-          throw new Error('Failed to create user profile in database');
+          throw new Error(`Failed to create user profile in database: ${profileError}`);
         }
       } else {
         throw new Error('User registration failed - no user data returned');
@@ -320,6 +341,10 @@ export const useAuth = create<AuthState>((set, get) => ({
         errorMessage = 'Please enter a valid email address';
       } else if (error.message?.includes('user profile')) {
         errorMessage = error.message;
+      } else if (error.message?.includes('JWT')) {
+        errorMessage = 'Authentication error. Please check your Supabase configuration.';
+      } else if (error.message?.includes('Failed to fetch')) {
+        errorMessage = 'Network error. Please check your internet connection and Supabase URL.';
       } else if (error.message) {
         errorMessage = error.message;
       }

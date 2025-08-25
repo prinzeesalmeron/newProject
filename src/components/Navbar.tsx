@@ -8,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 export const Navbar = () => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);

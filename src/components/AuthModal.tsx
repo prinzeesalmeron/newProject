@@ -88,8 +88,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.error('Authentication error:', error);
       let errorMessage = error.message || 'Authentication failed. Please try again.';
       
-      if (error.message?.includes('Supabase is not configured') && mode === 'login') {
-        errorMessage = 'No account found with these credentials. Please register first or set up Supabase for full functionality.';
+      if (error.message?.includes('Supabase is not configured')) {
+        if (mode === 'login') {
+          errorMessage = 'Demo mode: No account found with these credentials. Please register first to create a demo account.';
+        } else {
+          errorMessage = 'Demo mode: Registration will create a local demo account. Full features require Supabase configuration.';
+        }
       } else if (error.message === 'Email not confirmed') {
         errorMessage = 'Your email address has not been confirmed. Please check your inbox for a confirmation link to activate your account.';
       } else if (error.message?.includes('Invalid login credentials')) {

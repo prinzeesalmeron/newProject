@@ -51,11 +51,30 @@ export const useAuth = create<AuthState>((set, get) => ({
         return;
       }
 
-      // Get initial session
+      // Get initial session with refresh token error handling
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
         console.error('Error getting session:', error);
+        
+        // Handle invalid refresh token errors
+        if (error.message?.includes('Invalid Refresh Token') || 
+            error.message?.includes('refresh_token_not_found')) {
+          console.log('Invalid refresh token detected, clearing session...');
+          try {
+            await supabase.auth.signOut();
+          } catch (signOutError) {
+            console.error('Error signing out after invalid refresh token:', signOutError);
+          }
+          set({ 
+            user: null, 
+            session: null, 
+            profile: null,
+            initialized: true 
+          });
+          return;
+        }
+        
         set({ initialized: true });
         return;
       }

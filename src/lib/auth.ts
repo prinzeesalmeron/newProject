@@ -98,14 +98,46 @@ export const useAuth = create<AuthState>((set, get) => ({
         
         if (session?.user) {
           try {
-            const { data: profile, error: profileError } = await supabase
+            // Try to get existing profile
+            let { data: profile, error: profileError } = await supabase
               .from('users')
               .select('*')
               .eq('id', session.user.id)
               .maybeSingle();
 
-            if (profileError && profileError.code !== 'PGRST116') {
+            // If no profile exists and this is a new signup, create one
+            if (!profile && event === 'SIGNED_UP') {
+              console.log('Creating user profile for new signup...');
+              
+              const { data: newProfile, error: createError } = await supabase
+                .from('users')
+                .insert([{
+                  id: session.user.id,
+                  email: session.user.email!,
+                  full_name: session.user.user_metadata?.full_name || '',
+                  phone: session.user.user_metadata?.phone || null,
+                  date_of_birth: session.user.user_metadata?.date_of_birth || null,
+                  address: session.user.user_metadata?.address || null,
+                  kyc_status: 'pending',
+                  role: 'investor',
+                  block_balance: 0,
+                  total_portfolio_value: 0,
+                  is_active: true
+                }])
+                .select()
+                .single();
+
+              if (createError) {
+                console.error('Error creating profile in auth state change:', createError);
+                // Don't throw error, just continue without profile
+                profile = null;
+              } else {
+                profile = newProfile;
+                console.log('Profile created successfully in auth state change');
+              }
+            } else if (profileError && profileError.code !== 'PGRST116') {
               console.error('Error fetching profile on auth change:', profileError);
+              profile = null;
             }
 
             set({ 
@@ -268,79 +300,16 @@ export const useAuth = create<AuthState>((set, get) => ({
       console.log('Session created:', !!data.session);
 
       if (data.user) {
-        // Create user profile in database
-        try {
-          console.log('Creating user profile in database...');
-          console.log('Profile data:', {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: fullName
-          });
-          
-          const { data: profileData, error: profileError } = await supabase
-            .from('users')
-            .insert([{
-              id: data.user.id,
-              email: data.user.email!,
-              full_name: fullName,
-              phone: (additionalData as any).phone || null,
-              date_of_birth: (additionalData as any).date_of_birth || null,
-              address: (additionalData as any).address || null,
-              kyc_status: 'pending',
-              role: 'investor',
-              block_balance: 0,
-              total_portfolio_value: 0,
-              is_active: true,
-              ...additionalData
-            }])
-            .select()
-            .single();
-
-          if (profileError) {
-            console.error('Error creating user profile:', profileError);
-            console.error('Profile error details:', {
-              message: profileError.message,
-              code: profileError.code,
-              details: profileError.details,
-              hint: profileError.hint
-            });
-            
-            // If it's a duplicate key error, that's actually okay
-            if (profileError.code === '23505') {
-              console.log('User profile already exists, continuing...');
-              
-              // Try to fetch existing profile
-              const { data: existingProfile } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', data.user.id)
-                .single();
-              
-              set({ 
-                user: data.user, 
-                session: data.session,
-                profile: existingProfile 
-              });
-            } else {
-              // For other errors, we should still notify the user but not fail completely
-              console.warn('Profile creation failed but auth user was created:', profileError.message);
-              throw new Error(`Failed to create user profile: ${profileError.message}. Code: ${profileError.code}. ${profileError.hint || ''}`);
-            }
-          } else {
-            console.log('User profile created successfully');
-            console.log('Profile created:', profileData);
-            
-            // Set the user and profile in state
-            set({ 
-              user: data.user, 
-              session: data.session,
-              profile: profileData 
-            });
-          }
-        } catch (profileError) {
-          console.error('Error creating user profile:', profileError);
-          throw new Error(`Failed to create user profile in database: ${profileError}`);
-        }
+        // Wait for the auth state change to handle profile creation
+        // The profile will be created by the trigger or we'll create it in the auth state change handler
+        console.log('User created successfully, waiting for auth state change...');
+        
+        // Set initial state - profile will be loaded by auth state change listener
+        set({ 
+          user: data.user, 
+          session: data.session,
+          profile: null 
+        });
       } else {
         throw new Error('User registration failed - no user data returned');
       }
@@ -355,8 +324,6 @@ export const useAuth = create<AuthState>((set, get) => ({
         errorMessage = 'Password must be at least 6 characters long';
       } else if (error.message?.includes('email')) {
         errorMessage = 'Please enter a valid email address';
-      } else if (error.message?.includes('user profile')) {
-        errorMessage = error.message;
       } else if (error.message?.includes('JWT')) {
         errorMessage = 'Authentication error. Please check your Supabase configuration.';
       } else if (error.message?.includes('Failed to fetch')) {

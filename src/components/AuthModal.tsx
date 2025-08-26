@@ -88,18 +88,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.error('Authentication error:', error);
       let errorMessage = error.message || 'Authentication failed. Please try again.';
       
-      if (error.message?.includes('No account found with these credentials')) {
-        if (mode === 'login') {
-          errorMessage = 'No account found with these credentials. Please register first to create an account.';
-        } else {
-          errorMessage = 'Registration will create your account. You can then sign in with your credentials.';
+      if (mode === 'login') {
+        // For login, always require registration first
+        if (error.message?.includes('No account found') || 
+            error.message?.includes('Invalid login credentials') ||
+            error.message?.includes('not configured')) {
+          errorMessage = 'No account found with these credentials. You must register first before you can sign in.';
         }
       } else if (error.message === 'Email not confirmed') {
         errorMessage = 'Your email address has not been confirmed. Please check your inbox for a confirmation link to activate your account.';
-      } else if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please check your credentials or register if you don\'t have an account yet.';
-      } else if (error.message?.includes('No account found with this email')) {
-        errorMessage = 'No account found with this email address. Please register first or check your email spelling.';
       }
       
       setErrors({ submit: errorMessage });
@@ -241,7 +238,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {errors.submit && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-sm text-red-600 dark:text-red-400">{errors.submit}</p>
-              {mode === 'login' && errors.submit.includes('No account found') && (
+              {mode === 'login' && (errors.submit.includes('No account found') || errors.submit.includes('must register first')) && (
                 <div className="mt-2">
                   <button
                     type="button"
@@ -274,11 +271,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {mode === 'login' ? 'Sign up' : 'Sign in'}
               </button>
             </p>
-            {mode === 'login' && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                New users must register first before signing in
-              </p>
-            )}
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              {mode === 'login' 
+                ? 'You must register first before you can sign in'
+                : 'After registration, you can sign in with your credentials'
+              }
+            </p>
           </div>
         </form>
       </div>

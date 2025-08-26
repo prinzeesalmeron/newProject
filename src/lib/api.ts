@@ -10,12 +10,19 @@ export class PropertyAPI {
     }
 
     try {
+      console.log('Fetching properties from Supabase...');
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase property fetch error:', error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} properties from Supabase`);
       return data || [];
     } catch (error) {
       console.error('Error fetching properties from Supabase:', error);
@@ -45,27 +52,60 @@ export class PropertyAPI {
   }
 
   static async createProperty(property: Omit<Property, 'id'>): Promise<Property> {
+    // Validate required fields
+    if (!property.title || !property.location || !property.image_url) {
+      throw new Error('Title, location, and image URL are required');
+    }
+    
+    if (property.price_per_token <= 0 || property.total_tokens <= 0) {
+      throw new Error('Price per token and total tokens must be greater than 0');
+    }
+    
+    if (property.available_tokens > property.total_tokens) {
+      throw new Error('Available tokens cannot exceed total tokens');
+    }
+    
+    // Ensure numeric fields are properly formatted
+    const validatedProperty = {
+      ...property,
+      price_per_token: Number(property.price_per_token),
+      total_tokens: Number(property.total_tokens),
+      available_tokens: Number(property.available_tokens),
+      rental_yield: Number(property.rental_yield),
+      projected_return: Number(property.projected_return),
+      rating: Number(property.rating)
+    };
+    
     if (!supabase) {
+      console.warn('Supabase not configured, using mock data');
       const newProperty: Property = {
-        ...property,
-        id: Math.random().toString(36).substr(2, 9)
+        ...validatedProperty,
+        id: Math.random().toString(36).substr(2, 9),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       mockProperties.push(newProperty);
       return newProperty;
     }
 
     try {
+      console.log('Creating property in Supabase:', validatedProperty);
       const { data, error } = await supabase
         .from('properties')
-        .insert([property])
+        .insert([validatedProperty])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase property creation error:', error);
+        throw error;
+      }
+      
+      console.log('Property created successfully in Supabase:', data);
       return data;
     } catch (error) {
       console.error('Error creating property:', error);
-      throw error;
+      throw new Error(`Failed to create property: ${error.message}`);
     }
   }
 

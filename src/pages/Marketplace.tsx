@@ -43,10 +43,17 @@ export const Marketplace = () => {
 
   const handleAddProperty = async (propertyData: Omit<Property, 'id'>) => {
     try {
+      console.log('Adding property:', propertyData);
       const newProperty = await PropertyAPI.createProperty(propertyData);
+      console.log('Property added successfully:', newProperty);
       setProperties(prev => [...prev, newProperty]);
+      
+      // Show success message
+      alert(`Property "${newProperty.title}" has been added successfully!`);
     } catch (error) {
       console.error('Error adding property:', error);
+      // Re-throw the error so the modal can handle it
+      throw error;
     }
   };
 

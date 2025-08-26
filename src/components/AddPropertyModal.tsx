@@ -13,6 +13,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   onClose,
   onAdd,
 }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -31,36 +33,46 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
     status: 'active' as Property['status']
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     
-    const property: Omit<Property, 'id' | 'created_at' | 'updated_at'> = {
-      ...formData,
-      features: formData.features.split(',').map(f => f.trim()).filter(f => f),
-      yield_percentage: formData.yield_percentage || `${formData.rental_yield}%`
-    };
+    try {
+      const property: Omit<Property, 'id' | 'created_at' | 'updated_at'> = {
+        ...formData,
+        features: formData.features.split(',').map(f => f.trim()).filter(f => f),
+        yield_percentage: formData.yield_percentage || `${formData.rental_yield}%`
+      };
 
-    onAdd(property);
-    onClose();
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      image_url: '',
-      location: '',
-      property_type: 'Single Family',
-      price_per_token: 0,
-      total_tokens: 0,
-      available_tokens: 0,
-      rental_yield: 0,
-      projected_return: 0,
-      rating: 0,
-      features: '',
-      is_yield_property: true,
-      yield_percentage: '',
-      status: 'active'
-    });
+      await onAdd(property);
+      
+      // Reset form on success
+      setFormData({
+        title: '',
+        description: '',
+        image_url: '',
+        location: '',
+        property_type: 'Single Family',
+        price_per_token: 0,
+        total_tokens: 0,
+        available_tokens: 0,
+        rental_yield: 0,
+        projected_return: 0,
+        rating: 0,
+        features: '',
+        is_yield_property: true,
+        yield_percentage: '',
+        status: 'active'
+      });
+      
+      onClose();
+    } catch (err: any) {
+      console.error('Error adding property:', err);
+      setError(err.message || 'Failed to add property. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -264,19 +276,27 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
             />
           </div>
 
+          {error && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
+              disabled={loading}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
+              disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Add Property
+              {loading ? 'Adding Property...' : 'Add Property'}
             </button>
           </div>
         </form>

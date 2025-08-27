@@ -4,7 +4,7 @@ import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
 import { Property } from '../lib/supabase';
 import { PropertyAPI } from '../lib/api';
-import { useAuth } from '../lib/auth';
+import { useAuth, isAdmin } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 export const Marketplace = () => {
@@ -192,13 +192,15 @@ export const Marketplace = () => {
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
               </div>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add Property</span>
-              </button>
+              {user && isAdmin(user) && (
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Property</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -209,13 +211,15 @@ export const Marketplace = () => {
               <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
                 Get started by adding the first property to the marketplace. Properties you add will appear here for investors to discover.
               </p>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center space-x-2 mx-auto"
-              >
-                <Plus className="h-5 w-5" />
-                <span>Add First Property</span>
-              </button>
+              {user && isAdmin(user) && (
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center space-x-2 mx-auto"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Add First Property</span>
+                </button>
+              )}
             </div>
           )}
 

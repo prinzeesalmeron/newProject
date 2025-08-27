@@ -141,6 +141,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                   {profile?.full_name || user?.email || 'User'}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
+                <div className="mt-2">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    profile?.role === 'admin' 
+                      ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                      : profile?.role === 'property_manager'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
+                      : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                  }`}>
+                    {profile?.role === 'admin' ? 'Administrator' : 
+                     profile?.role === 'property_manager' ? 'Property Manager' : 
+                     'Investor'}
+                  </span>
+                </div>
                 <button
                   onClick={() => setEditing(true)}
                   className="mt-2 flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mx-auto"

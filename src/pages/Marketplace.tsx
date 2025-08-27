@@ -8,13 +8,20 @@ import { useAuth, isAdmin } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 export const Marketplace = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>('All Markets');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Debug admin status
+  console.log('User:', user);
+  console.log('Profile:', profile);
+  console.log('Is Admin:', isAdmin(profile || user));
+  console.log('Profile role:', profile?.role);
+  console.log('User metadata role:', user?.user_metadata?.role);
 
   const propertyTypes = [
     'All Markets',
@@ -192,7 +199,7 @@ export const Marketplace = () => {
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
               </div>
-              {user && isAdmin(user) && (
+              {user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin') && (
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
@@ -211,7 +218,7 @@ export const Marketplace = () => {
               <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
                 Get started by adding the first property to the marketplace. Properties you add will appear here for investors to discover.
               </p>
-              {user && isAdmin(user) && (
+              {user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin') && (
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center space-x-2 mx-auto"

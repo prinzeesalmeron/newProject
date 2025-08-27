@@ -447,11 +447,12 @@ export const getAuthToken = async (): Promise<string | null> => {
 
 // Role-based access control
 export const hasRole = (user: any, role: string): boolean => {
-  return user?.role === role;
+  return user?.role === role || user?.user_metadata?.role === role;
 };
 
 export const isAdmin = (user: any): boolean => {
-  return hasRole(user, 'admin');
+  // Check both profile role and user metadata role
+  return hasRole(user, 'admin') || user?.user_metadata?.role === 'admin';
 };
 
 export const isPropertyManager = (user: any): boolean => {

@@ -110,7 +110,7 @@ The application uses the following main tables:
 - **State Management:** Zustand
 - **Database:** Supabase (PostgreSQL)
 - **Authentication:** Supabase Auth
-- **Blockchain:** Ethers.js, Web3 wallet integration
+- **Blockchain:** Ethers.js, Web3 wallet integration, Foundry for smart contracts
 - **Charts:** Recharts
 - **Animations:** Framer Motion
 - **Icons:** Lucide React
@@ -121,11 +121,17 @@ The application uses the following main tables:
 src/
 ├── components/          # Reusable UI components
 ├── pages/              # Main application pages
+│   ├── Marketplace.tsx  # Property marketplace
+│   ├── Staking.tsx     # Token staking interface
+│   ├── Learn.tsx       # Educational content
+│   ├── Portfolio.tsx   # Portfolio analytics
+│   ├── Governance.tsx  # DAO governance
+│   └── InvestmentDashboard.tsx # Investment dashboard
 ├── lib/                # Utilities and services
 │   ├── auth.ts         # Authentication logic
 │   ├── supabase.ts     # Database configuration
 │   ├── wallet.ts       # Blockchain wallet integration
-│   ├── contracts.ts    # Smart contract interactions
+│   ├── contracts.ts    # Smart contract interactions (Foundry-based)
 │   └── api.ts          # API service layer
 ├── types/              # TypeScript type definitions
 └── styles/             # Global styles and themes
@@ -156,6 +162,14 @@ src/
 - Investment performance tracking
 - Rental income monitoring
 - Transaction history
+- Asset allocation visualization
+- Performance analytics
+
+### Governance System
+- Decentralized governance voting
+- Proposal creation and management
+- Token-based voting power
+- Governance analytics
 
 ## Development
 

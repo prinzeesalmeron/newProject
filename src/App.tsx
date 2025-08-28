@@ -5,6 +5,8 @@ import { Marketplace } from './pages/Marketplace';
 import { Staking } from './pages/Staking';
 import { Learn } from './pages/Learn';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
+import { Portfolio } from './pages/Portfolio';
+import { Governance } from './pages/Governance';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
 
@@ -56,6 +58,8 @@ function App() {
           <Route path="/" element={<Marketplace />} />
           <Route path="/staking" element={<Staking />} />
           <Route path="/learn" element={<Learn />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/governance" element={<Governance />} />
           <Route path="/dashboard" element={<InvestmentDashboard />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>

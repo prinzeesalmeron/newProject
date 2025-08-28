@@ -1,0 +1,31 @@
+[profile.default]
+src = "contracts"
+out = "out"
+libs = ["lib"]
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@chainlink/contracts/=lib/chainlink/contracts/",
+]
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/crates/config
+
+[profile.default.optimizer]
+enabled = true
+runs = 200
+
+[profile.default.gas_reports]
+enabled = true
+
+[rpc_endpoints]
+mainnet = "https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+goerli = "https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+sepolia = "https://eth-sepolia.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+polygon = "https://polygon-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+arbitrum = "https://arb-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+goerli = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+polygon = { key = "${POLYGONSCAN_API_KEY}" }
+arbitrum = { key = "${ARBISCAN_API_KEY}" }

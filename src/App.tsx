@@ -7,6 +7,7 @@ import { Learn } from './pages/Learn';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
 import { Portfolio } from './pages/Portfolio';
 import { Governance } from './pages/Governance';
+import { ApiTesting } from './pages/ApiTesting';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
 
@@ -61,6 +62,7 @@ function App() {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/governance" element={<Governance />} />
           <Route path="/dashboard" element={<InvestmentDashboard />} />
+          <Route path="/api" element={<ApiTesting />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>
         <Footer />

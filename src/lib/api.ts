@@ -73,7 +73,7 @@ export class PropertyAPI {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { TransactionEngine } = await import('../services/transactionEngine');
+      const { TransactionEngine } = await import('./services/transactionEngine');
       await TransactionEngine.processInvestment({
         userId: user.id,
         propertyId,

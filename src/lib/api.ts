@@ -1,6 +1,9 @@
 import { supabase, Property, StakingPool, Course, Article, Investment } from './supabase';
 import { DatabaseService } from './database';
 import { mockProperties, mockStakingPools, mockCourses, mockArticles } from './mockData';
+import { PropertyAPI as EnhancedPropertyAPI } from './api/propertyAPI';
+import { TransactionAPI as EnhancedTransactionAPI } from './api/transactionAPI';
+import { NotificationAPI as EnhancedNotificationAPI } from './api/notificationAPI';
 
 export class PropertyAPI {
   static async getAllProperties(): Promise<Property[]> {
@@ -10,20 +13,9 @@ export class PropertyAPI {
     }
 
     try {
-      console.log('Fetching properties from Supabase...');
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase property fetch error:', error);
-        throw error;
-      }
-      
-      console.log(`Fetched ${data?.length || 0} properties from Supabase`);
-      return data || [];
+      // Use enhanced API with pagination and filtering
+      const result = await EnhancedPropertyAPI.getAllProperties();
+      return result.properties;
     } catch (error) {
       console.error('Error fetching properties from Supabase:', error);
       console.log('Falling back to mock data');
@@ -37,14 +29,7 @@ export class PropertyAPI {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await EnhancedPropertyAPI.getPropertyById(id);
     } catch (error) {
       console.error('Error fetching property:', error);
       return mockProperties.find(p => p.id === id) || null;
@@ -52,34 +37,10 @@ export class PropertyAPI {
   }
 
   static async createProperty(property: Omit<Property, 'id'>): Promise<Property> {
-    // Validate required fields
-    if (!property.title || !property.location || !property.image_url) {
-      throw new Error('Title, location, and image URL are required');
-    }
-    
-    if (property.price_per_token <= 0 || property.total_tokens <= 0) {
-      throw new Error('Price per token and total tokens must be greater than 0');
-    }
-    
-    if (property.available_tokens > property.total_tokens) {
-      throw new Error('Available tokens cannot exceed total tokens');
-    }
-    
-    // Ensure numeric fields are properly formatted
-    const validatedProperty = {
-      ...property,
-      price_per_token: Number(property.price_per_token),
-      total_tokens: Number(property.total_tokens),
-      available_tokens: Number(property.available_tokens),
-      rental_yield: Number(property.rental_yield),
-      projected_return: Number(property.projected_return),
-      rating: Number(property.rating)
-    };
-    
     if (!supabase) {
       console.warn('Supabase not configured, using mock data');
       const newProperty: Property = {
-        ...validatedProperty,
+        ...property,
         id: Math.random().toString(36).substr(2, 9),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -89,23 +50,10 @@ export class PropertyAPI {
     }
 
     try {
-      console.log('Creating property in Supabase:', validatedProperty);
-      const { data, error } = await supabase
-        .from('properties')
-        .insert([validatedProperty])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Supabase property creation error:', error);
-        throw error;
-      }
-      
-      console.log('Property created successfully in Supabase:', data);
-      return data;
+      return await EnhancedPropertyAPI.createProperty(property);
     } catch (error) {
       console.error('Error creating property:', error);
-      throw new Error(`Failed to create property: ${error.message}`);
+      throw error;
     }
   }
 
@@ -121,15 +69,17 @@ export class PropertyAPI {
     }
 
     try {
-      // In a real implementation, this would create an investment record
-      // and update the property's available tokens
-      const { error } = await supabase.rpc('invest_in_property', {
-        property_id: propertyId,
-        token_amount: tokenAmount,
-        total_cost: totalCost
-      });
+      // Use enhanced transaction engine
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
-      if (error) throw error;
+      const { TransactionEngine } = await import('../services/transactionEngine');
+      await TransactionEngine.processInvestment({
+        userId: user.id,
+        propertyId,
+        tokenAmount,
+        totalCost
+      });
     } catch (error) {
       console.error('Error investing in property:', error);
       throw error;

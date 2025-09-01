@@ -8,7 +8,7 @@ import type {
   Investment 
 } from './supabase';
 
-// Database service for all data operations
+// Enhanced Database service for all data operations
 export class DatabaseService {
   // User Management
   static async createUser(userData: {
@@ -18,10 +18,22 @@ export class DatabaseService {
     phone?: string;
     date_of_birth?: string;
     address?: any;
+    role?: string;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('users')
-      .insert([userData])
+      .insert([{
+        ...userData,
+        kyc_status: 'pending',
+        role: userData.role || 'investor',
+        block_balance: 0,
+        total_portfolio_value: 0,
+        is_active: true
+      }])
       .select()
       .single();
 
@@ -30,6 +42,10 @@ export class DatabaseService {
   }
 
   static async getUserProfile(userId: string): Promise<UserProfile> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -41,6 +57,10 @@ export class DatabaseService {
   }
 
   static async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('users')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -53,18 +73,36 @@ export class DatabaseService {
   }
 
   // Property Management
-  static async getProperties(): Promise<Property[]> {
-    const { data, error } = await supabase
+  static async getProperties(filters?: any): Promise<Property[]> {
+    if (!supabase) {
+      return [];
+    }
+
+    let query = supabase
       .from('properties')
       .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
+      .eq('status', 'active');
+
+    if (filters) {
+      if (filters.property_type) {
+        query = query.eq('property_type', filters.property_type);
+      }
+      if (filters.location) {
+        query = query.ilike('location', `%${filters.location}%`);
+      }
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
   }
 
   static async getProperty(id: string): Promise<Property> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('properties')
       .select('*')
@@ -76,6 +114,10 @@ export class DatabaseService {
   }
 
   static async createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('properties')
       .insert([propertyData])
@@ -87,6 +129,10 @@ export class DatabaseService {
   }
 
   static async updateProperty(id: string, updates: Partial<Property>) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('properties')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -100,6 +146,10 @@ export class DatabaseService {
 
   // Shares Management
   static async getUserShares(userId: string) {
+    if (!supabase) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('shares')
       .select(`
@@ -120,6 +170,10 @@ export class DatabaseService {
     purchase_price: number;
     current_value: number;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('shares')
       .insert([shareData])
@@ -131,6 +185,10 @@ export class DatabaseService {
   }
 
   static async updateShare(id: string, updates: any) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('shares')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -153,10 +211,20 @@ export class DatabaseService {
     blockchain_tx_hash?: string;
     description?: string;
     metadata?: any;
+    fee_amount?: number;
+    reference_id?: string;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('transactions')
-      .insert([transactionData])
+      .insert([{
+        ...transactionData,
+        status: transactionData.status || 'pending',
+        reference_id: transactionData.reference_id || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }])
       .select()
       .single();
 
@@ -164,28 +232,58 @@ export class DatabaseService {
     return data;
   }
 
-  static async getUserTransactions(userId: string) {
-    const { data, error } = await supabase
+  static async getUserTransactions(userId: string, options?: {
+    limit?: number;
+    offset?: number;
+    transaction_type?: string;
+    status?: string;
+  }) {
+    if (!supabase) {
+      return [];
+    }
+
+    let query = supabase
       .from('transactions')
       .select(`
         *,
         properties (title, location)
       `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    if (options?.transaction_type) {
+      query = query.eq('transaction_type', options.transaction_type);
+    }
+
+    if (options?.status) {
+      query = query.eq('status', options.status);
+    }
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    if (options?.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 20) - 1);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
   }
 
-  static async updateTransactionStatus(id: string, status: string, txHash?: string) {
+  static async updateTransactionStatus(id: string, status: string, metadata?: any) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const updates: any = { 
       status, 
       updated_at: new Date().toISOString() 
     };
     
-    if (txHash) {
-      updates.blockchain_tx_hash = txHash;
+    if (metadata) {
+      updates.metadata = metadata;
     }
 
     const { data, error } = await supabase
@@ -201,6 +299,10 @@ export class DatabaseService {
 
   // Rental Income Management
   static async getRentalIncome(propertyId: string) {
+    if (!supabase) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('rentals')
       .select('*')
@@ -218,6 +320,10 @@ export class DatabaseService {
     expenses?: number;
     occupancy_rate?: number;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('rentals')
       .insert([rentalData])
@@ -229,6 +335,10 @@ export class DatabaseService {
   }
 
   static async distributeRentalIncome(propertyId: string, monthYear: string) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     // Get all shareholders for the property
     const { data: shares, error: sharesError } = await supabase
       .from('shares')
@@ -292,6 +402,10 @@ export class DatabaseService {
 
   // Staking Management
   static async getStakingPools(): Promise<StakingPool[]> {
+    if (!supabase) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('staking_pools')
       .select('*')
@@ -303,6 +417,10 @@ export class DatabaseService {
   }
 
   static async getUserStakes(userId: string) {
+    if (!supabase) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('user_stakes')
       .select(`
@@ -322,6 +440,10 @@ export class DatabaseService {
     amount_staked: number;
     unlock_date?: string;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('user_stakes')
       .insert([stakeData])
@@ -333,6 +455,10 @@ export class DatabaseService {
   }
 
   static async updateStake(id: string, updates: any) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('user_stakes')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -346,6 +472,10 @@ export class DatabaseService {
 
   // Notification Management
   static async getUserNotifications(userId: string) {
+    if (!supabase) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
@@ -365,6 +495,10 @@ export class DatabaseService {
     action_url?: string;
     metadata?: any;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('notifications')
       .insert([notificationData])
@@ -376,6 +510,10 @@ export class DatabaseService {
   }
 
   static async markNotificationAsRead(id: string) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true })
@@ -393,6 +531,10 @@ export class DatabaseService {
     document_type: string;
     document_url: string;
   }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     const { data, error } = await supabase
       .from('kyc_verifications')
       .insert([kycData])
@@ -404,6 +546,10 @@ export class DatabaseService {
   }
 
   static async getUserKYCStatus(userId: string) {
+    if (!supabase) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('kyc_verifications')
       .select('*')
@@ -416,6 +562,20 @@ export class DatabaseService {
 
   // Analytics and Reporting
   static async getUserPortfolioSummary(userId: string) {
+    if (!supabase) {
+      return {
+        shares: [],
+        transactions: [],
+        summary: {
+          total_investment: 0,
+          current_value: 0,
+          total_rental_income: 0,
+          total_return: 0,
+          properties_count: 0
+        }
+      };
+    }
+
     // Get user shares with property details
     const { data: shares, error: sharesError } = await supabase
       .from('shares')
@@ -458,6 +618,10 @@ export class DatabaseService {
 
   // Property Performance Analytics
   static async getPropertyPerformance(propertyId: string) {
+    if (!supabase) {
+      return null;
+    }
+
     const { data: rentals, error } = await supabase
       .from('rentals')
       .select('*')
@@ -482,5 +646,152 @@ export class DatabaseService {
         months_tracked: rentals?.length || 0
       }
     };
+  }
+
+  // Audit Logging
+  static async createAuditLog(logData: {
+    action: string;
+    resource_type: string;
+    resource_id?: string;
+    old_values?: any;
+    new_values?: any;
+    ip_address?: string;
+    user_agent?: string;
+  }) {
+    if (!supabase) {
+      return null;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .insert([{
+          ...logData,
+          user_id: user?.id || null
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      return null;
+    }
+  }
+
+  // System Settings
+  static async getSystemSetting(key: string) {
+    if (!supabase) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('setting_value')
+      .eq('setting_key', key)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.setting_value || null;
+  }
+
+  static async updateSystemSetting(key: string, value: any, updatedBy?: string) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
+    const { data, error } = await supabase
+      .from('system_settings')
+      .upsert([{
+        setting_key: key,
+        setting_value: value,
+        updated_by: updatedBy,
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  // Payment Methods
+  static async getUserPaymentMethods(userId: string) {
+    if (!supabase) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('payment_methods')
+      .select('*')
+      .eq('user_id', userId)
+      .order('is_primary', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async addPaymentMethod(paymentData: {
+    user_id: string;
+    method_type: string;
+    provider: string;
+    account_identifier: string;
+    is_primary?: boolean;
+    metadata?: any;
+  }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
+    const { data, error } = await supabase
+      .from('payment_methods')
+      .insert([paymentData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  // Withdrawal Management
+  static async createWithdrawalRequest(withdrawalData: {
+    user_id: string;
+    amount: number;
+    currency?: string;
+    payment_method_id?: string;
+  }) {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
+    const { data, error } = await supabase
+      .from('withdrawal_requests')
+      .insert([withdrawalData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async getUserWithdrawals(userId: string) {
+    if (!supabase) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('withdrawal_requests')
+      .select(`
+        *,
+        payment_methods (*)
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 }

@@ -27,7 +27,7 @@ export const Staking = () => {
 
   const fetchStakingPools = async () => {
     try {
-      const data = await StakingAPI.getStakingPools();
+      const data = await StakingAPI.getAllPools();
       setPools(data);
       if (data && data.length > 0) {
         setSelectedPool(data[0].id);

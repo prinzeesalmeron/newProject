@@ -1,24 +1,30 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    )
+    // Initialize Supabase client with service role for public endpoints
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase configuration missing')
+    }
+
+    // Import Supabase client
+    const { createClient } = await import('npm:@supabase/supabase-js@2')
+    
+    // Use service role for public endpoints, anon key for user-specific data
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey)
 
     const url = new URL(req.url)
     const path = url.pathname.replace('/functions/v1/api', '')
@@ -225,12 +231,29 @@ serve(async (req) => {
       )
     }
 
+    // Health check endpoint
+    if (path === '/health' && method === 'GET') {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'BlockEstate API is running',
+          timestamp: new Date().toISOString(),
+          version: '1.0.0'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
     // 404 for unknown routes
     return new Response(
       JSON.stringify({
         success: false,
         error: 'Endpoint not found',
         available_endpoints: [
+          'GET /health - API health check',
           'GET /properties - Get all properties',
           'GET /properties/{id} - Get specific property',
           'GET /users - Get all users',
@@ -247,10 +270,13 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('API Error:', error)
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: error.message || 'Internal server error',
+        timestamp: new Date().toISOString()
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

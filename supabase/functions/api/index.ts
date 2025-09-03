@@ -11,40 +11,59 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client with service role for public endpoints
+    const url = new URL(req.url)
+    const path = url.pathname
+    const method = req.method
+
+    console.log('API Request:', { method, path, url: req.url })
+
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase configuration missing')
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Supabase configuration missing',
+          debug: {
+            supabaseUrl: !!supabaseUrl,
+            supabaseServiceKey: !!supabaseServiceKey
+          }
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        },
+      )
     }
 
     // Import Supabase client
     const { createClient } = await import('npm:@supabase/supabase-js@2')
-    
-    // Use service role for public endpoints, anon key for user-specific data
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey)
 
-    const url = new URL(req.url)
-    const path = url.pathname.replace('/functions/v1/api', '')
-    const method = req.method
+    // Remove the /functions/v1 prefix if present for routing
+    const cleanPath = path.replace('/functions/v1/api', '').replace('/api', '') || '/'
 
-    // Route handling
-    if (path === '/properties' && method === 'GET') {
-      const { data, error } = await supabaseClient
-        .from('properties')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
+    console.log('Clean path:', cleanPath)
 
-      if (error) throw error
-
+    // Health check endpoint
+    if (cleanPath === '/health' || cleanPath === '/' || cleanPath === '') {
       return new Response(
         JSON.stringify({
           success: true,
-          data: data || [],
-          count: data?.length || 0
+          message: 'BlockEstate API is running',
+          timestamp: new Date().toISOString(),
+          version: '1.0.0',
+          endpoints: [
+            'GET /properties - Get all properties',
+            'GET /properties/{id} - Get specific property',
+            'GET /users - Get all users',
+            'GET /transactions?user_id={id} - Get transactions',
+            'GET /staking-pools - Get staking pools',
+            'GET /shares?user_id={id} - Get user shares',
+            'GET /analytics/overview - Get platform analytics'
+          ]
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -53,8 +72,35 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (path.startsWith('/properties/') && method === 'GET') {
-      const propertyId = path.split('/')[2]
+    // Properties endpoints
+    if (cleanPath === '/properties' && method === 'GET') {
+      const { data, error } = await supabaseClient
+        .from('properties')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Properties query error:', error)
+        throw error
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: data || [],
+          count: data?.length || 0,
+          endpoint: '/properties'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
+    if (cleanPath.startsWith('/properties/') && method === 'GET') {
+      const propertyId = cleanPath.split('/')[2]
       
       const { data, error } = await supabaseClient
         .from('properties')
@@ -67,12 +113,26 @@ Deno.serve(async (req) => {
         .eq('id', propertyId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Property query error:', error)
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Property not found',
+            property_id: propertyId
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 404,
+          },
+        )
+      }
 
       return new Response(
         JSON.stringify({
           success: true,
-          data: data
+          data: data,
+          endpoint: `/properties/${propertyId}`
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -81,20 +141,25 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (path === '/users' && method === 'GET') {
+    // Users endpoint
+    if (cleanPath === '/users' && method === 'GET') {
       const { data, error } = await supabaseClient
         .from('users')
-        .select('id, email, full_name, role, kyc_status, created_at')
+        .select('id, email, full_name, role, kyc_status, created_at, total_portfolio_value, block_balance')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Users query error:', error)
+        throw error
+      }
 
       return new Response(
         JSON.stringify({
           success: true,
           data: data || [],
-          count: data?.length || 0
+          count: data?.length || 0,
+          endpoint: '/users'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -103,7 +168,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (path === '/transactions' && method === 'GET') {
+    // Transactions endpoint
+    if (cleanPath === '/transactions' && method === 'GET') {
       const userId = url.searchParams.get('user_id')
       
       let query = supabaseClient
@@ -121,13 +187,18 @@ Deno.serve(async (req) => {
 
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Transactions query error:', error)
+        throw error
+      }
 
       return new Response(
         JSON.stringify({
           success: true,
           data: data || [],
-          count: data?.length || 0
+          count: data?.length || 0,
+          endpoint: '/transactions',
+          filters: userId ? { user_id: userId } : null
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -136,20 +207,25 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (path === '/staking-pools' && method === 'GET') {
+    // Staking pools endpoint
+    if (cleanPath === '/staking-pools' && method === 'GET') {
       const { data, error } = await supabaseClient
         .from('staking_pools')
         .select('*')
         .eq('is_active', true)
         .order('apy', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Staking pools query error:', error)
+        throw error
+      }
 
       return new Response(
         JSON.stringify({
           success: true,
           data: data || [],
-          count: data?.length || 0
+          count: data?.length || 0,
+          endpoint: '/staking-pools'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -158,14 +234,15 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (path === '/shares' && method === 'GET') {
+    // Shares endpoint
+    if (cleanPath === '/shares' && method === 'GET') {
       const userId = url.searchParams.get('user_id')
       
       let query = supabaseClient
         .from('shares')
         .select(`
           *,
-          properties(title, location, image_url),
+          properties(title, location, image_url, property_type),
           users(email, full_name)
         `)
         .eq('is_active', true)
@@ -177,13 +254,18 @@ Deno.serve(async (req) => {
 
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Shares query error:', error)
+        throw error
+      }
 
       return new Response(
         JSON.stringify({
           success: true,
           data: data || [],
-          count: data?.length || 0
+          count: data?.length || 0,
+          endpoint: '/shares',
+          filters: userId ? { user_id: userId } : null
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -192,12 +274,13 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (path === '/analytics/overview' && method === 'GET') {
+    // Analytics endpoint
+    if (cleanPath === '/analytics/overview' && method === 'GET') {
       const [
-        { data: properties },
-        { data: users },
-        { data: transactions },
-        { data: shares }
+        { data: properties, count: propertiesCount },
+        { data: users, count: usersCount },
+        { data: transactions, count: transactionsCount },
+        { data: shares, count: sharesCount }
       ] = await Promise.all([
         supabaseClient.from('properties').select('*', { count: 'exact' }),
         supabaseClient.from('users').select('*', { count: 'exact' }).eq('is_active', true),
@@ -212,33 +295,18 @@ Deno.serve(async (req) => {
         JSON.stringify({
           success: true,
           data: {
-            total_properties: properties?.length || 0,
-            total_users: users?.length || 0,
-            total_transactions: transactions?.length || 0,
-            total_shares: shares?.length || 0,
+            total_properties: propertiesCount || 0,
+            total_users: usersCount || 0,
+            total_transactions: transactionsCount || 0,
+            total_shares: sharesCount || 0,
             total_investment_volume: totalInvestment,
             platform_stats: {
               active_properties: properties?.filter(p => p.status === 'active').length || 0,
               verified_users: users?.filter(u => u.kyc_status === 'verified').length || 0,
-              completed_transactions: transactions?.length || 0
+              completed_transactions: transactionsCount || 0
             }
-          }
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        },
-      )
-    }
-
-    // Health check endpoint
-    if (path === '/health' && method === 'GET') {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'BlockEstate API is running',
-          timestamp: new Date().toISOString(),
-          version: '1.0.0'
+          },
+          endpoint: '/analytics/overview'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -248,10 +316,12 @@ Deno.serve(async (req) => {
     }
 
     // 404 for unknown routes
+    console.log('Unknown endpoint:', cleanPath)
     return new Response(
       JSON.stringify({
         success: false,
         error: 'Endpoint not found',
+        requested_path: cleanPath,
         available_endpoints: [
           'GET /health - API health check',
           'GET /properties - Get all properties',
@@ -276,7 +346,11 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: false,
         error: error.message || 'Internal server error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        debug: {
+          name: error.name,
+          stack: error.stack
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import { contractManager } from './blockchain/contractManager';
+import { useWalletConnector } from './blockchain/walletConnector';
 
 // Contract ABIs (simplified for demo - in production these would be full ABIs)
 const PROPERTY_TOKEN_ABI = [
@@ -47,12 +49,13 @@ const BLOCK_TOKEN_ABI = [
 
 // Contract addresses (these would be deployed contract addresses)
 export const CONTRACT_ADDRESSES = {
-  PROPERTY_TOKEN: '0x1234567890123456789012345678901234567890', // Deployed via Foundry
-  STAKING: '0x2345678901234567890123456789012345678901', // Deployed via Foundry
-  MARKETPLACE: '0x3456789012345678901234567890123456789012', // Deployed via Foundry
-  BLOCK_TOKEN: '0x4567890123456789012345678901234567890123', // Deployed via Foundry
-  GOVERNANCE: '0x5678901234567890123456789012345678901234', // Deployed via Foundry
-  TIMELOCK: '0x6789012345678901234567890123456789012345' // Deployed via Foundry
+  // Sepolia Testnet addresses (deployed via Foundry)
+  PROPERTY_TOKEN: '0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5e',
+  MARKETPLACE: '0x8464135c8F25Da09e49BC8782676a84730C318bC',
+  STAKING: '0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6',
+  BLOCK_TOKEN: '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
+  GOVERNANCE: '0x610178dA211FEF7D417bC0e6FeD39F05609AD788',
+  TIMELOCK: '0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'
 };
 
 export interface PropertyTokenContract {
@@ -89,44 +92,12 @@ export interface BlockTokenContract {
 }
 
 export class ContractService {
-  private provider: ethers.providers.Web3Provider | null = null;
-  private signer: ethers.Signer | null = null;
-  
-  private propertyTokenContract: PropertyTokenContract | null = null;
-  private stakingContract: StakingContract | null = null;
-  private marketplaceContract: MarketplaceContract | null = null;
-  private blockTokenContract: BlockTokenContract | null = null;
+  // Delegate to the new contract manager
+  private contractManager = contractManager;
 
   async initialize(provider: any) {
     try {
-      this.provider = new ethers.providers.Web3Provider(provider);
-      this.signer = this.provider.getSigner();
-      
-      // Initialize contracts
-      this.propertyTokenContract = new ethers.Contract(
-        CONTRACT_ADDRESSES.PROPERTY_TOKEN,
-        PROPERTY_TOKEN_ABI,
-        this.signer
-      ) as PropertyTokenContract;
-      
-      this.stakingContract = new ethers.Contract(
-        CONTRACT_ADDRESSES.STAKING,
-        STAKING_CONTRACT_ABI,
-        this.signer
-      ) as StakingContract;
-      
-      this.marketplaceContract = new ethers.Contract(
-        CONTRACT_ADDRESSES.MARKETPLACE,
-        MARKETPLACE_ABI,
-        this.signer
-      ) as MarketplaceContract;
-      
-      this.blockTokenContract = new ethers.Contract(
-        CONTRACT_ADDRESSES.BLOCK_TOKEN,
-        BLOCK_TOKEN_ABI,
-        this.signer
-      ) as BlockTokenContract;
-      
+      await this.contractManager.initialize();
       console.log('Smart contracts initialized successfully');
     } catch (error) {
       console.error('Failed to initialize contracts:', error);
@@ -136,111 +107,32 @@ export class ContractService {
 
   // Property Token Methods
   async getPropertyTokenBalance(userAddress: string, propertyId: number): Promise<string> {
-    if (!this.propertyTokenContract) throw new Error('Property token contract not initialized');
-    
-    try {
-      const balance = await this.propertyTokenContract.balanceOf(userAddress, propertyId);
-      return ethers.utils.formatUnits(balance, 0);
-    } catch (error) {
-      console.error('Error getting property token balance:', error);
-      return '0';
-    }
+    return await this.contractManager.getPropertyTokenBalance(userAddress, propertyId);
   }
 
   async transferPropertyTokens(to: string, propertyId: number, amount: number): Promise<string> {
-    if (!this.propertyTokenContract || !this.signer) throw new Error('Contract not initialized');
-    
-    try {
-      const fromAddress = await this.signer.getAddress();
-      const tx = await this.propertyTokenContract.safeTransferFrom(
-        fromAddress,
-        to,
-        propertyId,
-        amount,
-        '0x'
-      );
-      
-      await tx.wait();
-      return tx.hash;
-    } catch (error) {
-      console.error('Error transferring property tokens:', error);
-      throw error;
-    }
+    return await this.contractManager.transferPropertyTokens(to, propertyId, amount);
   }
 
   // Staking Methods
   async stakeTokens(poolId: number, amount: string): Promise<string> {
-    if (!this.stakingContract || !this.blockTokenContract) throw new Error('Contracts not initialized');
-    
-    try {
-      const stakeAmount = ethers.utils.parseUnits(amount, 18);
-      
-      // First approve the staking contract to spend tokens
-      const approveTx = await this.blockTokenContract.approve(CONTRACT_ADDRESSES.STAKING, stakeAmount);
-      await approveTx.wait();
-      
-      // Then stake the tokens
-      const stakeTx = await this.stakingContract.stake(poolId, stakeAmount);
-      await stakeTx.wait();
-      
-      return stakeTx.hash;
-    } catch (error) {
-      console.error('Error staking tokens:', error);
-      throw error;
-    }
+    return await this.contractManager.stakeTokens(poolId, amount);
   }
 
   async unstakeTokens(poolId: number, amount: string): Promise<string> {
-    if (!this.stakingContract) throw new Error('Staking contract not initialized');
-    
-    try {
-      const unstakeAmount = ethers.utils.parseUnits(amount, 18);
-      const tx = await this.stakingContract.unstake(poolId, unstakeAmount);
-      await tx.wait();
-      
-      return tx.hash;
-    } catch (error) {
-      console.error('Error unstaking tokens:', error);
-      throw error;
-    }
+    return await this.contractManager.unstakeTokens(poolId, amount);
   }
 
   async claimStakingRewards(poolId: number): Promise<string> {
-    if (!this.stakingContract) throw new Error('Staking contract not initialized');
-    
-    try {
-      const tx = await this.stakingContract.claimRewards(poolId);
-      await tx.wait();
-      
-      return tx.hash;
-    } catch (error) {
-      console.error('Error claiming rewards:', error);
-      throw error;
-    }
+    return await this.contractManager.claimStakingRewards(poolId);
   }
 
   async getStakedAmount(userAddress: string, poolId: number): Promise<string> {
-    if (!this.stakingContract) throw new Error('Staking contract not initialized');
-    
-    try {
-      const amount = await this.stakingContract.getStakedAmount(userAddress, poolId);
-      return ethers.utils.formatUnits(amount, 18);
-    } catch (error) {
-      console.error('Error getting staked amount:', error);
-      return '0';
-    }
+    return await this.contractManager.getStakedAmount(userAddress, poolId);
   }
 
   async getPendingRewards(userAddress: string, poolId: number): Promise<string> {
-    if (!this.stakingContract) throw new Error('Staking contract not initialized');
-    
-    try {
-      const rewards = await this.stakingContract.getPendingRewards(userAddress, poolId);
-      return ethers.utils.formatUnits(rewards, 18);
-    } catch (error) {
-      console.error('Error getting pending rewards:', error);
-      return '0';
-    }
+    return await this.contractManager.getPendingRewards(userAddress, poolId);
   }
 
   // Marketplace Methods
@@ -292,30 +184,11 @@ export class ContractService {
 
   // BLOCK Token Methods
   async getBlockTokenBalance(userAddress: string): Promise<string> {
-    if (!this.blockTokenContract) throw new Error('BLOCK token contract not initialized');
-    
-    try {
-      const balance = await this.blockTokenContract.balanceOf(userAddress);
-      return ethers.utils.formatUnits(balance, 18);
-    } catch (error) {
-      console.error('Error getting BLOCK token balance:', error);
-      return '0';
-    }
+    return await this.contractManager.getBlockTokenBalance(userAddress);
   }
 
   async transferBlockTokens(to: string, amount: string): Promise<string> {
-    if (!this.blockTokenContract) throw new Error('BLOCK token contract not initialized');
-    
-    try {
-      const transferAmount = ethers.utils.parseUnits(amount, 18);
-      const tx = await this.blockTokenContract.transfer(to, transferAmount);
-      await tx.wait();
-      
-      return tx.hash;
-    } catch (error) {
-      console.error('Error transferring BLOCK tokens:', error);
-      throw error;
-    }
+    return await this.contractManager.transferBlockTokens(to, amount);
   }
 
   // Utility Methods
@@ -336,45 +209,20 @@ export class ContractService {
 
   // Event Listeners
   onPropertyTokenized(callback: (propertyId: number, owner: string, totalTokens: number, pricePerToken: string) => void) {
-    if (!this.propertyTokenContract) return;
-    
-    this.propertyTokenContract.on('PropertyTokenized', (propertyId, owner, totalTokens, pricePerToken) => {
-      callback(
-        propertyId.toNumber(),
-        owner,
-        totalTokens.toNumber(),
-        ethers.utils.formatEther(pricePerToken)
-      );
-    });
+    this.contractManager.onPropertyTokenized(callback);
   }
 
   onTokensPurchased(callback: (propertyId: number, buyer: string, amount: number, totalCost: string) => void) {
-    if (!this.marketplaceContract) return;
-    
-    this.marketplaceContract.on('TokensPurchased', (propertyId, buyer, amount, totalCost) => {
-      callback(
-        propertyId.toNumber(),
-        buyer,
-        amount.toNumber(),
-        ethers.utils.formatEther(totalCost)
-      );
-    });
+    this.contractManager.onTokensPurchased(callback);
   }
 
   onStaked(callback: (user: string, poolId: number, amount: string) => void) {
-    if (!this.stakingContract) return;
-    
-    this.stakingContract.on('Staked', (user, poolId, amount) => {
-      callback(user, poolId.toNumber(), ethers.utils.formatUnits(amount, 18));
-    });
+    this.contractManager.onStaked(callback);
   }
 
   // Cleanup
   removeAllListeners() {
-    this.propertyTokenContract?.removeAllListeners();
-    this.stakingContract?.removeAllListeners();
-    this.marketplaceContract?.removeAllListeners();
-    this.blockTokenContract?.removeAllListeners();
+    this.contractManager.removeAllListeners();
   }
 }
 

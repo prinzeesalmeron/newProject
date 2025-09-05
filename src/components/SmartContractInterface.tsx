@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Code, Zap, Shield, TrendingUp, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
-import { contractService } from '../lib/contracts';
-import { useWallet } from '../lib/wallet';
+import { contractManager } from '../lib/blockchain/contractManager';
+import { useWalletConnector } from '../lib/blockchain/walletConnector';
 import { motion } from 'framer-motion';
 
 interface Transaction {
@@ -14,7 +14,7 @@ interface Transaction {
 }
 
 export const SmartContractInterface = () => {
-  const { isConnected, address } = useWallet();
+  const { isConnected, address } = useWalletConnector();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [contractsInitialized, setContractsInitialized] = useState(false);
@@ -31,7 +31,7 @@ export const SmartContractInterface = () => {
   const [pendingRewards, setPendingRewards] = useState('0');
 
   useEffect(() => {
-    if (isConnected && address && window.ethereum) {
+    if (isConnected && address) {
       initializeContracts();
     }
   }, [isConnected, address]);
@@ -39,7 +39,7 @@ export const SmartContractInterface = () => {
   const initializeContracts = async () => {
     try {
       setLoading(true);
-      await contractService.initialize(window.ethereum);
+      await contractManager.initialize();
       setContractsInitialized(true);
       
       // Load user data
@@ -59,9 +59,9 @@ export const SmartContractInterface = () => {
     
     try {
       const [balance, staked, rewards] = await Promise.all([
-        contractService.getBlockTokenBalance(address),
-        contractService.getStakedAmount(address, selectedPoolId),
-        contractService.getPendingRewards(address, selectedPoolId)
+        contractManager.getBlockTokenBalance(address),
+        contractManager.getStakedAmount(address, selectedPoolId),
+        contractManager.getPendingRewards(address, selectedPoolId)
       ]);
       
       setBlockBalance(balance);
@@ -73,7 +73,7 @@ export const SmartContractInterface = () => {
   };
 
   const setupEventListeners = () => {
-    contractService.onStaked((user, poolId, amount) => {
+    contractManager.onStaked((user, poolId, amount) => {
       if (user.toLowerCase() === address?.toLowerCase()) {
         addTransaction({
           hash: 'pending',
@@ -86,7 +86,7 @@ export const SmartContractInterface = () => {
       }
     });
 
-    contractService.onTokensPurchased((propertyId, buyer, amount, totalCost) => {
+    contractManager.onTokensPurchased((propertyId, buyer, amount, totalCost) => {
       if (buyer.toLowerCase() === address?.toLowerCase()) {
         addTransaction({
           hash: 'pending',
@@ -109,7 +109,7 @@ export const SmartContractInterface = () => {
     
     try {
       setLoading(true);
-      const txHash = await contractService.stakeTokens(selectedPoolId, stakeAmount);
+      const txHash = await contractManager.stakeTokens(selectedPoolId, stakeAmount);
       
       addTransaction({
         hash: txHash,
@@ -134,7 +134,7 @@ export const SmartContractInterface = () => {
     
     try {
       setLoading(true);
-      const txHash = await contractService.unstakeTokens(selectedPoolId, stakeAmount);
+      const txHash = await contractManager.unstakeTokens(selectedPoolId, stakeAmount);
       
       addTransaction({
         hash: txHash,
@@ -159,7 +159,7 @@ export const SmartContractInterface = () => {
     
     try {
       setLoading(true);
-      const txHash = await contractService.claimStakingRewards(selectedPoolId);
+      const txHash = await contractManager.claimStakingRewards(selectedPoolId);
       
       addTransaction({
         hash: txHash,
@@ -183,7 +183,7 @@ export const SmartContractInterface = () => {
     
     try {
       setLoading(true);
-      const txHash = await contractService.transferBlockTokens(transferTo, transferAmount);
+      const txHash = await contractManager.transferBlockTokens(transferTo, transferAmount);
       
       addTransaction({
         hash: txHash,

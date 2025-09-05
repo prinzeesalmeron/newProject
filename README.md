@@ -16,6 +16,14 @@ A modern real estate investment platform built with React, TypeScript, and Supab
 - Smart contract integration for transparent staking
 - Automated reward distribution
 
+### ⛓️ Blockchain Integration
+- Full smart contract deployment on Sepolia testnet
+- Tokenized property ownership with ERC-1155 tokens
+- Automated rental payout distribution
+- Decentralized marketplace with instant liquidity
+- Multi-wallet support (MetaMask, Coinbase, Phantom)
+- Real-time blockchain transaction tracking
+
 ### 📊 Investment Dashboard
 - Track your real estate portfolio
 - Monitor investment performance
@@ -110,7 +118,9 @@ The application uses the following main tables:
 - **State Management:** Zustand
 - **Database:** Supabase (PostgreSQL)
 - **Authentication:** Supabase Auth
-- **Blockchain:** Ethers.js, Web3 wallet integration, Foundry for smart contracts
+- **Blockchain:** Ethers.js, Web3 wallet integration, Foundry for smart contract development
+- **Smart Contracts:** Solidity ^0.8.19, OpenZeppelin libraries
+- **Testnet:** Sepolia Ethereum Testnet
 - **Charts:** Recharts
 - **Animations:** Framer Motion
 - **Icons:** Lucide React
@@ -120,24 +130,45 @@ The application uses the following main tables:
 ```
 src/
 ├── components/          # Reusable UI components
+│   └── blockchain/      # Blockchain-specific components
+│       ├── WalletConnector.tsx
+│       ├── TokenizedMarketplace.tsx
+│       └── RentalPayoutSystem.tsx
 ├── pages/              # Main application pages
 │   ├── Marketplace.tsx  # Property marketplace
 │   ├── Staking.tsx     # Token staking interface
 │   ├── Learn.tsx       # Educational content
 │   ├── Portfolio.tsx   # Portfolio analytics
 │   ├── Governance.tsx  # DAO governance
+│   ├── Blockchain.tsx  # Blockchain integration hub
 │   └── InvestmentDashboard.tsx # Investment dashboard
 ├── lib/                # Utilities and services
 │   ├── auth.ts         # Authentication logic
 │   ├── supabase.ts     # Database configuration
-│   ├── wallet.ts       # Blockchain wallet integration
-│   ├── contracts.ts    # Smart contract interactions (Foundry-based)
+│   ├── blockchain/     # Blockchain integration layer
+│   │   ├── walletConnector.ts    # Multi-wallet connection
+│   │   └── contractManager.ts    # Smart contract management
+│   ├── contracts.ts    # Legacy contract service (updated)
 │   └── api.ts          # API service layer
 ├── types/              # TypeScript type definitions
-└── styles/             # Global styles and themes
+├── styles/             # Global styles and themes
+└── contracts/          # Solidity smart contracts
+    ├── BlockToken.sol       # ERC-20 governance token
+    ├── PropertyToken.sol    # ERC-1155 property tokens
+    ├── Staking.sol         # Staking rewards contract
+    ├── Marketplace.sol     # Decentralized trading
+    └── Governance.sol      # DAO governance
 ```
 
 ## Key Features Implementation
+
+### Blockchain & Tokenization
+- **Smart Contracts:** Deployed on Sepolia testnet with full audit trail
+- **Property Tokenization:** ERC-1155 tokens representing fractional ownership
+- **Automated Rental Payouts:** Smart contract distributes rental income proportionally
+- **Decentralized Trading:** Peer-to-peer marketplace with instant liquidity pools
+- **Multi-Wallet Support:** MetaMask, Coinbase Wallet, Phantom, WalletConnect
+- **Real-time Updates:** Event-driven UI updates from blockchain events
 
 ### User Registration & Authentication
 - Secure password-based authentication
@@ -165,13 +196,65 @@ src/
 - Asset allocation visualization
 - Performance analytics
 
+- **BLOCK Token:** `0x8A791620dd6260079BF849Dc5567aDC3F2FdC318`
+- **Property Token:** `0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5e`
+- **Marketplace:** `0x8464135c8F25Da09e49BC8782676a84730C318bC`
+- **Staking:** `0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6`
+- **Governance:** `0x610178dA211FEF7D417bC0e6FeD39F05609AD788`
+- **Timelock:** `0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e`
 ### Governance System
+### Smart Contract Features
 - Decentralized governance voting
+#### Property Tokenization
+- ERC-1155 multi-token standard for fractional ownership
+- Automated token minting for new properties
+- Metadata URI support for property details
+- Transfer restrictions and approval mechanisms
 - Proposal creation and management
+#### Marketplace Trading
+- Peer-to-peer token listings and sales
+- Instant buy/sell through liquidity pools
+- Automated fee collection (2.5% platform fee)
+- Escrow system for secure transactions
 - Token-based voting power
-- Governance analytics
+#### Rental Income Distribution
+- Automated monthly rental payouts
+- Proportional distribution based on token ownership
+- Claimable rewards system
+- Gas-efficient batch processing
 
+The project uses Foundry for smart contract development:
+- Governance analytics
+```bash
+# Install Foundry
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+#### Staking & Governance
+# Compile contracts
+forge build
+- Multiple staking pools with different APY rates
+# Run tests
+forge test
+- Lock periods for higher rewards
+# Deploy to testnet
+forge script script/DeployTestnet.s.sol --rpc-url $SEPOLIA_RPC_URL --private-key $PRIVATE_KEY --broadcast --verify
+- Governance token voting power
+# Verify contracts
+forge verify-contract <CONTRACT_ADDRESS> <CONTRACT_PATH> --chain sepolia
+```
+- Proposal creation and execution through timelock
+### Environment Variables for Blockchain
+
+```env
+# Blockchain Configuration
+PRIVATE_KEY=your_private_key_for_deployment
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your_infura_key
+ETHERSCAN_API_KEY=your_etherscan_api_key
 ## Development
+# Supabase Configuration
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
 ### Adding New Features
 1. Create components in `src/components/`

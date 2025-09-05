@@ -1,12 +1,20 @@
 import React from 'react';
 import { Wallet, LogOut, Copy, Check, ChevronDown } from 'lucide-react';
-import { useWallet, walletProviders, WalletProvider } from '../lib/wallet';
+import { useWalletConnector, WalletProvider } from '../lib/blockchain/walletConnector';
+
+const WALLET_PROVIDERS = {
+  metamask: { name: 'MetaMask', icon: '🦊', check: () => !!window.ethereum?.isMetaMask },
+  coinbase: { name: 'Coinbase Wallet', icon: '🔵', check: () => !!window.ethereum?.isCoinbaseWallet },
+  phantom: { name: 'Phantom', icon: '👻', check: () => !!window.solana?.isPhantom },
+  walletconnect: { name: 'WalletConnect', icon: '🔗', check: () => true }
+};
 
 export const WalletButton = () => {
-  const { isConnected, address, balance, blockBalance, connecting, provider, connectWallet, disconnectWallet } = useWallet();
+  const { isConnected, address, balance, connecting, connect, disconnect } = useWalletConnector();
   const [copied, setCopied] = React.useState(false);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [showWalletOptions, setShowWalletOptions] = React.useState(false);
+  const [blockBalance, setBlockBalance] = React.useState(2340); // Mock balance
 
   const handleCopyAddress = () => {
     if (address) {
@@ -22,19 +30,17 @@ export const WalletButton = () => {
 
   const handleWalletConnect = async (walletType: WalletProvider) => {
     setShowWalletOptions(false);
-    await connectWallet(walletType);
+    await connect(walletType);
   };
 
   const getAvailableWallets = () => {
-    return Object.entries(walletProviders).filter(([key, wallet]) => {
+    return Object.entries(WALLET_PROVIDERS).filter(([key, wallet]) => {
       // Always show all wallets, but indicate which ones are installed
       return true;
     });
   };
 
   if (isConnected && address) {
-    const currentProvider = provider ? walletProviders[provider] : null;
-    
     return (
       <div className="relative flex items-center space-x-3">
         <div className="hidden md:block text-right">
@@ -42,7 +48,7 @@ export const WalletButton = () => {
             {blockBalance.toLocaleString()} BLOCK
           </div>
           <div className="text-xs text-gray-500">
-            {balance} {provider === 'phantom' ? 'SOL' : 'ETH'}
+            {parseFloat(balance).toFixed(4)} ETH
           </div>
         </div>
         
@@ -52,9 +58,6 @@ export const WalletButton = () => {
         >
           <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full"></div>
           <span className="text-sm font-medium text-gray-900 dark:text-white">{formatAddress(address)}</span>
-          {currentProvider && (
-            <span className="text-xs">{currentProvider.icon}</span>
-          )}
         </button>
 
         {showDropdown && (
@@ -63,12 +66,6 @@ export const WalletButton = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Connected with</span>
-                  {currentProvider && (
-                    <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center space-x-1">
-                      <span>{currentProvider.icon}</span>
-                      <span>{currentProvider.name}</span>
-                    </span>
-                  )}
                 </div>
                 <button
                   onClick={handleCopyAddress}
@@ -94,10 +91,10 @@ export const WalletButton = () => {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {provider === 'phantom' ? 'SOL' : 'ETH'} Balance:
+                    ETH Balance:
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {balance} {provider === 'phantom' ? 'SOL' : 'ETH'}
+                    {parseFloat(balance).toFixed(4)} ETH
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -108,7 +105,7 @@ export const WalletButton = () => {
               
               <button
                 onClick={() => {
-                  disconnectWallet();
+                  disconnect();
                   setShowDropdown(false);
                 }}
                 className="w-full flex items-center justify-center space-x-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"

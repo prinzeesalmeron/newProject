@@ -54,7 +54,6 @@ function App() {
   }, [initialize]);
 
   return (
-    <Router>
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -66,6 +65,7 @@ function App() {
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/governance" element={<Governance />} />
             <Route path="/dashboard" element={<InvestmentDashboard />} />
+            <Route path="/blockchain" element={<Blockchain />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
           <Footer />
@@ -77,5 +77,3 @@ function App() {
 }
 
 export default App;
-  )
-}

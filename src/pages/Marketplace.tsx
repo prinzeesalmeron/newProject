@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, SlidersHorizontal, Plus } from 'lucide-react';
+import { useApi } from '../hooks/useApi';
+import { EmptyState, LoadingSpinner, Button, Card } from '../components/ui';
+import { toast } from '../components/ui/Toast';
 import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
 import { Property } from '../lib/supabase';
@@ -9,12 +12,18 @@ import { motion } from 'framer-motion';
 
 export const Marketplace = () => {
   const { user, profile } = useAuth();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>('All Markets');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Use the new useApi hook for better data management
+  const {
+    data: properties = [],
+    loading,
+    error,
+    refetch: fetchProperties
+  } = useApi(() => PropertyAPI.getAllProperties());
 
   // Debug admin status
   console.log('User:', user);
@@ -33,32 +42,20 @@ export const Marketplace = () => {
     'Owner Occupied'
   ];
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
-  const fetchProperties = async () => {
-    try {
-      const data = await PropertyAPI.getAllProperties();
-      setProperties(data);
-    } catch (error) {
-      console.error('Error fetching properties:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddProperty = async (propertyData: Omit<Property, 'id'>) => {
     try {
       console.log('Adding property:', propertyData);
       const newProperty = await PropertyAPI.createProperty(propertyData);
       console.log('Property added successfully:', newProperty);
-      setProperties(prev => [...prev, newProperty]);
       
-      // Show success message
-      alert(`Property "${newProperty.title}" has been added successfully!`);
+      // Refresh the properties list
+      await fetchProperties();
+      
+      // Show success toast
+      toast.success('Property Added', `"${newProperty.title}" has been added successfully!`);
     } catch (error) {
       console.error('Error adding property:', error);
+      toast.error('Failed to Add Property', 'Please try again.');
       // Re-throw the error so the modal can handle it
       throw error;
     }
@@ -105,10 +102,25 @@ export const Marketplace = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading properties...</p>
-        </div>
+        <LoadingSpinner size="xl" text="Loading properties..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md text-center">
+          <EmptyState
+            icon="⚠️"
+            title="Error Loading Properties"
+            description={error}
+            action={{
+              label: "Try Again",
+              onClick: fetchProperties
+            }}
+          />
+        </Card>
       </div>
     );
   }
@@ -212,22 +224,19 @@ export const Marketplace = () => {
           </div>
 
           {filteredProperties.length === 0 && (
-            <div className="text-center py-20">
-              <div className="text-gray-400 text-8xl mb-6">🏠</div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">No properties available yet</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                Get started by adding the first property to the marketplace. Properties you add will appear here for investors to discover.
-              </p>
-              {user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin') && (
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center space-x-2 mx-auto"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Add First Property</span>
-                </button>
-              )}
-            </div>
+            <EmptyState
+              icon="🏠"
+              title="No properties available yet"
+              description="Get started by adding the first property to the marketplace. Properties you add will appear here for investors to discover."
+              action={
+                user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin')
+                  ? {
+                      label: "Add First Property",
+                      onClick: () => setShowAddModal(true)
+                    }
+                  : undefined
+              }
+            />
           )}
 
           {filteredProperties.length > 0 && (
@@ -247,9 +256,9 @@ export const Marketplace = () => {
               </motion.div>
 
               <div className="text-center mt-12">
-                <button className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+                <Button size="lg">
                   Load More Properties
-                </button>
+                </Button>
               </div>
             </>
           )}

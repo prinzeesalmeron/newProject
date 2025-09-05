@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, DollarSign, Lock, Code, Zap } from 'lucide-react';
+import { useApi } from '../hooks/useApi';
+import { EmptyState, LoadingSpinner, Card, Button } from '../components/ui';
+import { toast } from '../components/ui/Toast';
 import { StakingPoolCard } from '../components/StakingPoolCard';
 import { SmartContractInterface } from '../components/SmartContractInterface';
 import { StakingPool } from '../lib/supabase';
@@ -9,10 +12,16 @@ import { motion } from 'framer-motion';
 
 export const Staking = () => {
   const { user } = useAuth();
-  const [pools, setPools] = useState<StakingPool[]>([]);
   const [selectedPool, setSelectedPool] = useState<string>('');
   const [stakeAmount, setStakeAmount] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+
+  // Use the new useApi hook
+  const {
+    data: pools = [],
+    loading,
+    error,
+    refetch: fetchStakingPools
+  } = useApi(() => StakingAPI.getAllPools());
 
   const stakingStats = {
     totalStaked: '0',
@@ -21,36 +30,25 @@ export const Staking = () => {
     availableBalance: '2,340'
   };
 
+  // Set initial selected pool when pools load
   useEffect(() => {
-    fetchStakingPools();
-  }, []);
-
-  const fetchStakingPools = async () => {
-    try {
-      const data = await StakingAPI.getAllPools();
-      setPools(data);
-      if (data && data.length > 0) {
-        setSelectedPool(data[0].id);
-      }
-    } catch (error) {
-      console.error('Error fetching staking pools:', error);
-    } finally {
-      setLoading(false);
+    if (pools && pools.length > 0 && !selectedPool) {
+      setSelectedPool(pools[0].id);
     }
-  };
+  }, [pools, selectedPool]);
 
   const handleStake = () => {
     if (!user || !stakeAmount || !selectedPool) return;
     
     StakingAPI.stakeTokens(selectedPool, parseFloat(stakeAmount))
       .then(() => {
-        alert(`Successfully staked ${stakeAmount} BLOCK tokens!`);
+        toast.success('Staking Successful', `Successfully staked ${stakeAmount} BLOCK tokens!`);
         setStakeAmount('');
-        fetchStakingPools(); // Refresh data
+        fetchStakingPools();
       })
       .catch(error => {
         console.error('Staking failed:', error);
-        alert('Staking failed. Please try again.');
+        toast.error('Staking Failed', 'Please try again.');
       });
   };
 
@@ -59,7 +57,25 @@ export const Staking = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <LoadingSpinner size="xl" text="Loading staking pools..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md text-center">
+          <EmptyState
+            icon="⚠️"
+            title="Error Loading Staking Pools"
+            description={error}
+            action={{
+              label: "Try Again",
+              onClick: fetchStakingPools
+            }}
+          />
+        </Card>
       </div>
     );
   }
@@ -172,10 +188,11 @@ export const Staking = () => {
                       />
                     ))}
                     {pools.length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <p>No staking pools available yet.</p>
-                        <p className="text-sm mt-2">Staking pools will be added by the platform administrators.</p>
-                      </div>
+                      <EmptyState
+                        icon="💰"
+                        title="No staking pools available yet"
+                        description="Staking pools will be added by the platform administrators."
+                      />
                     )}
                   </div>
                 </div>
@@ -208,21 +225,20 @@ export const Staking = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handleStake}
+              <Button
+                fullWidth
+                loading={loading}
                 disabled={!stakeAmount || !selectedPool || !user || pools.length === 0}
-                className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                onClick={handleStake}
+                icon={<Lock className="h-4 w-4" />}
               >
-                <Lock className="h-4 w-4" />
-                <span>
-                  {!user 
-                    ? 'Sign In to Stake' 
-                    : pools.length === 0 
-                    ? 'No Pools Available' 
-                    : 'Stake Tokens'
-                  }
-                </span>
-              </button>
+                {!user 
+                  ? 'Sign In to Stake' 
+                  : pools.length === 0 
+                  ? 'No Pools Available' 
+                  : 'Stake Tokens'
+                }
+              </Button>
             </motion.div>
 
             {/* Rewards Calculator */}

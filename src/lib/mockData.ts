@@ -112,9 +112,170 @@ export const mockArticles: Article[] = [
   }
 ];
 
-export const mockProperties: any[] = [];
+export const mockProperties: any[] = [
+  {
+    id: 'prop1',
+    title: 'Downtown Luxury Apartment Complex',
+    description: 'Premium apartment complex in the heart of downtown with modern amenities and high rental demand.',
+    image_url: 'https://images.pexels.com/photos/1370704/pexels-photo-1370704.jpeg',
+    location: 'New York, NY',
+    property_type: 'Multi Family',
+    price_per_token: 100,
+    total_tokens: 1000,
+    available_tokens: 750,
+    rental_yield: 8.5,
+    projected_return: 12.3,
+    rating: 4.8,
+    features: ['Pool', 'Gym', 'Concierge', 'Parking', 'Security'],
+    is_yield_property: true,
+    yield_percentage: '8.5%',
+    status: 'active',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: 'prop2',
+    title: 'Suburban Family Home Portfolio',
+    description: 'Collection of single-family homes in growing suburban markets with stable rental income.',
+    image_url: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg',
+    location: 'Austin, TX',
+    property_type: 'Single Family',
+    price_per_token: 75,
+    total_tokens: 800,
+    available_tokens: 320,
+    rental_yield: 7.2,
+    projected_return: 10.8,
+    rating: 4.6,
+    features: ['Garden', 'Garage', 'Modern Kitchen', 'Fireplace'],
+    is_yield_property: true,
+    yield_percentage: '7.2%',
+    status: 'active',
+    created_at: '2024-01-10T14:30:00Z',
+    updated_at: '2024-01-10T14:30:00Z'
+  },
+  {
+    id: 'prop3',
+    title: 'Commercial Office Building',
+    description: 'Class A office building with long-term corporate tenants and stable cash flow.',
+    image_url: 'https://images.pexels.com/photos/325229/pexels-photo-325229.jpeg',
+    location: 'San Francisco, CA',
+    property_type: 'Commercial',
+    price_per_token: 150,
+    total_tokens: 1200,
+    available_tokens: 480,
+    rental_yield: 6.8,
+    projected_return: 9.5,
+    rating: 4.9,
+    features: ['Prime Location', 'Corporate Tenants', 'Parking Garage', 'Modern Facilities'],
+    is_yield_property: true,
+    yield_percentage: '6.8%',
+    status: 'active',
+    created_at: '2024-01-05T09:15:00Z',
+    updated_at: '2024-01-05T09:15:00Z'
+  },
+  {
+    id: 'prop4',
+    title: 'Vacation Rental Resort',
+    description: 'Luxury vacation rental property in a popular tourist destination with high seasonal demand.',
+    image_url: 'https://images.pexels.com/photos/1438832/pexels-photo-1438832.jpeg',
+    location: 'Miami, FL',
+    property_type: 'Vacation Rentals',
+    price_per_token: 120,
+    total_tokens: 600,
+    available_tokens: 180,
+    rental_yield: 12.5,
+    projected_return: 18.2,
+    rating: 4.7,
+    features: ['Ocean View', 'Pool', 'Beach Access', 'Luxury Amenities'],
+    is_yield_property: true,
+    yield_percentage: '12.5%',
+    status: 'active',
+    created_at: '2023-12-28T16:45:00Z',
+    updated_at: '2023-12-28T16:45:00Z'
+  },
+  {
+    id: 'prop5',
+    title: 'Cash Flowing Duplex',
+    description: 'Well-maintained duplex with reliable tenants and positive cash flow from day one.',
+    image_url: 'https://images.pexels.com/photos/280222/pexels-photo-280222.jpeg',
+    location: 'Denver, CO',
+    property_type: 'Cash Flowing',
+    price_per_token: 50,
+    total_tokens: 400,
+    available_tokens: 120,
+    rental_yield: 9.8,
+    projected_return: 14.5,
+    rating: 4.4,
+    features: ['Duplex', 'Reliable Tenants', 'Low Maintenance', 'Positive Cash Flow'],
+    is_yield_property: true,
+    yield_percentage: '9.8%',
+    status: 'active',
+    created_at: '2023-12-20T11:20:00Z',
+    updated_at: '2023-12-20T11:20:00Z'
+  },
+  {
+    id: 'prop6',
+    title: 'Industrial Warehouse Complex',
+    description: 'Modern warehouse facility with e-commerce and logistics tenants in a strategic location.',
+    image_url: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg',
+    location: 'Phoenix, AZ',
+    property_type: 'Commercial',
+    price_per_token: 200,
+    total_tokens: 2000,
+    available_tokens: 1200,
+    rental_yield: 5.5,
+    projected_return: 8.2,
+    rating: 4.5,
+    features: ['Strategic Location', 'E-commerce Tenants', 'Modern Facilities', 'Expansion Potential'],
+    is_yield_property: true,
+    yield_percentage: '5.5%',
+    status: 'active',
+    created_at: '2023-12-15T13:10:00Z',
+    updated_at: '2023-12-15T13:10:00Z'
+  }
+];
 
-export const mockStakingPools: any[] = [];
+export const mockStakingPools: any[] = [
+  {
+    id: 'pool1',
+    name: 'Flexible Staking',
+    description: 'No lock period, withdraw anytime with competitive rewards',
+    apy: 5.0,
+    lock_period: 0,
+    min_stake: 100,
+    max_stake: null,
+    total_staked: 1250000,
+    is_active: true,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'pool2',
+    name: '30-Day Lock',
+    description: 'Higher rewards for 30-day commitment',
+    apy: 8.0,
+    lock_period: 30,
+    min_stake: 500,
+    max_stake: null,
+    total_staked: 890000,
+    is_active: true,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'pool3',
+    name: '90-Day Lock',
+    description: 'Maximum rewards for long-term stakers',
+    apy: 12.0,
+    lock_period: 90,
+    min_stake: 1000,
+    max_stake: null,
+    total_staked: 2100000,
+    is_active: true,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  }
+];
 
 // Mock API service for educational content
 export class MockAPI {

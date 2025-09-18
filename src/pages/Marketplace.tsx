@@ -23,7 +23,7 @@ export const Marketplace = () => {
     loading,
     error,
     refetch: fetchProperties
-  } = useApi(() => PropertyAPI.getAllProperties());
+  } = useApi(() => PropertyAPI.getAllProperties(), { immediate: true });
 
 
   // Debug admin status
@@ -50,7 +50,7 @@ export const Marketplace = () => {
       console.log('Property added successfully:', newProperty);
       
       // Refresh the properties list
-      await fetchProperties();
+      fetchProperties();
       
       // Show success toast
       toast.success('Property Added', `"${newProperty.title}" has been added successfully!`);
@@ -91,7 +91,8 @@ export const Marketplace = () => {
       PropertyAPI.investInProperty(propertyId, tokenAmount, totalCost)
         .then(() => {
           alert(`Successfully invested $${totalCost} in ${property.title}!`);
-          fetchProperties(); // Refresh properties to update available tokens
+          // Don't refresh immediately to avoid loading state
+          // The property data will be updated on next page load
         })
         .catch(error => {
           console.error('Investment failed:', error);

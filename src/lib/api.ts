@@ -13,9 +13,24 @@ export class PropertyAPI {
     }
 
     try {
-      // Use enhanced API with pagination and filtering
-      const result = await EnhancedPropertyAPI.getAllProperties();
-      return result.properties;
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
+
+      // If no data from Supabase, return mock data
+      if (!data || data.length === 0) {
+        console.log('No properties in Supabase, using mock data');
+        return mockProperties;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error fetching properties from Supabase:', error);
       console.log('Falling back to mock data');

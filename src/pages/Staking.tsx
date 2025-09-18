@@ -17,11 +17,14 @@ export const Staking = () => {
 
   // Use the new useApi hook
   const {
-    data: pools = [],
+    data: pools,
     loading,
     error,
     refetch: fetchStakingPools
   } = useApi(() => StakingAPI.getAllPools());
+
+  // Ensure pools is always an array
+  const poolsArray = pools || [];
 
   const stakingStats = {
     totalStaked: '0',
@@ -32,10 +35,10 @@ export const Staking = () => {
 
   // Set initial selected pool when pools load
   useEffect(() => {
-    if (pools && pools.length > 0 && !selectedPool) {
-      setSelectedPool(pools[0].id);
+    if (poolsArray.length > 0 && !selectedPool) {
+      setSelectedPool(poolsArray[0].id);
     }
-  }, [pools, selectedPool]);
+  }, [poolsArray, selectedPool]);
 
   const handleStake = () => {
     if (!user || !stakeAmount || !selectedPool) return;
@@ -52,7 +55,7 @@ export const Staking = () => {
       });
   };
 
-  const selectedPoolData = pools.find(pool => pool.id === selectedPool);
+  const selectedPoolData = poolsArray.find(pool => pool.id === selectedPool);
 
   if (loading) {
     return (
@@ -179,7 +182,7 @@ export const Staking = () => {
                     Select Staking Pool
                   </label>
                   <div className="space-y-3">
-                    {pools.map((pool) => (
+                    {poolsArray.map((pool) => (
                       <StakingPoolCard
                         key={pool.id}
                         pool={pool}
@@ -187,7 +190,7 @@ export const Staking = () => {
                         onSelect={setSelectedPool}
                       />
                     ))}
-                    {pools.length === 0 && (
+                    {poolsArray.length === 0 && (
                       <EmptyState
                         icon="💰"
                         title="No staking pools available yet"
@@ -229,12 +232,13 @@ export const Staking = () => {
                 fullWidth
                 loading={loading}
                 disabled={!stakeAmount || !selectedPool || !user || pools.length === 0}
+                disabled={!stakeAmount || !selectedPool || !user || poolsArray.length === 0}
                 onClick={handleStake}
                 icon={<Lock className="h-4 w-4" />}
               >
                 {!user 
                   ? 'Sign In to Stake' 
-                  : pools.length === 0 
+                  : poolsArray.length === 0 
                   ? 'No Pools Available' 
                   : 'Stake Tokens'
                 }
@@ -256,7 +260,7 @@ export const Staking = () => {
 
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📊</div>
-                {pools.length === 0 ? (
+                {poolsArray.length === 0 ? (
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     No staking pools available for rewards calculation
                   </p>

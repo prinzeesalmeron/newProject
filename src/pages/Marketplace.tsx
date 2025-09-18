@@ -63,6 +63,7 @@ export const Marketplace = () => {
   };
 
   const filteredProperties = properties.filter((property) => {
+  const filteredProperties = (properties || []).filter((property) => {
     const matchesType = selectedType === 'All Markets' || property.property_type === selectedType;
     const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchQuery.toLowerCase());

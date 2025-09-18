@@ -19,14 +19,12 @@ export const Marketplace = () => {
 
   // Use the new useApi hook for better data management
   const {
-    data,
+    data: properties,
     loading,
     error,
     refetch: fetchProperties
   } = useApi(() => PropertyAPI.getAllProperties());
 
-  // Ensure properties is always an array
-  const properties = data?.properties || data || [];
 
   // Debug admin status
   console.log('User:', user);

@@ -13,24 +13,9 @@ export class PropertyAPI {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase query error:', error);
-        throw error;
-      }
-
-      // If no data from Supabase, return mock data
-      if (!data || data.length === 0) {
-        console.log('No properties in Supabase, using mock data');
-        return mockProperties;
-      }
-
-      return data;
+      // Use enhanced API with pagination and filtering
+      const result = await EnhancedPropertyAPI.getAllProperties();
+      return result.properties;
     } catch (error) {
       console.error('Error fetching properties from Supabase:', error);
       console.log('Falling back to mock data');
@@ -105,6 +90,7 @@ export class PropertyAPI {
 export class StakingAPI {
   static async getAllPools(): Promise<StakingPool[]> {
     if (!supabase) {
+      console.log('Supabase not configured, using mock staking pools');
       return mockStakingPools;
     }
 
@@ -114,10 +100,21 @@ export class StakingAPI {
         .select('*')
         .eq('is_active', true);
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error('Supabase staking pools query error:', error);
+        throw error;
+      }
+
+      // If no data from Supabase, return mock data
+      if (!data || data.length === 0) {
+        console.log('No staking pools in Supabase, using mock data');
+        return mockStakingPools;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error fetching staking pools:', error);
+      console.log('Falling back to mock staking pools');
       return mockStakingPools;
     }
   }

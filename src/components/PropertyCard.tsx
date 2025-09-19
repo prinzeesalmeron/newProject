@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, TrendingUp, MapPin, Star } from 'lucide-react';
 import { Property } from '../lib/supabase';
+import { PaymentModal } from './PaymentModal';
 import { motion } from 'framer-motion';
 import { useAuth } from '../lib/auth';
 
@@ -12,6 +13,21 @@ interface PropertyCardProps {
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }) => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = React.useState(false);
+  const [showPaymentModal, setShowPaymentModal] = React.useState(false);
+  const [tokenAmount, setTokenAmount] = React.useState(10); // Default investment amount
+
+  const handleInvestClick = () => {
+    if (!user) {
+      alert('Please sign in to invest in properties. Click "Sign Up" in the navigation to create an account.');
+      return;
+    }
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    onInvest?.(property.id);
+  };
 
   return (
     <motion.div
@@ -102,7 +118,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
         )}
 
         <button
-          onClick={() => onInvest?.(property.id)}
+          onClick={handleInvestClick}
           className={`w-full py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
             user 
               ? 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600' 
@@ -113,6 +129,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
           <span>{user ? 'Invest Now' : 'Sign In to Invest'}</span>
         </button>
       </div>
+
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        propertyId={property.id}
+        propertyTitle={property.title}
+        tokenAmount={tokenAmount}
+        pricePerToken={property.price_per_token}
+        onSuccess={handlePaymentSuccess}
+      />
     </motion.div>
   );
 };

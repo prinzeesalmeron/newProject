@@ -114,6 +114,16 @@ export const Navbar = () => {
             >
               Blockchain
             </Link>
+            <Link
+              to="/payments"
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                isActive('/payments') 
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+              }`}
+            >
+              Payments
+            </Link>
             {user && (
               <Link
                 to="/dashboard"
@@ -275,6 +285,16 @@ export const Navbar = () => {
                 }`}
               >
                 ⛓️ Blockchain
+              </Link>
+              <Link
+                to="/payments"
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
+                  isActive('/payments') 
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
+                }`}
+              >
+                💳 Payments
               </Link>
               <Link
                 to="/dashboard"

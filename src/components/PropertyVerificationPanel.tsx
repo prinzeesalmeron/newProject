@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, Clock, AlertTriangle, Upload, FileText, Download, Eye } from 'lucide-react';
-import { PropertyVerificationService, PropertyDataService } from '../lib/services/propertyVerificationService';
+import { PropertyVerificationService } from '../lib/services/propertyVerificationService';
+import { PropertyDataService } from '../lib/services/propertyDataService';
 import { useAuth } from '../lib/auth';
 import { toast } from './ui/Toast';
 import { motion } from 'framer-motion';

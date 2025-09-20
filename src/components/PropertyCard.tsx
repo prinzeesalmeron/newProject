@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, TrendingUp, MapPin, Star } from 'lucide-react';
-import { Property } from '../lib/mockData';
+import { Property } from '../lib/supabase';
 import { useWallet } from '../lib/wallet';
 import { motion } from 'framer-motion';
 
@@ -21,7 +21,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
     >
       <div className="relative">
         <img
-          src={property.image}
+          src={property.image_url}
           alt={property.title}
           className="w-full h-48 object-cover"
         />
@@ -38,7 +38,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
         <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg">
           <div className="flex items-center space-x-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium">{property.rating}</span>
+            <span className="text-sm font-medium">{property.rating || 4.5}</span>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
       <div className="p-6">
         <div className="flex items-start justify-between mb-2">
           <h3 className="text-xl font-bold text-gray-900">{property.title}</h3>
-          <span className="text-2xl font-bold text-blue-600">${property.price.toLocaleString()}</span>
+          <span className="text-2xl font-bold text-blue-600">${(property.price_per_token * property.total_tokens).toLocaleString()}</span>
         </div>
 
         <div className="flex items-center text-gray-600 mb-4">
@@ -58,15 +58,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center">
-            <div className="text-lg font-bold text-gray-900">{property.expectedReturn}%</div>
+            <div className="text-lg font-bold text-gray-900">{property.projected_return}%</div>
             <div className="text-xs text-gray-500">Expected Return</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-gray-900">{property.minInvestment}</div>
+            <div className="text-lg font-bold text-gray-900">${property.price_per_token}</div>
             <div className="text-xs text-gray-500">Min Investment</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-gray-900">{property.fundingProgress}%</div>
+            <div className="text-lg font-bold text-gray-900">{Math.round(((property.total_tokens - property.available_tokens) / property.total_tokens) * 100)}%</div>
             <div className="text-xs text-gray-500">Funded</div>
           </div>
         </div>
@@ -74,12 +74,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>Funding Progress</span>
-            <span>{property.fundingProgress}%</span>
+            <span>{Math.round(((property.total_tokens - property.available_tokens) / property.total_tokens) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${property.fundingProgress}%` }}
+              style={{ width: `${Math.round(((property.total_tokens - property.available_tokens) / property.total_tokens) * 100)}%` }}
             />
           </div>
         </div>

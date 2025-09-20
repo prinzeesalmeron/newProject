@@ -230,20 +230,22 @@ export const Marketplace = () => {
                 Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
               </div>
               {user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin') && (
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Property</span>
-                </button>
-                <button
-                  onClick={() => setShowImportModal(true)}
-                  className="flex items-center space-x-2 bg-green-600 dark:bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
-                >
-                  <Search className="h-4 w-4" />
-                  <span>Import from MLS</span>
-                </button>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add Property</span>
+                  </button>
+                  <button
+                    onClick={() => setShowImportModal(true)}
+                    className="flex items-center space-x-2 bg-green-600 dark:bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                  >
+                    <Search className="h-4 w-4" />
+                    <span>Import from MLS</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>

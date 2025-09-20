@@ -13,9 +13,20 @@ export class PropertyAPI {
     }
 
     try {
-      // Use enhanced API with pagination and filtering
-      const result = await EnhancedPropertyAPI.getAllProperties();
-      return result.properties;
+      // Simple, fast query without complex joins
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(50); // Limit results for faster loading
+
+      if (error) {
+        console.error('Supabase properties query error:', error);
+        throw error;
+      }
+
+      return data || [];
     } catch (error) {
       console.error('Error fetching properties from Supabase:', error);
       console.log('Falling back to mock data');
@@ -29,7 +40,14 @@ export class PropertyAPI {
     }
 
     try {
-      return await EnhancedPropertyAPI.getPropertyById(id);
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
     } catch (error) {
       console.error('Error fetching property:', error);
       return mockProperties.find(p => p.id === id) || null;

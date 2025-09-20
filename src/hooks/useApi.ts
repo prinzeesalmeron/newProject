@@ -14,13 +14,25 @@ export function useApi<T>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetch, setLastFetch] = useState<number>(0);
+  
+  // Cache duration in milliseconds (5 minutes)
+  const CACHE_DURATION = 5 * 60 * 1000;
 
   const execute = useCallback(async () => {
+    // Check if we have recent cached data
+    const now = Date.now();
+    if (data && (now - lastFetch) < CACHE_DURATION) {
+      console.log('Using cached data');
+      return data;
+    }
+    
     try {
       setLoading(true);
       setError(null);
       const result = await apiFunction();
       setData(result);
+      setLastFetch(now);
       options.onSuccess?.(result);
       return result;
     } catch (err: any) {
@@ -31,7 +43,7 @@ export function useApi<T>(
     } finally {
       setLoading(false);
     }
-  }, [apiFunction, options]);
+  }, [apiFunction, options, data, lastFetch]);
 
   useEffect(() => {
     if (options.immediate !== false) {
@@ -49,6 +61,7 @@ export function useApi<T>(
       setData(null);
       setError(null);
       setLoading(false);
+      setLastFetch(0);
     }
   };
 }

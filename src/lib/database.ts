@@ -81,7 +81,8 @@ export class DatabaseService {
     let query = supabase
       .from('properties')
       .select('*')
-      .eq('status', 'active');
+      .eq('status', 'active')
+      .limit(100); // Add limit to prevent large queries
 
     if (filters) {
       if (filters.property_type) {

@@ -8,7 +8,7 @@ export class PropertyAPI {
    */
   static async getAllProperties(
     page: number = 1,
-    limit: number = 20,
+    limit: number = 50, // Increase limit to reduce number of requests
     filters?: {
       property_type?: string;
       location?: string;
@@ -30,7 +30,7 @@ export class PropertyAPI {
     try {
       let query = supabase
         .from('properties')
-        .select('*', { count: 'exact' })
+        .select('*') // Remove count for faster queries
         .eq('status', 'active');
 
       // Apply filters
@@ -56,7 +56,7 @@ export class PropertyAPI {
       const from = (page - 1) * limit;
       const to = from + limit - 1;
       
-      const { data, error, count } = await query
+      const { data, error } = await query
         .range(from, to)
         .order('created_at', { ascending: false });
 
@@ -64,7 +64,7 @@ export class PropertyAPI {
 
       return {
         properties: data || [],
-        total: count || 0,
+        total: data?.length || 0, // Use data length instead of count
         page,
         limit
       };

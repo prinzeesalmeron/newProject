@@ -5,6 +5,8 @@ import { EmptyState, LoadingSpinner, Button, Card } from '../components/ui';
 import { toast } from '../components/ui/Toast';
 import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
+import { PropertyImportModal } from '../components/PropertyImportModal';
+import { PropertyVerificationPanel } from '../components/PropertyVerificationPanel';
 import { Property } from '../lib/supabase';
 import { PropertyAPI } from '../lib/api';
 import { useAuth, isAdmin } from '../lib/auth';
@@ -16,6 +18,9 @@ export const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showVerificationPanel, setShowVerificationPanel] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
 
   // Use the new useApi hook for better data management
   const {
@@ -60,6 +65,17 @@ export const Marketplace = () => {
       // Re-throw the error so the modal can handle it
       throw error;
     }
+  };
+
+  const handleImportProperty = (property: any) => {
+    console.log('Property imported:', property);
+    fetchProperties();
+    toast.success('Property Imported', 'Property has been imported and verification started');
+  };
+
+  const handleViewVerification = (propertyId: string) => {
+    setSelectedPropertyId(propertyId);
+    setShowVerificationPanel(true);
   };
 
   const filteredProperties = (properties || []).filter((property) => {
@@ -221,6 +237,13 @@ export const Marketplace = () => {
                   <Plus className="h-4 w-4" />
                   <span>Add Property</span>
                 </button>
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="flex items-center space-x-2 bg-green-600 dark:bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                >
+                  <Search className="h-4 w-4" />
+                  <span>Import from MLS</span>
+                </button>
               )}
             </div>
           </div>
@@ -253,6 +276,7 @@ export const Marketplace = () => {
                     key={property.id}
                     property={property}
                     onInvest={handleInvest}
+                    onViewVerification={() => handleViewVerification(property.id)}
                   />
                 ))}
               </motion.div>
@@ -272,6 +296,37 @@ export const Marketplace = () => {
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddProperty}
       />
+
+      <PropertyImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImportProperty}
+      />
+
+      {showVerificationPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Property Verification</h2>
+                <button
+                  onClick={() => setShowVerificationPanel(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+            </div>
+            <PropertyVerificationPanel
+              propertyId={selectedPropertyId}
+              onVerificationComplete={() => {
+                setShowVerificationPanel(false);
+                fetchProperties();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

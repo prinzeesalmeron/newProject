@@ -8,9 +8,11 @@ import { useAuth } from '../lib/auth';
 interface PropertyCardProps {
   property: Property;
   onInvest?: (propertyId: string) => void;
+  onViewVerification?: () => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }) => {
+export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest, onViewVerification }) => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = React.useState(false);
   const [showPaymentModal, setShowPaymentModal] = React.useState(false);
@@ -128,6 +130,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
           <TrendingUp className="h-4 w-4" />
           <span>{user ? 'Invest Now' : 'Sign In to Invest'}</span>
         </button>
+
+        {/* Verification Status Button */}
+        {onViewVerification && (
+          <button
+            onClick={onViewVerification}
+            className="w-full mt-2 py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"
+          >
+            <Shield className="h-4 w-4" />
+            <span>View Verification</span>
+          </button>
+        )}
       </div>
 
       <PaymentModal

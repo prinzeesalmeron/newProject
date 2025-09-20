@@ -199,7 +199,7 @@ export class PropertyDataService {
       });
 
       // Store MLS data
-      await this.storeMLS Data(property.id, mlsData);
+      await this.storeMLSData(property.id, mlsData);
       
       // Store Zillow data
       if (zillowData) {

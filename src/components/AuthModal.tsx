@@ -67,7 +67,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         await signUp(formData.email, formData.password, formData.fullName);
         // Show success message based on whether Supabase is configured
         if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-          alert('Registration successful! Please check your email if confirmation is required.');
+          alert('Registration successful! Your account has been created and you can now sign in.');
         } else {
           alert('Registration successful! You can now sign in with your credentials.');
         }
@@ -97,6 +97,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       } else if (error.message === 'Email not confirmed') {
         errorMessage = 'Your email address has not been confirmed. Please check your inbox for a confirmation link to activate your account.';
+      } else if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
       }
       
       setErrors({ submit: errorMessage });

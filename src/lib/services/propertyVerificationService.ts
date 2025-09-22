@@ -5,7 +5,7 @@ import { NotificationAPI } from '../api/notificationAPI';
 export interface VerificationDocument {
   id: string;
   property_id: string;
-  document_type: 'title_report' | 'inspection_report' | 'appraisal_report' | 'environmental_report' | 'legal_opinion';
+  document_type: 'title_report' | 'inspection_report' | 'appraisal_report' | 'environmental_report' | 'legal_opinion' | 'survey' | 'insurance_quote' | 'rent_roll' | 'financial_statements';
   file_url: string;
   file_name: string;
   file_size: number;
@@ -59,20 +59,52 @@ export interface DueDiligenceChecklist {
     estimated_premium: number;
     coverage_requirements: string[];
   };
+  overall_completion_percentage: number;
+}
+
+export interface PropertyInspection {
+  id: string;
+  property_id: string;
+  inspection_type: 'general' | 'structural' | 'environmental' | 'pest' | 'electrical' | 'plumbing';
+  inspector_name: string;
+  inspector_license: string;
+  inspector_company: string;
+  inspection_date: string;
+  inspection_status: 'scheduled' | 'completed' | 'cancelled' | 'failed';
+  findings: any;
+  recommendations: string[];
+  estimated_repair_costs: number;
+  overall_rating: number;
+  report_url?: string;
 }
 
 /**
- * Property Verification Service - Handles due diligence and property validation
+ * Property Verification Service - Handles comprehensive due diligence and property validation
  */
 export class PropertyVerificationService {
   /**
-   * Start comprehensive property verification
+   * Start comprehensive property verification process
    */
   static async startVerificationProcess(propertyId: string, requestedBy: string): Promise<string> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     try {
       // Create verification record
-      const verificationId = await this.createVerificationRecord(propertyId, requestedBy);
-      
+      const { data: verification, error: verificationError } = await supabase
+        .from('property_verifications')
+        .insert([{
+          property_id: propertyId,
+          verification_status: 'pending',
+          requested_by: requestedBy,
+          requested_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (verificationError) throw verificationError;
+
       // Initialize due diligence checklist
       await this.initializeDueDiligenceChecklist(propertyId);
       
@@ -82,10 +114,34 @@ export class PropertyVerificationService {
       // Notify stakeholders
       await this.notifyVerificationStarted(propertyId, requestedBy);
       
-      return verificationId;
+      return verification.id;
 
     } catch (error) {
       console.error('Verification process start failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Initialize due diligence checklist for property
+   */
+  static async initializeDueDiligenceChecklist(propertyId: string): Promise<void> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
+    try {
+      const { error } = await supabase
+        .from('due_diligence_checklists')
+        .insert([{
+          property_id: propertyId,
+          overall_completion_percentage: 0
+        }]);
+
+      if (error) throw error;
+
+    } catch (error) {
+      console.error('Due diligence initialization failed:', error);
       throw error;
     }
   }
@@ -99,31 +155,44 @@ export class PropertyVerificationService {
     file: File,
     uploadedBy: string
   ): Promise<VerificationDocument> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     try {
-      // In production, upload to secure storage (AWS S3, Supabase Storage, etc.)
-      const fileUrl = await this.uploadFileToStorage(file, `verifications/${propertyId}/${documentType}`);
-      
-      const document: Omit<VerificationDocument, 'id' | 'created_at'> = {
-        property_id: propertyId,
-        document_type: documentType,
-        file_url: fileUrl,
-        file_name: file.name,
-        file_size: file.size,
-        uploaded_by: uploadedBy,
-        verification_status: 'pending'
-      };
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${documentType}_${Date.now()}.${fileExt}`;
+      const filePath = `verification-docs/${propertyId}/${fileName}`;
 
-      if (!supabase) {
-        throw new Error('Database not configured');
-      }
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('property-documents')
+        .upload(filePath, file);
 
-      const { data, error } = await supabase
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('property-documents')
+        .getPublicUrl(filePath);
+
+      // Create document record
+      const { data: document, error: docError } = await supabase
         .from('verification_documents')
-        .insert([document])
+        .insert([{
+          property_id: propertyId,
+          document_type: documentType,
+          file_name: file.name,
+          file_url: publicUrl,
+          file_size: file.size,
+          mime_type: file.type,
+          uploaded_by: uploadedBy,
+          verification_status: 'pending'
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (docError) throw docError;
 
       // Update verification checklist
       await this.updateVerificationChecklist(propertyId, documentType, true);
@@ -136,10 +205,189 @@ export class PropertyVerificationService {
         type: 'info'
       });
 
-      return data;
+      return document;
 
     } catch (error) {
       console.error('Document upload failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Schedule property inspection
+   */
+  static async scheduleInspection(
+    propertyId: string,
+    inspectionType: PropertyInspection['inspection_type'],
+    inspectorData: {
+      name: string;
+      license: string;
+      company: string;
+      inspection_date: string;
+    }
+  ): Promise<PropertyInspection> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
+    try {
+      const { data: inspection, error } = await supabase
+        .from('property_inspections')
+        .insert([{
+          property_id: propertyId,
+          inspection_type: inspectionType,
+          inspector_name: inspectorData.name,
+          inspector_license: inspectorData.license,
+          inspector_company: inspectorData.company,
+          inspection_date: inspectorData.inspection_date,
+          inspection_status: 'scheduled'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create audit log
+      await DatabaseService.createAuditLog({
+        action: 'inspection_scheduled',
+        resource_type: 'property_inspection',
+        resource_id: inspection.id,
+        new_values: inspectorData
+      });
+
+      return inspection;
+
+    } catch (error) {
+      console.error('Inspection scheduling failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Complete property inspection with findings
+   */
+  static async completeInspection(
+    inspectionId: string,
+    findings: {
+      overall_rating: number;
+      structural_issues: string[];
+      recommendations: string[];
+      estimated_repair_costs: number;
+      report_url?: string;
+    }
+  ): Promise<void> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
+    try {
+      const { data: inspection, error } = await supabase
+        .from('property_inspections')
+        .update({
+          inspection_status: 'completed',
+          findings: findings,
+          recommendations: findings.recommendations,
+          estimated_repair_costs: findings.estimated_repair_costs,
+          overall_rating: findings.overall_rating,
+          report_url: findings.report_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', inspectionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update due diligence checklist
+      await this.updateDueDiligenceItem(inspection.property_id, 'physical_inspection', {
+        completed: true,
+        structural_issues: findings.structural_issues,
+        estimated_repairs: findings.estimated_repair_costs,
+        inspector_rating: findings.overall_rating,
+        notes: `Inspection completed by ${inspection.inspector_name}`
+      });
+
+    } catch (error) {
+      console.error('Inspection completion failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get verification status for property
+   */
+  static async getVerificationStatus(propertyId: string): Promise<any> {
+    if (!supabase) {
+      return this.getMockVerificationStatus(propertyId);
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('property_verifications')
+        .select(`
+          *,
+          verification_documents(*),
+          property_inspections(*)
+        `)
+        .eq('property_id', propertyId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || this.getMockVerificationStatus(propertyId);
+
+    } catch (error) {
+      console.error('Error fetching verification status:', error);
+      return this.getMockVerificationStatus(propertyId);
+    }
+  }
+
+  /**
+   * Get due diligence checklist
+   */
+  static async getDueDiligenceChecklist(propertyId: string): Promise<DueDiligenceChecklist | null> {
+    if (!supabase) {
+      return this.getMockDueDiligenceChecklist(propertyId);
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('due_diligence_checklists')
+        .select('*')
+        .eq('property_id', propertyId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || this.getMockDueDiligenceChecklist(propertyId);
+
+    } catch (error) {
+      console.error('Error fetching due diligence checklist:', error);
+      return this.getMockDueDiligenceChecklist(propertyId);
+    }
+  }
+
+  /**
+   * Update specific due diligence item
+   */
+  static async updateDueDiligenceItem(
+    propertyId: string,
+    itemType: keyof Omit<DueDiligenceChecklist, 'property_id' | 'overall_completion_percentage'>,
+    itemData: any
+  ): Promise<void> {
+    if (!supabase) return;
+
+    try {
+      const { error } = await supabase
+        .from('due_diligence_checklists')
+        .update({
+          [itemType]: itemData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('property_id', propertyId);
+
+      if (error) throw error;
+
+    } catch (error) {
+      console.error('Due diligence update failed:', error);
       throw error;
     }
   }
@@ -157,30 +405,30 @@ export class PropertyVerificationService {
       conditions?: string[];
     }
   ): Promise<void> {
+    if (!supabase) {
+      throw new Error('Database not configured');
+    }
+
     try {
       // Update verification status
-      if (supabase) {
-        await supabase
-          .from('property_verifications')
-          .update({
-            verification_status: verificationResults.approved ? 'completed' : 'failed',
-            verified_by: verifiedBy,
-            verified_at: new Date().toISOString(),
-            verification_notes: verificationResults.notes,
-            final_rating: verificationResults.rating
-          })
-          .eq('property_id', propertyId);
-      }
+      const { error: verificationError } = await supabase
+        .from('property_verifications')
+        .update({
+          verification_status: verificationResults.approved ? 'completed' : 'failed',
+          verified_by: verifiedBy,
+          verified_at: new Date().toISOString(),
+          verification_notes: verificationResults.notes,
+          final_rating: verificationResults.rating
+        })
+        .eq('property_id', propertyId);
+
+      if (verificationError) throw verificationError;
 
       // Update property status
       if (verificationResults.approved) {
         await DatabaseService.updateProperty(propertyId, {
           status: 'active',
           rating: verificationResults.rating
-        });
-      } else {
-        await DatabaseService.updateProperty(propertyId, {
-          status: 'coming_soon' // Keep as coming soon if verification failed
         });
       }
 
@@ -215,41 +463,15 @@ export class PropertyVerificationService {
   }
 
   /**
-   * Get verification status
-   */
-  static async getVerificationStatus(propertyId: string): Promise<any> {
-    if (!supabase) {
-      return this.getMockVerificationStatus(propertyId);
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('property_verifications')
-        .select(`
-          *,
-          verification_documents(*)
-        `)
-        .eq('property_id', propertyId)
-        .single();
-
-      if (error) throw error;
-      return data;
-
-    } catch (error) {
-      console.error('Error fetching verification status:', error);
-      return this.getMockVerificationStatus(propertyId);
-    }
-  }
-
-  /**
-   * Generate verification report
+   * Generate comprehensive verification report
    */
   static async generateVerificationReport(propertyId: string): Promise<any> {
     try {
-      const [verification, dueDiligence, marketAnalysis] = await Promise.all([
+      const [verification, dueDiligence, marketAnalysis, inspections] = await Promise.all([
         this.getVerificationStatus(propertyId),
         this.getDueDiligenceChecklist(propertyId),
-        PropertyDataService.getMarketAnalysis(propertyId)
+        PropertyDataService.getMarketAnalysis(propertyId),
+        this.getPropertyInspections(propertyId)
       ]);
 
       const report = {
@@ -257,6 +479,7 @@ export class PropertyVerificationService {
         verification_summary: verification,
         due_diligence: dueDiligence,
         market_analysis: marketAnalysis,
+        inspections: inspections,
         risk_assessment: await this.calculateRiskScore(propertyId),
         investment_recommendation: await this.generateInvestmentRecommendation(propertyId),
         generated_at: new Date().toISOString(),
@@ -278,80 +501,108 @@ export class PropertyVerificationService {
     }
   }
 
-  // Private helper methods
-  private static async createVerificationRecord(propertyId: string, requestedBy: string): Promise<string> {
+  /**
+   * Get property inspections
+   */
+  static async getPropertyInspections(propertyId: string): Promise<PropertyInspection[]> {
     if (!supabase) {
-      return `verification_${Date.now()}`;
+      return [];
     }
 
-    const { data, error } = await supabase
-      .from('property_verifications')
-      .insert([{
-        property_id: propertyId,
-        verification_status: 'pending',
-        requested_by: requestedBy,
-        requested_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('property_inspections')
+        .select('*')
+        .eq('property_id', propertyId)
+        .order('inspection_date', { ascending: false });
 
-    if (error) throw error;
-    return data.id;
-  }
+      if (error) throw error;
+      return data || [];
 
-  private static async initializeDueDiligenceChecklist(propertyId: string): Promise<void> {
-    const checklist: DueDiligenceChecklist = {
-      property_id: propertyId,
-      title_search: {
-        completed: false,
-        clear_title: false,
-        liens: [],
-        encumbrances: [],
-        notes: ''
-      },
-      physical_inspection: {
-        completed: false,
-        structural_issues: [],
-        mechanical_systems: [],
-        estimated_repairs: 0,
-        inspector_rating: 0,
-        notes: ''
-      },
-      financial_analysis: {
-        completed: false,
-        rent_roll_verified: false,
-        expense_analysis: {},
-        cash_flow_projection: {},
-        comparable_analysis: {}
-      },
-      legal_review: {
-        completed: false,
-        zoning_compliance: false,
-        permit_status: 'pending',
-        hoa_restrictions: [],
-        legal_issues: []
-      },
-      environmental_assessment: {
-        completed: false,
-        environmental_hazards: [],
-        remediation_required: false,
-        estimated_costs: 0
-      },
-      insurance_review: {
-        completed: false,
-        insurability: false,
-        estimated_premium: 0,
-        coverage_requirements: []
-      }
-    };
-
-    if (supabase) {
-      await supabase
-        .from('due_diligence_checklists')
-        .insert([checklist]);
+    } catch (error) {
+      console.error('Error fetching inspections:', error);
+      return [];
     }
   }
 
+  /**
+   * Calculate property risk score
+   */
+  static async calculateRiskScore(propertyId: string): Promise<any> {
+    try {
+      const [dueDiligence, marketData, inspections] = await Promise.all([
+        this.getDueDiligenceChecklist(propertyId),
+        PropertyDataService.getMarketAnalysis(propertyId),
+        this.getPropertyInspections(propertyId)
+      ]);
+
+      // Calculate risk factors
+      const riskFactors = {
+        title_risk: dueDiligence?.title_search?.clear_title ? 1 : 8,
+        structural_risk: this.calculateStructuralRisk(inspections),
+        market_risk: this.calculateMarketRisk(marketData),
+        financial_risk: this.calculateFinancialRisk(dueDiligence?.financial_analysis),
+        legal_risk: dueDiligence?.legal_review?.legal_issues?.length || 0 > 0 ? 6 : 2,
+        environmental_risk: dueDiligence?.environmental_assessment?.remediation_required ? 7 : 2
+      };
+
+      const averageRisk = Object.values(riskFactors).reduce((sum, risk) => sum + risk, 0) / Object.keys(riskFactors).length;
+      
+      return {
+        overall_score: Math.round((10 - averageRisk) * 10) / 10,
+        risk_level: averageRisk <= 3 ? 'Low' : averageRisk <= 6 ? 'Medium' : 'High',
+        risk_factors: riskFactors,
+        mitigation_strategies: this.generateMitigationStrategies(riskFactors)
+      };
+
+    } catch (error) {
+      console.error('Risk calculation failed:', error);
+      return {
+        overall_score: 5.0,
+        risk_level: 'Medium',
+        risk_factors: {},
+        mitigation_strategies: []
+      };
+    }
+  }
+
+  /**
+   * Generate investment recommendation
+   */
+  static async generateInvestmentRecommendation(propertyId: string): Promise<any> {
+    try {
+      const [property, riskScore, marketAnalysis] = await Promise.all([
+        DatabaseService.getProperty(propertyId),
+        this.calculateRiskScore(propertyId),
+        PropertyDataService.getMarketAnalysis(propertyId)
+      ]);
+
+      const recommendation = this.determineRecommendation(property, riskScore, marketAnalysis);
+
+      return {
+        recommendation: recommendation.action,
+        confidence_level: recommendation.confidence,
+        target_allocation: recommendation.allocation,
+        investment_thesis: recommendation.thesis,
+        risks_to_consider: recommendation.risks,
+        exit_strategy: recommendation.exitStrategy,
+        price_target: recommendation.priceTarget
+      };
+
+    } catch (error) {
+      console.error('Recommendation generation failed:', error);
+      return {
+        recommendation: 'HOLD',
+        confidence_level: 50,
+        target_allocation: '1-3%',
+        investment_thesis: ['Insufficient data for recommendation'],
+        risks_to_consider: ['Incomplete verification'],
+        exit_strategy: 'Monitor until verification complete'
+      };
+    }
+  }
+
+  // Private helper methods
   private static async scheduleVerificationTasks(propertyId: string): Promise<void> {
     // Mock task scheduling - in production, integrate with verification providers
     const tasks = [
@@ -363,6 +614,12 @@ export class PropertyVerificationService {
     ];
 
     console.log(`Scheduled ${tasks.length} verification tasks for property ${propertyId}`);
+
+    // In production, you would:
+    // 1. Create API calls to verification service providers
+    // 2. Schedule automated follow-ups
+    // 3. Set up webhook endpoints for status updates
+    // 4. Create calendar events for inspections
   }
 
   private static async notifyVerificationStarted(propertyId: string, requestedBy: string): Promise<void> {
@@ -377,17 +634,6 @@ export class PropertyVerificationService {
     });
   }
 
-  private static async uploadFileToStorage(file: File, path: string): Promise<string> {
-    // Mock file upload - in production, use Supabase Storage or AWS S3
-    console.log(`Uploading file ${file.name} to ${path}`);
-    
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Return mock URL
-    return `https://storage.blockestate.com/${path}/${file.name}`;
-  }
-
   private static async updateVerificationChecklist(
     propertyId: string,
     documentType: string,
@@ -395,34 +641,157 @@ export class PropertyVerificationService {
   ): Promise<void> {
     if (!supabase) return;
 
-    const updateField = `${documentType}.completed`;
-    
-    await supabase
-      .from('due_diligence_checklists')
-      .update({
-        [updateField]: completed,
-        updated_at: new Date().toISOString()
-      })
-      .eq('property_id', propertyId);
+    // Map document types to checklist items
+    const checklistMapping: Record<string, string> = {
+      'title_report': 'title_search',
+      'inspection_report': 'physical_inspection',
+      'appraisal_report': 'financial_analysis',
+      'environmental_report': 'environmental_assessment',
+      'legal_opinion': 'legal_review',
+      'insurance_quote': 'insurance_review'
+    };
+
+    const checklistItem = checklistMapping[documentType];
+    if (!checklistItem) return;
+
+    try {
+      // Get current checklist
+      const { data: currentChecklist } = await supabase
+        .from('due_diligence_checklists')
+        .select('*')
+        .eq('property_id', propertyId)
+        .single();
+
+      if (currentChecklist) {
+        const updatedItem = {
+          ...currentChecklist[checklistItem],
+          completed: completed
+        };
+
+        await supabase
+          .from('due_diligence_checklists')
+          .update({
+            [checklistItem]: updatedItem,
+            updated_at: new Date().toISOString()
+          })
+          .eq('property_id', propertyId);
+      }
+
+    } catch (error) {
+      console.error('Checklist update failed:', error);
+    }
   }
 
-  private static async getDueDiligenceChecklist(propertyId: string): Promise<DueDiligenceChecklist | null> {
-    if (!supabase) {
-      return this.getMockDueDiligenceChecklist(propertyId);
+  private static calculateStructuralRisk(inspections: PropertyInspection[]): number {
+    if (!inspections || inspections.length === 0) return 5; // Medium risk if no inspection
+
+    const latestInspection = inspections[0];
+    if (latestInspection.overall_rating >= 4) return 2; // Low risk
+    if (latestInspection.overall_rating >= 3) return 5; // Medium risk
+    return 8; // High risk
+  }
+
+  private static calculateMarketRisk(marketData: any): number {
+    if (!marketData) return 5;
+
+    // Analyze market trends, price volatility, etc.
+    const priceVolatility = marketData.price_history?.length > 0 ? 3 : 5;
+    const neighborhoodScore = marketData.neighborhood_score?.walkability || 50;
+    
+    if (neighborhoodScore >= 80) return 2;
+    if (neighborhoodScore >= 60) return 4;
+    return 7;
+  }
+
+  private static calculateFinancialRisk(financialAnalysis: any): number {
+    if (!financialAnalysis?.completed) return 6;
+
+    const rentRollVerified = financialAnalysis.rent_roll_verified;
+    const cashFlow = financialAnalysis.cash_flow_projection?.net_monthly || 0;
+
+    if (rentRollVerified && cashFlow > 0) return 2;
+    if (rentRollVerified) return 4;
+    return 7;
+  }
+
+  private static generateMitigationStrategies(riskFactors: any): string[] {
+    const strategies: string[] = [];
+
+    if (riskFactors.title_risk > 5) {
+      strategies.push('Obtain title insurance with extended coverage');
+    }
+    if (riskFactors.structural_risk > 5) {
+      strategies.push('Set aside additional reserves for maintenance and repairs');
+    }
+    if (riskFactors.market_risk > 5) {
+      strategies.push('Diversify across multiple markets and property types');
+    }
+    if (riskFactors.financial_risk > 5) {
+      strategies.push('Verify rental income with bank statements and lease agreements');
     }
 
-    const { data, error } = await supabase
-      .from('due_diligence_checklists')
-      .select('*')
-      .eq('property_id', propertyId)
-      .single();
+    return strategies;
+  }
 
-    if (error) {
-      console.error('Error fetching due diligence checklist:', error);
-      return this.getMockDueDiligenceChecklist(propertyId);
+  private static determineRecommendation(property: any, riskScore: any, marketAnalysis: any): any {
+    const overallScore = riskScore.overall_score;
+    const yieldScore = property.rental_yield || 0;
+    const marketScore = marketAnalysis?.investment_metrics?.cap_rate || 0;
+
+    if (overallScore >= 7 && yieldScore >= 8 && marketScore >= 6) {
+      return {
+        action: 'STRONG BUY',
+        confidence: 90,
+        allocation: '5-10%',
+        thesis: [
+          'Excellent property condition and location',
+          'Strong rental yield above market average',
+          'Favorable market fundamentals',
+          'Low risk profile with clear title'
+        ],
+        risks: ['Market volatility', 'Interest rate changes'],
+        exitStrategy: 'Hold for 7-10 years with potential for strong appreciation',
+        priceTarget: property.price_per_token * 1.2
+      };
+    } else if (overallScore >= 5 && yieldScore >= 6) {
+      return {
+        action: 'BUY',
+        confidence: 75,
+        allocation: '3-7%',
+        thesis: [
+          'Good property fundamentals',
+          'Acceptable rental yield',
+          'Manageable risk profile'
+        ],
+        risks: ['Property condition issues', 'Market uncertainty'],
+        exitStrategy: 'Hold for 5-7 years with moderate appreciation expected',
+        priceTarget: property.price_per_token * 1.1
+      };
+    } else {
+      return {
+        action: 'HOLD',
+        confidence: 40,
+        allocation: '1-3%',
+        thesis: ['High risk or insufficient data'],
+        risks: ['Multiple risk factors identified'],
+        exitStrategy: 'Wait for better opportunities or risk mitigation',
+        priceTarget: property.price_per_token
+      };
     }
+  }
 
-    return data;
+  private static getMockVerificationStatus(propertyId: string) {
+    return {
+      property_id: propertyId,
+      verification_status: 'in_progress',
+      title_search: { status: 'clear' },
+      inspection: { status: 'completed', inspector_name: 'John Smith' },
+      appraisal: { status: 'completed', appraised_value: 475000 },
+      environmental: { status: 'clear' },
+      legal_review: { status: 'pending' },
+      final_rating: null,
+      verified_at: null
+    };
   }
 
   private static getMockDueDiligenceChecklist(propertyId: string): DueDiligenceChecklist {
@@ -481,75 +850,8 @@ export class PropertyVerificationService {
         insurability: true,
         estimated_premium: 2400,
         coverage_requirements: ['Property insurance', 'Liability coverage', 'Flood insurance recommended']
-      }
-    };
-  }
-
-  private static async calculateRiskScore(propertyId: string): Promise<any> {
-    // Mock risk calculation - in production, use comprehensive risk models
-    return {
-      overall_score: 7.5,
-      risk_level: 'Medium-Low',
-      factors: {
-        market_risk: 6.0,
-        liquidity_risk: 7.0,
-        credit_risk: 8.5,
-        operational_risk: 8.0,
-        regulatory_risk: 7.5
       },
-      mitigation_strategies: [
-        'Diversify across multiple properties',
-        'Maintain adequate insurance coverage',
-        'Regular property maintenance and inspections',
-        'Monitor local market conditions'
-      ]
+      overall_completion_percentage: 100
     };
-  }
-
-  private static async generateInvestmentRecommendation(propertyId: string): Promise<any> {
-    const property = await DatabaseService.getProperty(propertyId);
-    const marketAnalysis = await PropertyDataService.getMarketAnalysis(propertyId);
-    
-    return {
-      recommendation: 'BUY',
-      confidence_level: 85,
-      target_allocation: '5-10%',
-      investment_thesis: [
-        'Strong rental yield in growing market',
-        'Property in excellent condition',
-        'Favorable market fundamentals',
-        'Clear title and legal structure'
-      ],
-      risks_to_consider: [
-        'Market volatility in tech sector',
-        'Interest rate sensitivity',
-        'Local regulatory changes'
-      ],
-      exit_strategy: 'Hold for 5-7 years with potential for appreciation and steady rental income'
-    };
-  }
-
-  private static getMockVerificationStatus(propertyId: string) {
-    return {
-      property_id: propertyId,
-      verification_status: 'completed',
-      title_search: { status: 'clear' },
-      inspection: { status: 'completed', inspector_name: 'John Smith' },
-      appraisal: { status: 'completed', appraised_value: 475000 },
-      environmental: { status: 'clear' },
-      legal_review: { status: 'clear' },
-      final_rating: 4.5,
-      verified_at: new Date().toISOString()
-    };
-  }
-
-  private static async uploadFileToStorage(file: File, path: string): Promise<string> {
-    // Mock file upload - in production, integrate with storage provider
-    console.log(`Uploading ${file.name} to ${path}`);
-    
-    // Simulate upload
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    return `https://storage.blockestate.com/${path}`;
   }
 }

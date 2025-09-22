@@ -7,6 +7,7 @@ import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
 import { PropertyImportModal } from '../components/PropertyImportModal';
 import { PropertyVerificationPanel } from '../components/PropertyVerificationPanel';
+import { MarketDataService } from '../lib/services/marketDataService';
 import { Property } from '../lib/supabase';
 import { PropertyAPI } from '../lib/api';
 import { useAuth, isAdmin } from '../lib/auth';
@@ -71,6 +72,17 @@ export const Marketplace = () => {
     console.log('Property imported:', property);
     fetchProperties();
     toast.success('Property Imported', 'Property has been imported and verification started');
+  };
+
+  const handleImportFromMLS = async (mlsId: string) => {
+    try {
+      const importedProperty = await MarketDataService.importPropertyFromMLS(mlsId);
+      fetchProperties();
+      toast.success('MLS Import Successful', `Property ${importedProperty.title} imported and verification started`);
+    } catch (error: any) {
+      console.error('MLS import failed:', error);
+      toast.error('Import Failed', error.message);
+    }
   };
 
   const handleViewVerification = (propertyId: string) => {
@@ -245,6 +257,13 @@ export const Marketplace = () => {
                     <Search className="h-4 w-4" />
                     <span>Import from MLS</span>
                   </button>
+                  <button
+                    onClick={() => handleViewVerification('')}
+                    className="flex items-center space-x-2 bg-purple-600 dark:bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Verification Center</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -303,6 +322,7 @@ export const Marketplace = () => {
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onImport={handleImportProperty}
+        onMLSImport={handleImportFromMLS}
       />
 
       {showVerificationPanel && (

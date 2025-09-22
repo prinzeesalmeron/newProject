@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 interface PropertyCardProps {
   property: Property;
   onInvest?: (propertyId: string) => void;
+  onViewVerification?: (propertyId: string) => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }) => {

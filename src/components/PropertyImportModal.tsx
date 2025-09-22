@@ -9,12 +9,14 @@ interface PropertyImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (property: any) => void;
+  onMLSImport?: (mlsId: string) => void;
 }
 
 export const PropertyImportModal: React.FC<PropertyImportModalProps> = ({
   isOpen,
   onClose,
-  onImport
+  onImport,
+  onMLSImport
 }) => {
   const [activeTab, setActiveTab] = useState<'mls' | 'manual' | 'csv'>('mls');
   const [loading, setLoading] = useState(false);
@@ -79,10 +81,14 @@ export const PropertyImportModal: React.FC<PropertyImportModalProps> = ({
   const handleMLSImport = async (mlsProperty: any) => {
     try {
       setLoading(true);
-      const importedProperty = await PropertyDataService.importPropertyFromMLS(mlsProperty.mls_id);
       
-      toast.success('Property Imported', `${mlsProperty.address} has been imported and verification started`);
-      onImport(importedProperty);
+      if (onMLSImport) {
+        await onMLSImport(mlsProperty.mls_id);
+      } else {
+        const importedProperty = await PropertyDataService.importPropertyFromMLS(mlsProperty.mls_id);
+        onImport(importedProperty);
+      }
+      
       onClose();
 
     } catch (error: any) {

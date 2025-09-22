@@ -32,12 +32,14 @@ export const Marketplace = () => {
   } = useApi(() => PropertyAPI.getAllProperties(), { immediate: true });
 
 
-  // Debug admin status
-  console.log('User:', user);
-  console.log('Profile:', profile);
-  console.log('Is Admin:', isAdmin(profile || user));
-  console.log('Profile role:', profile?.role);
-  console.log('User metadata role:', user?.user_metadata?.role);
+  // Check if user can add properties (admin or property manager)
+  const canAddProperties = user && (
+    isAdmin(profile || user) || 
+    profile?.role === 'admin' || 
+    profile?.role === 'property_manager' ||
+    user?.user_metadata?.role === 'admin' ||
+    user?.user_metadata?.role === 'property_manager'
+  );
 
   const propertyTypes = [
     'All Markets',
@@ -241,7 +243,7 @@ export const Marketplace = () => {
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
               </div>
-              {user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin') && (
+              {canAddProperties && (
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={() => setShowAddModal(true)}
@@ -275,7 +277,7 @@ export const Marketplace = () => {
               title="No properties available yet"
               description="Get started by adding the first property to the marketplace. Properties you add will appear here for investors to discover."
               action={
-                user && (isAdmin(profile) || isAdmin(user) || profile?.role === 'admin')
+                canAddProperties
                   ? {
                       label: "Add First Property",
                       onClick: () => setShowAddModal(true)
@@ -312,6 +314,18 @@ export const Marketplace = () => {
         </div>
       </section>
 
+      {/* Debug Panel for Development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg text-xs max-w-sm">
+          <div className="font-bold mb-2">Debug Info:</div>
+          <div>User: {user ? '✓' : '✗'}</div>
+          <div>Profile: {profile ? '✓' : '✗'}</div>
+          <div>Profile Role: {profile?.role || 'none'}</div>
+          <div>User Role: {user?.user_metadata?.role || 'none'}</div>
+          <div>Can Add Properties: {canAddProperties ? '✓' : '✗'}</div>
+          <div>Properties Count: {properties?.length || 0}</div>
+        </div>
+      )}
       <AddPropertyModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}

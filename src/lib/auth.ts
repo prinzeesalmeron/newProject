@@ -295,7 +295,12 @@ export const useAuth = create<AuthState>((set, get) => ({
         id: Math.random().toString(36).substr(2, 9),
         email,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        user_metadata: {
+          full_name: fullName,
+          role: 'admin', // Make mock users admin for testing
+          ...additionalData
+        }
       };
       
       const mockProfile = {
@@ -305,7 +310,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         total_portfolio_value: 0,
         block_balance: 0,
         kyc_status: 'pending',
-        role: 'investor',
+        role: 'admin', // Make mock users admin for testing
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

@@ -51,29 +51,72 @@ export const useAuth = create<AuthState>((set, get) => ({
         return;
       }
 
-      // Get initial session with refresh token error handling
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error getting session:', error);
-        
-        // Handle invalid refresh token errors
-        if (error.message?.includes('Invalid Refresh Token') || 
-            error.message?.includes('refresh_token_not_found')) {
-          console.log('Invalid refresh token detected, clearing session...');
-          try {
-            await supabase.auth.signOut();
-          } catch (signOutError) {
-            console.error('Error signing out after invalid refresh token:', signOutError);
+      // Clear any existing invalid tokens from localStorage
+      const existingSession = localStorage.getItem('sb-shnzwwsvhyignimiwvel-auth-token');
+      if (existingSession) {
+        try {
+          const parsedSession = JSON.parse(existingSession);
+          if (!parsedSession.refresh_token || parsedSession.expires_at < Date.now() / 1000) {
+            console.log('Clearing expired or invalid session from localStorage');
+            localStorage.removeItem('sb-shnzwwsvhyignimiwvel-auth-token');
           }
-          set({ 
-            user: null, 
-            session: null, 
-            profile: null,
-            initialized: true 
-          });
+        } catch (e) {
+          console.log('Clearing corrupted session from localStorage');
+          localStorage.removeItem('sb-shnzwwsvhyignimiwvel-auth-token');
+        }
+      }
+
+      // Get initial session with refresh token error handling
+      let session = null;
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          
+          // Handle invalid refresh token errors
+          if (error.message?.includes('Invalid Refresh Token') || 
+              error.message?.includes('refresh_token_not_found') ||
+              error.message?.includes('Refresh Token Not Found')) {
+            console.log('Invalid refresh token detected, clearing all auth data...');
+            
+            // Clear localStorage auth data
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('sb-') && key.includes('auth')) {
+                localStorage.removeItem(key);
+              }
+            });
+            
+            // Sign out to clear any remaining session data
+            try {
+              await supabase.auth.signOut();
+            } catch (signOutError) {
+              console.error('Error signing out after invalid refresh token:', signOutError);
+            }
+            
+            set({ 
+              user: null, 
+              session: null, 
+              profile: null,
+              initialized: true 
+            });
+            return;
+          }
+          
+          set({ initialized: true });
           return;
         }
+        
+        session = currentSession;
+      } catch (sessionError) {
+        console.error('Session retrieval error:', sessionError);
+        
+        // Clear all auth data on any session error
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') && key.includes('auth')) {
+            localStorage.removeItem(key);
+          }
+        });
         
         set({ initialized: true });
         return;

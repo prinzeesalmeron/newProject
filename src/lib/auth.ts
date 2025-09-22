@@ -319,9 +319,45 @@ export const useAuth = create<AuthState>((set, get) => ({
       console.log('Session created:', !!data.session);
 
       if (data.user) {
-        // Wait for the auth state change to handle profile creation
-        // The profile will be created by the trigger or we'll create it in the auth state change handler
-        console.log('User created successfully, waiting for auth state change...');
+        // Create user profile immediately after successful auth signup
+        console.log('Creating user profile...');
+        
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .insert([{
+              id: data.user.id,
+              email: data.user.email!,
+              full_name: fullName,
+              phone: additionalData.phone || null,
+              date_of_birth: additionalData.date_of_birth || null,
+              address: additionalData.address || null,
+              kyc_status: 'pending',
+              role: 'investor',
+              block_balance: 0,
+              total_portfolio_value: 0,
+              is_active: true
+            }])
+            .select()
+            .single();
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            // If profile creation fails, still continue with auth
+            // The profile might be created by the trigger
+          } else {
+            console.log('Profile created successfully:', profile);
+            set({ 
+              user: data.user, 
+              session: data.session,
+              profile: profile 
+            });
+            return;
+          }
+        } catch (profileCreationError) {
+          console.error('Profile creation error:', profileCreationError);
+          // Continue with auth even if profile creation fails
+        }
         
         // Set initial state - profile will be loaded by auth state change listener
         set({ 

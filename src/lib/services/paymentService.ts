@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import { DatabaseService } from '../database';
 import { NotificationAPI } from '../api/notificationAPI';
+import { StripeService } from './stripeService';
 
 export interface PaymentMethod {
   id: string;
@@ -76,52 +77,102 @@ export class PaymentService {
     paymentRequest: PaymentRequest
   ): Promise<{ success: boolean; transaction_id: string; payment_intent_id?: string }> {
     try {
-      console.log('Processing fiat payment:', paymentRequest);
+      // Create payment intent with Stripe
+      const { client_secret, payment_intent_id } = await StripeService.createPaymentIntent(
+        paymentRequest.amount,
+        paymentRequest.currency,
+        {
+          user_id: userId,
+          description: paymentRequest.description,
+          payment_method_id: paymentRequest.payment_method_id
+        }
+      );
 
       // Create transaction record
-      const transaction = await DatabaseService.createTransaction({
-        user_id: userId,
-        transaction_type: 'deposit',
-        amount: paymentRequest.amount,
-        description: paymentRequest.description,
-        metadata: {
-          payment_method_id: paymentRequest.payment_method_id,
+      const { data: transaction, error } = await supabase
+        .from('payment_transactions')
+        .insert([{
+          user_id: userId,
+          payment_intent_id,
+          amount: paymentRequest.amount,
           currency: paymentRequest.currency,
-          payment_processor: 'stripe'
-        }
-      });
+          payment_method_id: paymentRequest.payment_method_id,
+          transaction_type: 'investment',
+          status: 'pending',
+          provider: 'stripe',
+          metadata: paymentRequest.metadata || {}
+        }])
+        .select()
+        .single();
 
-      // Mock Stripe payment processing
-      if (!this.stripePublicKey) {
-        // Simulate payment processing delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Mock successful payment
-        await DatabaseService.updateTransactionStatus(transaction.id, 'completed', {
-          payment_intent_id: `pi_mock_${Date.now()}`,
-          processed_at: new Date().toISOString()
-        });
+      if (error) throw error;
 
-        // Update user balance (if tracking fiat balance)
-        await this.updateUserBalance(userId, paymentRequest.amount, 'USD');
-
-        return {
-          success: true,
-          transaction_id: transaction.id,
-          payment_intent_id: `pi_mock_${Date.now()}`
-        };
-      }
-
-      // Real Stripe integration would go here
-      // const paymentIntent = await stripe.paymentIntents.create({...});
-      
       return {
         success: true,
-        transaction_id: transaction.id
+        transaction_id: transaction.id,
+        payment_intent_id,
+        client_secret
       };
 
     } catch (error) {
       console.error('Fiat payment processing failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Process payment with real Stripe integration
+   */
+  static async processStripePayment(
+    userId: string,
+    amount: number,
+    paymentMethodId: string,
+    metadata: any = {}
+  ): Promise<{ success: boolean; transaction_id: string; payment_intent_id: string }> {
+    try {
+      // Calculate total with fees
+      const fees = StripeService.calculateFees(amount, 'card');
+      const totalAmount = amount + fees.totalFees;
+
+      // Create payment intent
+      const { client_secret, payment_intent_id } = await StripeService.createPaymentIntent(
+        totalAmount,
+        'USD',
+        {
+          user_id: userId,
+          original_amount: amount,
+          platform_fee: fees.platformFee,
+          processing_fee: fees.processingFee,
+          ...metadata
+        }
+      );
+
+      // Create transaction record
+      const transaction = await DatabaseService.createTransaction({
+        user_id: userId,
+        property_id: metadata.property_id,
+        transaction_type: 'purchase',
+        amount: paymentRequest.amount,
+        token_amount: metadata.token_amount,
+        description: paymentRequest.description,
+        metadata: {
+          payment_intent_id,
+          payment_method_id: paymentMethodId,
+          platform_fee: fees.platformFee,
+          processing_fee: fees.processingFee,
+          stripe_client_secret: client_secret
+        }
+      });
+
+      return {
+        success: true,
+        transaction_id: transaction.id,
+        payment_intent_id,
+        client_secret
+      };
+
+    } catch (error) {
+      console.error('Stripe payment processing failed:', error);
       throw error;
     }
   }

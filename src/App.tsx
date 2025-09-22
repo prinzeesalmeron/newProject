@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ToastContainer } from './components/ui/Toast';
+import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
 import { Marketplace } from './pages/Marketplace';
 import { Staking } from './pages/Staking';
@@ -56,24 +57,26 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Marketplace />} />
-            <Route path="/staking" element={<Staking />} />
-            <Route path="/learn" element={<Learn />} />
-            <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/governance" element={<Governance />} />
-            <Route path="/dashboard" element={<InvestmentDashboard />} />
-            <Route path="/blockchain" element={<Blockchain />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-          </Routes>
-          <Footer />
-          <ToastContainer />
-        </div>
-      </Router>
+      <PaymentProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Marketplace />} />
+              <Route path="/staking" element={<Staking />} />
+              <Route path="/learn" element={<Learn />} />
+              <Route path="/portfolio" element={<Portfolio />} />
+              <Route path="/governance" element={<Governance />} />
+              <Route path="/dashboard" element={<InvestmentDashboard />} />
+              <Route path="/blockchain" element={<Blockchain />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+            </Routes>
+            <Footer />
+            <ToastContainer />
+          </div>
+        </Router>
+      </PaymentProvider>
     </ErrorBoundary>
   );
 }

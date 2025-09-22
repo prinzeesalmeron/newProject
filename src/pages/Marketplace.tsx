@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, SlidersHorizontal, Plus } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Plus, Shield, X } from 'lucide-react';
 import { useApi } from '../hooks/useApi';
 import { EmptyState, LoadingSpinner, Button, Card } from '../components/ui';
 import { toast } from '../components/ui/Toast';

@@ -3,4 +3,6 @@
   publish = "dist"
 
 [build.environment]
+  NODE_VERSION = "22"
   NETLIFY_USE_PNPM = "true"
+  NPM_FLAGS = "--legacy-peer-deps"

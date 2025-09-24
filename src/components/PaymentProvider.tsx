@@ -2,7 +2,10 @@ import React from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || null);
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey && stripePublicKey.trim() !== '' 
+  ? loadStripe(stripePublicKey) 
+  : Promise.resolve(null);
 
 interface PaymentProviderProps {
   children: React.ReactNode;

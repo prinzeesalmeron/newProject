@@ -188,15 +188,7 @@ export class PerformanceService {
         ['staking']
       );
 
-      // Prefetch currency rates
-      const ratesPromise = CacheService.cachedApiCall(
-        'currency_rates',
-        () => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api/currency-rates`).then(r => r.json()),
-        2 * 60 * 1000, // 2 minutes
-        ['rates']
-      );
-
-      await Promise.all([propertiesPromise, stakingPromise, ratesPromise]);
+      await Promise.all([propertiesPromise, stakingPromise]);
 
     } catch (error) {
       console.error('Critical data prefetch failed:', error);

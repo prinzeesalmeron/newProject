@@ -231,7 +231,6 @@ export const Staking = () => {
               <Button
                 fullWidth
                 loading={loading}
-                disabled={!stakeAmount || !selectedPool || !user || pools.length === 0}
                 disabled={!stakeAmount || !selectedPool || !user || poolsArray.length === 0}
                 onClick={handleStake}
                 icon={<Lock className="h-4 w-4" />}

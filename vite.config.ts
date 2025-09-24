@@ -6,17 +6,9 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
-    include: ['react-is'],
   },
   build: {
     rollupOptions: {
-      external: [],
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          utils: ['react-is'],
-        },
-      },
     },
   },
 });

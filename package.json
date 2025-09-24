@@ -48,5 +48,6 @@
   "engines": {
     "node": "20.x",
     "pnpm": "9.x"
-  }
+  },
+  "packageManager": "pnpm@9.12.3"
 }

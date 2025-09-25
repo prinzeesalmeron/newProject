@@ -135,12 +135,63 @@ export const useAuth = create<AuthState>((set, get) => ({
             console.error('Error fetching profile:', profileError);
           }
 
-          set({ 
-            user: session.user, 
-            session, 
-            profile,
-            initialized: true 
-          });
+          // If user exists in auth but no profile in users table, create one
+          if (!profile && session.user) {
+            console.log('Creating missing user profile for authenticated user...');
+            try {
+              const { data: newProfile, error: createError } = await supabase
+                .from('users')
+                .insert([{
+                  id: session.user.id,
+                  email: session.user.email!,
+                  full_name: session.user.user_metadata?.full_name || '',
+                  phone: session.user.user_metadata?.phone || null,
+                  date_of_birth: session.user.user_metadata?.date_of_birth || null,
+                  address: session.user.user_metadata?.address || null,
+                  kyc_status: 'pending',
+                  role: 'investor',
+                  block_balance: 0,
+                  total_portfolio_value: 0,
+                  is_active: true
+                }])
+                .select()
+                .single();
+
+              if (createError) {
+                console.error('Error creating missing profile:', createError);
+                // Continue with null profile rather than failing
+                set({ 
+                  user: session.user, 
+                  session, 
+                  profile: null,
+                  initialized: true 
+                });
+              } else {
+                console.log('Missing profile created successfully');
+                set({ 
+                  user: session.user, 
+                  session, 
+                  profile: newProfile,
+                  initialized: true 
+                });
+              }
+            } catch (createProfileError) {
+              console.error('Error creating missing profile:', createProfileError);
+              set({ 
+                user: session.user, 
+                session, 
+                profile: null,
+                initialized: true 
+              });
+            }
+          } else {
+            set({ 
+              user: session.user, 
+              session, 
+              profile,
+              initialized: true 
+            });
+          }
         } catch (profileError) {
           console.error('Error fetching profile:', profileError);
           set({ 

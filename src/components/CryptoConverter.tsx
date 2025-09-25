@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpDown, DollarSign, Zap, TrendingUp, RefreshCw } from 'lucide-react';
+import { ArrowUpDown, DollarSign, Zap, TrendingUp, RefreshCw, Loader2 } from 'lucide-react';
 import { PaymentService } from '../lib/services/paymentService';
 import { useAuth } from '../lib/auth';
 import { toast } from './ui/Toast';
@@ -220,7 +220,7 @@ export const CryptoConverter = () => {
         >
           {converting ? (
             <>
-              <Loader className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               <span>Converting...</span>
             </>
           ) : (

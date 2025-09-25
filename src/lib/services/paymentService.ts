@@ -718,10 +718,25 @@ export class PaymentService {
 
   private static async updateUserBalance(userId: string, amount: number, currency: string) {
     // Update user balance in database
+    if (!supabase) {
+      console.log(`Mock balance update: ${userId} ${amount} ${currency}`);
+      return;
+    }
+    
     if (currency === 'BLOCK') {
-      await DatabaseService.updateUserProfile(userId, {
-        block_balance: supabase?.raw(`block_balance + ${amount}`) as any
-      });
+      const { data: user } = await supabase
+        .from('users')
+        .select('block_balance')
+        .eq('id', userId)
+        .single();
+      
+      if (user) {
+        const newBalance = (user.block_balance || 0) + amount;
+        await supabase
+          .from('users')
+          .update({ block_balance: newBalance })
+          .eq('id', userId);
+      }
     }
     // For USD/ETH, you might track in a separate balances table
   }

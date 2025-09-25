@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, ArrowUpDown, Shield, TrendingUp, DollarSign, Zap } from 'lucide-react';
 import { PaymentMethodManager } from '../components/PaymentMethodManager';
 import { CryptoConverter } from '../components/CryptoConverter';
 import { EscrowManager } from '../components/EscrowManager';
+import { PaymentService } from '../lib/services/paymentService';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 

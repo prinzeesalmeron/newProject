@@ -92,6 +92,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         // For login, always require registration first
         if (error.message?.includes('No account found') || 
             error.message?.includes('Invalid login credentials') ||
+            error.message?.includes('Invalid email or password') ||
             error.message?.includes('not configured')) {
           errorMessage = 'No account found with these credentials. You must register first before you can sign in.';
         }

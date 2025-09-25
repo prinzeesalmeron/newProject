@@ -317,7 +317,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         console.log('Sign in successful');
       }
     } catch (error: any) {
-      console.error('Sign in error:', error);
+      console.error('Sign in error:', error.message || error);
       
       // Provide more specific error messages
       let errorMessage = 'Failed to sign in';

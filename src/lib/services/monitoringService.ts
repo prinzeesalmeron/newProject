@@ -32,7 +32,7 @@ export class MonitoringService {
   static async initialize(): Promise<void> {
     try {
       // Initialize Sentry for error tracking
-      if (this.sentryDSN) {
+      if (this.sentryDSN && this.sentryDSN !== 'your_sentry_dsn' && this.sentryDSN.trim() !== '') {
         await this.initializeSentry();
       }
 
@@ -40,7 +40,7 @@ export class MonitoringService {
       await this.initializePerformanceMonitoring();
 
       // Initialize analytics
-      if (this.mixpanelToken) {
+      if (this.mixpanelToken && this.mixpanelToken !== 'your_mixpanel_token' && this.mixpanelToken.trim() !== '') {
         await this.initializeMixpanel();
       }
 
@@ -182,6 +182,11 @@ export class MonitoringService {
   // Private methods
   private static async initializeSentry(): Promise<void> {
     try {
+      if (!this.sentryDSN || this.sentryDSN === 'your_sentry_dsn' || this.sentryDSN.trim() === '') {
+        console.warn('Sentry DSN not configured, skipping initialization');
+        return;
+      }
+
       const Sentry = await import('@sentry/browser');
       
       Sentry.init({
@@ -216,8 +221,13 @@ export class MonitoringService {
 
   private static async initializeMixpanel(): Promise<void> {
     try {
+      if (!this.mixpanelToken || this.mixpanelToken === 'your_mixpanel_token' || this.mixpanelToken.trim() === '') {
+        console.warn('Mixpanel token not configured, skipping initialization');
+        return;
+      }
+
       const mixpanel = await import('mixpanel-browser');
-      mixpanel.init(this.mixpanelToken);
+      mixpanel.default.init(this.mixpanelToken);
     } catch (error) {
       console.error('Mixpanel initialization failed:', error);
     }

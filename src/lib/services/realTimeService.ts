@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { NotificationAPI } from '../api/notificationAPI';
+import { config } from '../config';
 
 export interface PushSubscription {
   user_id: string;
@@ -30,7 +31,9 @@ export class RealTimeService {
       }
 
       // Initialize push notifications
-      await this.initializePushNotifications();
+      if (config.features.notifications && 'serviceWorker' in navigator && 'PushManager' in window) {
+        await this.initializePushNotifications();
+      }
 
       // Initialize WebSocket connections
       await this.initializeWebSockets();

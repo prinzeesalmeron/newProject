@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Plus, Trash2, Star, Shield, AlertCircle } from 'lucide-react';
+import { CreditCard, Plus, Trash2, Star, Shield, AlertCircle, X, DollarSign, Zap } from 'lucide-react';
 import { PaymentService } from '../lib/services/paymentService';
 import { useAuth } from '../lib/auth';
 import { toast } from './ui/Toast';

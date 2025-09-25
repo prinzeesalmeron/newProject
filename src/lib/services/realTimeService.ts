@@ -258,12 +258,20 @@ export class RealTimeService {
   }
 
   private static async initializePushNotifications(): Promise<void> {
+    // Skip Service Worker initialization in StackBlitz/WebContainer environments
+    if (typeof window !== 'undefined' && 
+        window.location.hostname.includes('webcontainer') || 
+        window.location.hostname.includes('stackblitz')) {
+      console.log('Service Workers not supported in this environment');
+      return;
+    }
+
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
         console.log('Service Worker registered for push notifications');
       } catch (error) {
-        console.error('Service Worker registration failed:', error);
+        console.log('Service Worker registration failed (environment limitation):', error.message);
       }
     }
   }

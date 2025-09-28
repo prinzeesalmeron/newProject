@@ -16,22 +16,21 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     struct Listing {
         address seller;
         uint256 amount;
-        uint256 pricePerToken; // Price in ETH (or another token if extended)
+        uint256 pricePerToken; // Price in ETH
         bool isActive;
     }
 
     mapping(uint256 => Listing) public listings;
-    uint256 public listingId;
+    uint256 public nextListingId;
 
     event TokenListed(uint256 indexed listingId, address seller, uint256 amount, uint256 pricePerToken);
     event TokenPurchased(uint256 indexed listingId, address buyer, uint256 amount);
+    event ListingCancelled(uint256 indexed listingId);
 
-   constructor(address _blockToken, uint256 _marketplaceFee) 
-    Ownable(msg.sender) 
-{
-    blockToken = IERC20(_blockToken);
-    marketplaceFee = _marketplaceFee;
-}
+    constructor(address _blockToken, uint256 _marketplaceFee) Ownable(msg.sender) {
+        blockToken = IERC20(_blockToken);
+        marketplaceFee = _marketplaceFee;
+    }
 
     // List tokens for sale
     function createListing(uint256 amount, uint256 pricePerToken) external nonReentrant whenNotPaused {
@@ -41,31 +40,37 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
         // Transfer tokens from seller to marketplace (escrow)
         blockToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        listingId++;
-        listings[listingId] = Listing({
+        nextListingId++;
+        listings[nextListingId] = Listing({
             seller: msg.sender,
             amount: amount,
             pricePerToken: pricePerToken,
             isActive: true
         });
 
-        emit TokenListed(listingId, msg.sender, amount, pricePerToken);
+        emit TokenListed(nextListingId, msg.sender, amount, pricePerToken);
     }
 
     // Buy tokens from a listing
-    function purchaseTokens(uint256 listingId, uint256 amount) external payable nonReentrant whenNotPaused {
-        Listing storage listing = listings[listingId];
+    function purchaseTokens(uint256 _listingId, uint256 amount) external payable nonReentrant whenNotPaused {
+        Listing storage listing = listings[_listingId];
         require(listing.isActive, "Listing not active");
-        require(amount <= listing.amount, "Insufficient tokens available");
-        require(msg.value == amount * listing.pricePerToken, "Incorrect ETH amount");
+        require(amount > 0 && amount <= listing.amount, "Invalid amount");
+        uint256 totalPrice = amount * listing.pricePerToken;
+        require(msg.value == totalPrice, "Incorrect ETH amount");
 
-        // Calculate fee
-        uint256 fee = (amount * marketplaceFee) / 10_000; // 0.1% if marketplaceFee = 100
-        uint256 sellerAmount = amount - fee;
+        // Calculate marketplace fee
+        uint256 fee = (totalPrice * marketplaceFee) / 10_000;
+        uint256 sellerAmount = totalPrice - fee;
+
+        // Transfer ETH to seller and fee to owner
+        payable(listing.seller).transfer(sellerAmount);
+        if (fee > 0) {
+            payable(owner()).transfer(fee);
+        }
 
         // Transfer tokens to buyer
-        blockToken.safeTransfer(listing.seller, sellerAmount);
-        blockToken.safeTransfer(owner(), fee); // Send fee to marketplace owner
+        blockToken.safeTransfer(msg.sender, amount);
 
         // Update listing
         listing.amount -= amount;
@@ -73,23 +78,20 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
             listing.isActive = false;
         }
 
-        // Refund excess ETH (if any)
-        if (address(this).balance > 0) {
-            payable(msg.sender).transfer(address(this).balance);
-        }
-
-        emit TokenPurchased(listingId, msg.sender, amount);
+        emit TokenPurchased(_listingId, msg.sender, amount);
     }
 
     // Cancel a listing
-    function cancelListing(uint256 listingId) external nonReentrant whenNotPaused {
-        Listing storage listing = listings[listingId];
-        require(listing.seller == msg.sender, "Not the seller");
+    function cancelListing(uint256 _listingId) external nonReentrant whenNotPaused {
+        Listing storage listing = listings[_listingId];
         require(listing.isActive, "Listing not active");
+        require(listing.seller == msg.sender, "Not the seller");
 
         // Return tokens to seller
         blockToken.safeTransfer(listing.seller, listing.amount);
         listing.isActive = false;
+
+        emit ListingCancelled(_listingId);
     }
 
     // Admin functions

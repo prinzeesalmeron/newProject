@@ -6,7 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 /**
  * @title BlockToken
  * @dev ERC20 token with governance capabilities for BlockEstate platform
@@ -25,70 +26,45 @@ contract BlockToken is ERC20, ERC20Burnable, ERC20Votes, Ownable, Pausable {
         _;
     }
     
-    constructor() ERC20("BlockEstate Token", "BLOCK") ERC20Permit("BlockEstate Token") {
+   constructor()
+        ERC20("BlockEstate Token", "BLOCK")
+        EIP712("BlockEstate Token", "1") // <-- Call EIP712, not ERC20Permit
+        Ownable(msg.sender)
+    {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
     
-    /**
-     * @dev Add a new minter
-     */
     function addMinter(address minter) external onlyOwner {
         minters[minter] = true;
         emit MinterAdded(minter);
     }
     
-    /**
-     * @dev Remove a minter
-     */
     function removeMinter(address minter) external onlyOwner {
         minters[minter] = false;
         emit MinterRemoved(minter);
     }
     
-    /**
-     * @dev Mint new tokens (only by authorized minters)
-     */
     function mint(address to, uint256 amount) external onlyMinter {
         require(totalSupply() + amount <= MAX_SUPPLY, "Exceeds max supply");
         _mint(to, amount);
     }
     
-    /**
-     * @dev Pause token transfers
-     */
     function pause() external onlyOwner {
         _pause();
     }
     
-    /**
-     * @dev Unpause token transfers
-     */
     function unpause() external onlyOwner {
         _unpause();
     }
-    
-    // Override required functions
-    function _beforeTokenTransfer(
+
+    // 🔹 OpenZeppelin v5: use `_update`
+    function _update(
         address from,
         address to,
-        uint256 amount
-    ) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, amount);
-    }
-    
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal override(ERC20, ERC20Votes) {
-        super._afterTokenTransfer(from, to, amount);
-    }
-    
-    function _mint(address to, uint256 amount) internal override(ERC20, ERC20Votes) {
-        super._mint(to, amount);
-    }
-    
-    function _burn(address account, uint256 amount) internal override(ERC20, ERC20Votes) {
-        super._burn(account, amount);
+        uint256 value
+    ) internal override(ERC20, ERC20Votes) whenNotPaused {
+        super._update(from, to, value);
     }
 }
+
+

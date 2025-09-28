@@ -46,7 +46,7 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
     event RewardsClaimed(address indexed user, uint256 indexed poolId, uint256 amount);
     event PoolUpdated(uint256 indexed poolId);
     
-    constructor(address _blockToken) {
+    constructor(address _blockToken) Ownable(msg.sender) {
         blockToken = IERC20(_blockToken);
         
         // Create default pools

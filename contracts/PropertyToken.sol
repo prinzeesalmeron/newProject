@@ -52,7 +52,7 @@ contract PropertyToken is ERC1155, Ownable, Pausable, ReentrancyGuard {
         _;
     }
     
-    constructor(string memory _baseURI) ERC1155(_baseURI) {
+    constructor(string memory _baseURI) ERC1155(_baseURI) Ownable(msg.sender) {
         baseURI = _baseURI;
     }
     

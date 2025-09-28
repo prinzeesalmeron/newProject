@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+
 /**
  * @title BlockToken
  * @dev ERC20 token with governance capabilities for BlockEstate platform
@@ -26,9 +26,9 @@ contract BlockToken is ERC20, ERC20Burnable, ERC20Votes, Ownable, Pausable {
         _;
     }
     
-   constructor()
+    constructor() 
         ERC20("BlockEstate Token", "BLOCK")
-        EIP712("BlockEstate Token", "1") // <-- Call EIP712, not ERC20Permit
+        ERC20Permit("BlockEstate Token")
         Ownable(msg.sender)
     {
         _mint(msg.sender, INITIAL_SUPPLY);
@@ -57,7 +57,7 @@ contract BlockToken is ERC20, ERC20Burnable, ERC20Votes, Ownable, Pausable {
         _unpause();
     }
 
-    // 🔹 OpenZeppelin v5: use `_update`
+    // Override required functions for multiple inheritance
     function _update(
         address from,
         address to,
@@ -65,6 +65,13 @@ contract BlockToken is ERC20, ERC20Burnable, ERC20Votes, Ownable, Pausable {
     ) internal override(ERC20, ERC20Votes) whenNotPaused {
         super._update(from, to, value);
     }
+
+    function nonces(address owner)
+        public
+        view
+        override(ERC20Permit, Nonces)
+        returns (uint256)
+    {
+        return super.nonces(owner);
+    }
 }
-
-

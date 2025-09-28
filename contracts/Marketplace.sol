@@ -87,7 +87,7 @@ contract Marketplace is ReentrancyGuard, Pausable, Ownable {
         address _propertyToken,
         address _blockToken,
         address _feeRecipient
-    ) {
+    ) Ownable(msg.sender) {
         propertyToken = PropertyToken(_propertyToken);
         blockToken = BlockToken(_blockToken);
         feeRecipient = _feeRecipient;

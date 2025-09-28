@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
@@ -7,13 +7,8 @@ import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
-import "@openzeppelin/contracts/governance/TimelockController.sol";
 
-/**
- * @title BlockEstateGovernor
- * @dev Governor contract for BlockEstate DAO governance
- */
-contract BlockEstateGovernor is
+contract MyGovernor is
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
@@ -23,23 +18,20 @@ contract BlockEstateGovernor is
 {
     constructor(
         IVotes _token,
-        TimelockController _timelock,
-        uint256 _quorumPercentage,
-        uint256 _votingPeriod,
-        uint256 _votingDelay
+        TimelockController _timelock
     )
-        Governor("BlockEstateGovernor")
+        Governor("MyGovernor")
         GovernorSettings(
-            _votingDelay,    // voting delay
-            _votingPeriod,   // voting period
-            0                // proposal threshold
+            1,      // votingDelay: 1 block
+            45818,  // votingPeriod: ~1 week in blocks
+            0       // proposalThreshold
         )
         GovernorVotes(_token)
-        GovernorVotesQuorumFraction(_quorumPercentage)
+        GovernorVotesQuorumFraction(4) // quorum = 4%
         GovernorTimelockControl(_timelock)
     {}
 
-    // Voting delay
+    // ✅ Voting delay
     function votingDelay()
         public
         view
@@ -49,7 +41,7 @@ contract BlockEstateGovernor is
         return super.votingDelay();
     }
 
-    // Voting period
+    // ✅ Voting period
     function votingPeriod()
         public
         view
@@ -59,7 +51,7 @@ contract BlockEstateGovernor is
         return super.votingPeriod();
     }
 
-    // Proposal threshold
+    // ✅ Proposal threshold
     function proposalThreshold()
         public
         view
@@ -69,7 +61,7 @@ contract BlockEstateGovernor is
         return super.proposalThreshold();
     }
 
-    // Quorum
+    // ✅ Quorum
     function quorum(uint256 blockNumber)
         public
         view
@@ -79,7 +71,7 @@ contract BlockEstateGovernor is
         return super.quorum(blockNumber);
     }
 
-    // State
+    // ✅ Proposal state
     function state(uint256 proposalId)
         public
         view
@@ -89,7 +81,21 @@ contract BlockEstateGovernor is
         return super.state(proposalId);
     }
 
-    // Proposal needs queuing
+    // ✅ Propose
+    function propose(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        string memory description
+    )
+        public
+        override(Governor)
+        returns (uint256)
+    {
+        return super.propose(targets, values, calldatas, description);
+    }
+
+    // ✅ Proposal needs queuing
     function proposalNeedsQueuing(uint256 proposalId)
         public
         view
@@ -99,39 +105,50 @@ contract BlockEstateGovernor is
         return super.proposalNeedsQueuing(proposalId);
     }
 
-    // Execute operations
+    // ✅ Execute operations (instead of _execute)
     function _executeOperations(
         uint256 proposalId,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(Governor, GovernorTimelockControl) {
+    )
+        internal
+        override(Governor, GovernorTimelockControl)
+    {
         super._executeOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
-    // Queue operations
+    // ✅ Queue operations
     function _queueOperations(
         uint256 proposalId,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(Governor, GovernorTimelockControl) returns (uint48) {
+    )
+        internal
+        override(Governor, GovernorTimelockControl)
+        returns (uint48)
+    {
         return super._queueOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
-    // Cancel
+    // ✅ Cancel
     function _cancel(
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(Governor, GovernorTimelockControl) returns (uint256) {
+    )
+        internal
+        override(Governor, GovernorTimelockControl)
+        returns (uint256)
+    {
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 
-    // Executor
+    // ✅ Executor
     function _executor()
         internal
         view
@@ -141,13 +158,13 @@ contract BlockEstateGovernor is
         return super._executor();
     }
 
-    // Supports interface
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(Governor, GovernorTimelockControl)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
-    }
+    // ✅ SupportsInterface (fix applied here)
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    override(Governor) 
+    returns (bool)
+{
+    return super.supportsInterface(interfaceId);
+}
 }

@@ -19,7 +19,7 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
         uint256 lockPeriod; // Lock period in seconds
         uint256 minStake; // Minimum stake amount
         uint256 maxStake; // Maximum stake amount (0 = no limit)
-        uint256 totalStaked; // Total amount staked in this pool
+        uint256 totalStakedInPool; // Total amount staked in this pool
         bool isActive; // Whether the pool is active
     }
     
@@ -37,7 +37,7 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
     mapping(address => uint256) public totalUserStaked;
     
     uint256 public nextPoolId = 0;
-    uint256 public totalStaked = 0;
+    uint256 public totalStakedOverall = 0; // renamed to avoid shadowing
     uint256 public rewardRate = 10000; // 100% APY in basis points
     
     event PoolCreated(uint256 indexed poolId, uint256 apy, uint256 lockPeriod);
@@ -50,14 +50,12 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
         blockToken = IERC20(_blockToken);
         
         // Create default pools
-        _createPool(500, 0, 100 * 10**18, 0); // 5% APY, no lock, min 100 tokens
+        _createPool(500, 0, 100 * 10**18, 0);       // 5% APY, no lock, min 100 tokens
         _createPool(1000, 30 days, 1000 * 10**18, 0); // 10% APY, 30 day lock, min 1000 tokens
         _createPool(1500, 90 days, 5000 * 10**18, 0); // 15% APY, 90 day lock, min 5000 tokens
     }
     
-    /**
-     * @dev Create a new staking pool
-     */
+    // Create a new staking pool
     function createPool(
         uint256 apy,
         uint256 lockPeriod,
@@ -80,7 +78,7 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
             lockPeriod: lockPeriod,
             minStake: minStake,
             maxStake: maxStake,
-            totalStaked: 0,
+            totalStakedInPool: 0,
             isActive: true
         });
         
@@ -88,132 +86,108 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
         return poolId;
     }
     
-    /**
-     * @dev Stake tokens in a specific pool
-     */
+    // Stake tokens in a specific pool
     function stake(uint256 poolId, uint256 amount) external nonReentrant whenNotPaused {
-        require(amount > 0, "Amount must be greater than 0");
-        require(pools[poolId].isActive, "Pool is not active");
-        require(amount >= pools[poolId].minStake, "Amount below minimum stake");
-        
-        if (pools[poolId].maxStake > 0) {
+        require(amount > 0, "Amount must be > 0");
+        Pool storage pool = pools[poolId];
+        require(pool.isActive, "Pool not active");
+        require(amount >= pool.minStake, "Below minimum stake");
+        if (pool.maxStake > 0) {
             require(
-                userStakes[msg.sender][poolId].amount + amount <= pools[poolId].maxStake,
-                "Amount exceeds maximum stake"
+                userStakes[msg.sender][poolId].amount + amount <= pool.maxStake,
+                "Exceeds max stake"
             );
         }
         
-        // Update rewards before staking
         _updateRewards(msg.sender, poolId);
         
-        // Transfer tokens from user
         blockToken.safeTransferFrom(msg.sender, address(this), amount);
         
-        // Update user stake
-        userStakes[msg.sender][poolId].amount += amount;
-        userStakes[msg.sender][poolId].stakeTime = block.timestamp;
-        userStakes[msg.sender][poolId].lastRewardTime = block.timestamp;
+        UserStake storage stakeData = userStakes[msg.sender][poolId];
+        stakeData.amount += amount;
+        stakeData.stakeTime = block.timestamp;
+        stakeData.lastRewardTime = block.timestamp;
         
-        // Update pool and global totals
-        pools[poolId].totalStaked += amount;
-        totalStaked += amount;
+        pool.totalStakedInPool += amount;
+        totalStakedOverall += amount;
         totalUserStaked[msg.sender] += amount;
         
         emit Staked(msg.sender, poolId, amount);
     }
     
-    /**
-     * @dev Unstake tokens from a specific pool
-     */
+    // Unstake tokens from a specific pool
     function unstake(uint256 poolId, uint256 amount) external nonReentrant {
-        UserStake storage userStake = userStakes[msg.sender][poolId];
-        require(userStake.amount >= amount, "Insufficient staked amount");
-        require(
-            block.timestamp >= userStake.stakeTime + pools[poolId].lockPeriod,
-            "Tokens are still locked"
-        );
+        UserStake storage stakeData = userStakes[msg.sender][poolId];
+        Pool storage pool = pools[poolId];
         
-        // Update rewards before unstaking
+        require(stakeData.amount >= amount, "Insufficient stake");
+        require(block.timestamp >= stakeData.stakeTime + pool.lockPeriod, "Still locked");
+        
         _updateRewards(msg.sender, poolId);
         
-        // Update user stake
-        userStake.amount -= amount;
-        
-        // Update pool and global totals
-        pools[poolId].totalStaked -= amount;
-        totalStaked -= amount;
+        stakeData.amount -= amount;
+        pool.totalStakedInPool -= amount;
+        totalStakedOverall -= amount;
         totalUserStaked[msg.sender] -= amount;
         
-        // Transfer tokens back to user
         blockToken.safeTransfer(msg.sender, amount);
         
         emit Unstaked(msg.sender, poolId, amount);
     }
     
-    /**
-     * @dev Claim accumulated rewards
-     */
+    // Claim accumulated rewards
     function claimRewards(uint256 poolId) external nonReentrant {
         _updateRewards(msg.sender, poolId);
         
-        uint256 rewards = userStakes[msg.sender][poolId].accumulatedRewards;
-        require(rewards > 0, "No rewards to claim");
+        UserStake storage stakeData = userStakes[msg.sender][poolId];
+        uint256 rewards = stakeData.accumulatedRewards;
+        require(rewards > 0, "No rewards");
         
-        userStakes[msg.sender][poolId].accumulatedRewards = 0;
-        
-        // Transfer rewards to user
+        stakeData.accumulatedRewards = 0;
         blockToken.safeTransfer(msg.sender, rewards);
         
         emit RewardsClaimed(msg.sender, poolId, rewards);
     }
     
-    /**
-     * @dev Update rewards for a user in a specific pool
-     */
+    // Internal reward calculation
     function _updateRewards(address user, uint256 poolId) internal {
-        UserStake storage userStake = userStakes[user][poolId];
+        UserStake storage stakeData = userStakes[user][poolId];
+        Pool storage pool = pools[poolId];
         
-        if (userStake.amount > 0 && userStake.lastRewardTime < block.timestamp) {
-            uint256 timeElapsed = block.timestamp - userStake.lastRewardTime;
-            uint256 rewards = (userStake.amount * pools[poolId].apy * timeElapsed) / (365 days * 10000);
-            
-            userStake.accumulatedRewards += rewards;
-            userStake.lastRewardTime = block.timestamp;
+        if (stakeData.amount > 0 && stakeData.lastRewardTime < block.timestamp) {
+            uint256 timeElapsed = block.timestamp - stakeData.lastRewardTime;
+            uint256 rewards = (stakeData.amount * pool.apy * timeElapsed) / (365 days * 10000);
+            stakeData.accumulatedRewards += rewards;
+            stakeData.lastRewardTime = block.timestamp;
         }
     }
     
-    /**
-     * @dev Get pending rewards for a user in a specific pool
-     */
+    // View pending rewards
     function getPendingRewards(address user, uint256 poolId) external view returns (uint256) {
-        UserStake memory userStake = userStakes[user][poolId];
+        UserStake memory stakeData = userStakes[user][poolId];
+        Pool memory pool = pools[poolId];
         
-        if (userStake.amount == 0) {
-            return userStake.accumulatedRewards;
+        if (stakeData.amount == 0) {
+            return stakeData.accumulatedRewards;
         }
         
-        uint256 timeElapsed = block.timestamp - userStake.lastRewardTime;
-        uint256 pendingRewards = (userStake.amount * pools[poolId].apy * timeElapsed) / (365 days * 10000);
-        
-        return userStake.accumulatedRewards + pendingRewards;
+        uint256 timeElapsed = block.timestamp - stakeData.lastRewardTime;
+        uint256 pendingRewards = (stakeData.amount * pool.apy * timeElapsed) / (365 days * 10000);
+        return stakeData.accumulatedRewards + pendingRewards;
     }
     
-    /**
-     * @dev Get user's staked amount in a specific pool
-     */
+    // Get user's staked amount
     function getStakedAmount(address user, uint256 poolId) external view returns (uint256) {
         return userStakes[user][poolId].amount;
     }
     
-    /**
-     * @dev Get pool information
-     */
+    // Get pool info
     function getPoolInfo(uint256 poolId) external view returns (
         uint256 apy,
         uint256 lockPeriod,
         uint256 minStake,
         uint256 maxStake,
-        uint256 totalStaked,
+        uint256 poolTotalStaked,
         bool isActive
     ) {
         Pool memory pool = pools[poolId];
@@ -222,14 +196,12 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
             pool.lockPeriod,
             pool.minStake,
             pool.maxStake,
-            pool.totalStaked,
+            pool.totalStakedInPool,
             pool.isActive
         );
     }
     
-    /**
-     * @dev Update pool parameters
-     */
+    // Update pool parameters
     function updatePool(
         uint256 poolId,
         uint256 apy,
@@ -238,32 +210,26 @@ contract Staking is ReentrancyGuard, Pausable, Ownable {
         uint256 maxStake,
         bool isActive
     ) external onlyOwner {
-        pools[poolId].apy = apy;
-        pools[poolId].lockPeriod = lockPeriod;
-        pools[poolId].minStake = minStake;
-        pools[poolId].maxStake = maxStake;
-        pools[poolId].isActive = isActive;
+        Pool storage pool = pools[poolId];
+        pool.apy = apy;
+        pool.lockPeriod = lockPeriod;
+        pool.minStake = minStake;
+        pool.maxStake = maxStake;
+        pool.isActive = isActive;
         
         emit PoolUpdated(poolId);
     }
     
-    /**
-     * @dev Emergency withdraw function (only owner)
-     */
+    // Emergency withdraw ERC20
     function emergencyWithdraw(address token, uint256 amount) external onlyOwner {
         IERC20(token).safeTransfer(owner(), amount);
     }
     
-    /**
-     * @dev Pause staking
-     */
+    // Pause / unpause
     function pause() external onlyOwner {
         _pause();
     }
     
-    /**
-     * @dev Unpause staking
-     */
     function unpause() external onlyOwner {
         _unpause();
     }

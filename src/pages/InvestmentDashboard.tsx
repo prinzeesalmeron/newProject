@@ -437,6 +437,15 @@ export const InvestmentDashboard = () => {
                     {/* Token Balances */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          {provider === 'phantom' ? 'SOL' : 'ETH'} Balance
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {balance} {provider === 'phantom' ? 'SOL' : 'ETH'}
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Quick Actions */}
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                       <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h4>

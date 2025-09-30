@@ -541,7 +541,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                       </button>
                       <button className="w-full text-left px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors">
                         Request Data Correction
-                </div>
+                      </button>
+                    </div>
+                  </div>
               ) : (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>

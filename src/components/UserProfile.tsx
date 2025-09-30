@@ -541,12 +541,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                       </button>
                       <button className="w-full text-left px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors">
                         Request Data Correction
-                      </button>
-                      <button className="w-full text-left px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
-                        Delete My Account
-                      </button>
-                    </div>
-                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">

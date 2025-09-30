@@ -5,7 +5,6 @@ import { ToastContainer } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
 import { Marketplace } from './pages/Marketplace';
-import { Staking } from './pages/Staking';
 import { Learn } from './pages/Learn';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
 import { Portfolio } from './pages/Portfolio';
@@ -63,7 +62,6 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/" element={<Marketplace />} />
-              <Route path="/staking" element={<Staking />} />
               <Route path="/learn" element={<Learn />} />
               <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/governance" element={<Governance />} />

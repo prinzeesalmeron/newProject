@@ -38,7 +38,7 @@ export interface EscrowTransaction {
 
 export interface CryptoConversion {
   from_currency: 'USD' | 'ETH';
-  to_currency: 'BLOCK' | 'ETH';
+  to_currency: 'ETH';
   from_amount: number;
   to_amount: number;
   exchange_rate: number;
@@ -465,11 +465,7 @@ export class PaymentService {
 
     return {
       'USD_ETH': 0.0004, // 1 USD = 0.0004 ETH
-      'USD_BLOCK': 1.2,  // 1 USD = 1.2 BLOCK
       'ETH_USD': 2500,   // 1 ETH = 2500 USD
-      'ETH_BLOCK': 3000, // 1 ETH = 3000 BLOCK
-      'BLOCK_USD': 0.83, // 1 BLOCK = 0.83 USD
-      'BLOCK_ETH': 0.00033 // 1 BLOCK = 0.00033 ETH
     };
   }
 

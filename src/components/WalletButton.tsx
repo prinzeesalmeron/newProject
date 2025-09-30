@@ -97,10 +97,6 @@ export const WalletButton = () => {
                     {parseFloat(balance).toFixed(4)} ETH
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">BLOCK Balance:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{blockBalance.toLocaleString()} BLOCK</span>
-                </div>
               </div>
               
               <button

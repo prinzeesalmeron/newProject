@@ -201,22 +201,6 @@ export const InvestmentDashboard = () => {
               <div className="text-sm text-gray-500 dark:text-gray-400">Portfolio average</div>
             </motion.div>
 
-            {/* BLOCK Balance Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">BLOCK Balance</div>
-                <Zap className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.blockBalance.toLocaleString()}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {isConnected ? 'Wallet connected' : 'Connect wallet'}
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
@@ -453,24 +437,10 @@ export const InvestmentDashboard = () => {
                     {/* Token Balances */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">BLOCK Tokens</div>
-                        <div className="text-xl font-bold text-gray-900 dark:text-white">{blockBalance.toLocaleString()}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Available for staking</div>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Property Tokens</div>
-                        <div className="text-xl font-bold text-gray-900 dark:text-white">{investments.reduce((sum, inv) => sum + inv.tokens_owned, 0)}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Across {investments.length} properties</div>
-                      </div>
-                    </div>
                     {/* Quick Actions */}
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                       <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <button className="flex items-center justify-center space-x-2 bg-blue-600 dark:bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-                          <Zap className="h-4 w-4" />
-                          <span>Stake Tokens</span>
-                        </button>
                         <button className="flex items-center justify-center space-x-2 bg-green-600 dark:bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors">
                           <TrendingUp className="h-4 w-4" />
                           <span>Buy Property</span>

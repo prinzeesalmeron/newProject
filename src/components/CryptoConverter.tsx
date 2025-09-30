@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 export const CryptoConverter = () => {
   const { user } = useAuth();
   const [fromCurrency, setFromCurrency] = useState<'USD' | 'ETH'>('USD');
-  const [toCurrency, setToCurrency] = useState<'BLOCK' | 'ETH'>('BLOCK');
+  const [toCurrency, setToCurrency] = useState<'ETH'>('ETH');
   const [fromAmount, setFromAmount] = useState<string>('');
   const [toAmount, setToAmount] = useState<string>('');
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
@@ -48,15 +48,15 @@ export const CryptoConverter = () => {
   };
 
   const handleSwapCurrencies = () => {
-    if (fromCurrency === 'USD' && toCurrency === 'BLOCK') {
+    if (fromCurrency === 'USD' && toCurrency === 'ETH') {
       setFromCurrency('ETH');
-      setToCurrency('BLOCK');
-    } else if (fromCurrency === 'ETH' && toCurrency === 'BLOCK') {
+      setToCurrency('ETH');
+    } else if (fromCurrency === 'ETH' && toCurrency === 'ETH') {
       setFromCurrency('USD');
       setToCurrency('ETH');
     } else {
       setFromCurrency('USD');
-      setToCurrency('BLOCK');
+      setToCurrency('ETH');
     }
     setFromAmount('');
     setToAmount('');
@@ -187,7 +187,6 @@ export const CryptoConverter = () => {
                 onChange={(e) => setToCurrency(e.target.value as 'BLOCK' | 'ETH')}
                 className="bg-transparent text-gray-700 dark:text-gray-300 font-medium focus:outline-none"
               >
-                <option value="BLOCK">BLOCK</option>
                 <option value="ETH">ETH</option>
               </select>
             </div>

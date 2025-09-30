@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Settings, LogOut, Wallet, Copy, Check, Edit2, Save, X, Eye, EyeOff, Bell, Shield, Lock } from 'lucide-react';
+import { User, Settings, LogOut, Wallet, Copy, Check, CreditCard as Edit2, Save, X, Eye, EyeOff, Bell, Shield, Lock } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useWallet } from '../lib/wallet';
 import { WalletButton } from './WalletButton';
@@ -544,6 +544,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                       </button>
                     </div>
                   </div>
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>

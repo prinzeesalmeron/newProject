@@ -211,10 +211,25 @@ export class TransactionAPI {
       if (txError) throw txError;
 
       // Update property available tokens
+      // First, get the current property data
+      const { data: property, error: fetchError } = await supabase
+        .from('properties')
+        .select('available_tokens')
+        .eq('id', propertyId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Check if enough tokens are available
+      if (!property || property.available_tokens < tokenAmount) {
+        throw new Error('Insufficient tokens available for purchase');
+      }
+
+      // Update with the calculated value
       const { error: propertyError } = await supabase
         .from('properties')
         .update({
-          available_tokens: supabase.raw(`available_tokens - ${tokenAmount}`)
+          available_tokens: property.available_tokens - tokenAmount
         })
         .eq('id', propertyId);
 

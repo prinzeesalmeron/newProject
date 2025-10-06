@@ -100,11 +100,17 @@ export class AuthAPI {
       }
 
       // Update last login
+      const { data: currentUser } = await supabase
+        .from('users')
+        .select('login_count')
+        .eq('id', data.user.id)
+        .single();
+
       await supabase
         .from('users')
         .update({
           last_login_at: new Date().toISOString(),
-          login_count: supabase.raw('login_count + 1')
+          login_count: (currentUser?.login_count || 0) + 1
         })
         .eq('id', data.user.id);
 

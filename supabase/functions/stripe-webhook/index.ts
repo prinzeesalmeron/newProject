@@ -254,12 +254,20 @@ async function processPropertyInvestment(supabase: any, transaction: any) {
     }
 
     // Update property available tokens
-    await supabase
+    const { data: property } = await supabase
       .from('properties')
-      .update({
-        available_tokens: supabase.raw(`available_tokens - ${tokenAmount}`)
-      })
+      .select('available_tokens')
       .eq('id', transaction.property_id)
+      .single()
+
+    if (property && property.available_tokens >= tokenAmount) {
+      await supabase
+        .from('properties')
+        .update({
+          available_tokens: property.available_tokens - tokenAmount
+        })
+        .eq('id', transaction.property_id)
+    }
 
     console.log('Property investment processed:', transaction.id)
 

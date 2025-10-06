@@ -19,7 +19,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-[480px] flex flex-col"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow flex flex-col h-full"
     >
       <div className="relative">
         <img
@@ -45,9 +45,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
         </div>
       </div>
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className="p-6 flex flex-col flex-1 min-h-0">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 flex-1 mr-2 min-h-[3.5rem]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 flex-1 mr-2">
             {property.title}
           </h3>
           <span className="text-xl font-bold text-blue-600 dark:text-blue-400 flex-shrink-0">
@@ -60,11 +60,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
           <span className="text-sm">{property.location}</span>
         </div>
 
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3 flex-1 min-h-[4.5rem]">
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
           {property.description}
         </p>
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-4 mb-4 flex-shrink-0">
           <div className="text-center">
             <div className="text-lg font-bold text-gray-900 dark:text-white">{property.projected_return}%</div>
             <div className="text-xs text-gray-500">Expected Return</div>
@@ -81,7 +81,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 flex-shrink-0">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
             <span>Funding Progress</span>
             <span>{Math.round(((property.total_tokens - property.available_tokens) / property.total_tokens) * 100)}%</span>
@@ -94,7 +94,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
           </div>
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto pt-4 flex-shrink-0">
           <button
             onClick={() => onInvest?.(property.id)}
             disabled={!isAuthenticated}

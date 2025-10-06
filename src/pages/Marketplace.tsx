@@ -7,6 +7,7 @@ import { PropertyCard } from '../components/PropertyCard';
 import { AddPropertyModal } from '../components/AddPropertyModal';
 import { PropertyImportModal } from '../components/PropertyImportModal';
 import { PropertyVerificationPanel } from '../components/PropertyVerificationPanel';
+import { InvestmentModal } from '../components/InvestmentModal';
 import { MarketDataService } from '../lib/services/marketDataService';
 import { Property } from '../lib/supabase';
 import { PropertyAPI } from '../lib/api';
@@ -22,6 +23,8 @@ export const Marketplace = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showVerificationPanel, setShowVerificationPanel] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+  const [showInvestmentModal, setShowInvestmentModal] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Use the new useApi hook for better data management
   const {
@@ -100,36 +103,24 @@ export const Marketplace = () => {
   });
 
   const handleInvest = (propertyId: string) => {
-    console.log('Investing in property:', propertyId);
-
-    // Check if user is authenticated
     if (!user) {
       toast.error('Authentication Required', 'Please sign in to invest in properties.');
       return;
     }
 
-    // In a real implementation, this would open an investment modal
-    // For now, we'll simulate an investment
-    const tokenAmount = 10; // Example: buying 10 tokens
-    const property = properties.find(p => p.id === propertyId);
+    const property = properties?.find(p => p.id === propertyId);
 
     if (!property) {
       toast.error('Property Not Found', 'The property you are trying to invest in could not be found.');
       return;
     }
 
-    const totalCost = tokenAmount * property.price_per_token;
+    setSelectedProperty(property);
+    setShowInvestmentModal(true);
+  };
 
-    PropertyAPI.investInProperty(propertyId, tokenAmount, totalCost)
-      .then(() => {
-        toast.success('Investment Successful', `Successfully invested $${totalCost} in ${property.title}!`);
-        // Refresh properties to show updated available tokens
-        fetchProperties();
-      })
-      .catch(error => {
-        console.error('Investment failed:', error);
-        toast.error('Investment Failed', error.message || 'Please try again.');
-      });
+  const handleInvestmentSuccess = () => {
+    fetchProperties();
   };
 
   if (loading) {
@@ -363,6 +354,18 @@ export const Marketplace = () => {
             />
           </div>
         </div>
+      )}
+
+      {selectedProperty && (
+        <InvestmentModal
+          property={selectedProperty}
+          isOpen={showInvestmentModal}
+          onClose={() => {
+            setShowInvestmentModal(false);
+            setSelectedProperty(null);
+          }}
+          onSuccess={handleInvestmentSuccess}
+        />
       )}
     </div>
   );

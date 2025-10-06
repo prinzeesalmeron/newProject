@@ -495,25 +495,36 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     // Clear mock user data
     localStorage.removeItem('mock_user');
-    
+
+    // Disconnect wallet when user signs out
+    try {
+      const { useWallet } = await import('./wallet');
+      const walletStore = useWallet.getState();
+      if (walletStore.isConnected) {
+        walletStore.disconnectWallet();
+      }
+    } catch (error) {
+      console.error('Error disconnecting wallet during sign out:', error);
+    }
+
     if (!supabase) {
-      set({ 
-        user: null, 
-        session: null, 
-        profile: null 
+      set({
+        user: null,
+        session: null,
+        profile: null
       });
       return;
     }
-    
+
     set({ loading: true });
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      set({ 
-        user: null, 
-        session: null, 
-        profile: null 
+
+      set({
+        user: null,
+        session: null,
+        profile: null
       });
     } catch (error: any) {
       console.error('Sign out error:', error);

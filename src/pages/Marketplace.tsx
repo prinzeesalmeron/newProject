@@ -101,34 +101,35 @@ export const Marketplace = () => {
 
   const handleInvest = (propertyId: string) => {
     console.log('Investing in property:', propertyId);
+
+    // Check if user is authenticated
     if (!user) {
-      // Show auth modal instead of alert
-      const navbar = document.querySelector('[data-auth-modal]');
-      if (navbar) {
-        // Trigger sign in modal - this is a simple approach
-        // In a real app, you might want to use a global state or context
-      }
-      alert('Please sign in to invest in properties. Click "Sign Up" in the navigation to create an account.');
+      toast.error('Authentication Required', 'Please sign in to invest in properties.');
       return;
     }
-    
+
     // In a real implementation, this would open an investment modal
     // For now, we'll simulate an investment
     const tokenAmount = 10; // Example: buying 10 tokens
     const property = properties.find(p => p.id === propertyId);
-    if (property) {
-      const totalCost = tokenAmount * property.price_per_token;
-      PropertyAPI.investInProperty(propertyId, tokenAmount, totalCost)
-        .then(() => {
-          alert(`Successfully invested $${totalCost} in ${property.title}!`);
-          // Don't refresh immediately to avoid loading state
-          // The property data will be updated on next page load
-        })
-        .catch(error => {
-          console.error('Investment failed:', error);
-          alert('Investment failed. Please try again.');
-        });
+
+    if (!property) {
+      toast.error('Property Not Found', 'The property you are trying to invest in could not be found.');
+      return;
     }
+
+    const totalCost = tokenAmount * property.price_per_token;
+
+    PropertyAPI.investInProperty(propertyId, tokenAmount, totalCost)
+      .then(() => {
+        toast.success('Investment Successful', `Successfully invested $${totalCost} in ${property.title}!`);
+        // Refresh properties to show updated available tokens
+        fetchProperties();
+      })
+      .catch(error => {
+        console.error('Investment failed:', error);
+        toast.error('Investment Failed', error.message || 'Please try again.');
+      });
   };
 
   if (loading) {

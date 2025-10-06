@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heart, TrendingUp, MapPin, Star } from 'lucide-react';
 import { Property } from '../lib/supabase';
-import { useWallet } from '../lib/wallet';
+import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 interface PropertyCardProps {
@@ -11,8 +11,9 @@ interface PropertyCardProps {
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }) => {
-  const { isConnected } = useWallet();
+  const { user } = useAuth();
   const [isLiked, setIsLiked] = React.useState(false);
+  const isAuthenticated = !!user;
 
   return (
     <motion.div
@@ -96,14 +97,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
         <div className="mt-auto">
           <button
             onClick={() => onInvest?.(property.id)}
+            disabled={!isAuthenticated}
             className={`w-full py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
-              isConnected 
-                ? 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600' 
+              isAuthenticated
+                ? 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
                 : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
             }`}
           >
             <TrendingUp className="h-4 w-4" />
-            <span>{isConnected ? 'Invest Now' : 'Connect Wallet'}</span>
+            <span>{isAuthenticated ? 'Invest Now' : 'Sign In to Invest'}</span>
           </button>
         </div>
       </div>

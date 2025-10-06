@@ -87,10 +87,32 @@ export class PropertyAPI {
     }
 
     try {
-      // Use enhanced transaction engine
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      // Verify user authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('You must be signed in to invest in properties');
+      }
 
+      // Validate investment parameters
+      if (tokenAmount <= 0) {
+        throw new Error('Investment amount must be greater than 0');
+      }
+
+      if (totalCost <= 0) {
+        throw new Error('Investment cost must be greater than 0');
+      }
+
+      // Verify property exists and has available tokens
+      const property = await this.getPropertyById(propertyId);
+      if (!property) {
+        throw new Error('Property not found');
+      }
+
+      if (property.available_tokens < tokenAmount) {
+        throw new Error(`Only ${property.available_tokens} tokens available for this property`);
+      }
+
+      // Use enhanced transaction engine
       const { TransactionEngine } = await import('./services/transactionEngine');
       await TransactionEngine.processInvestment({
         userId: user.id,

@@ -244,36 +244,56 @@ export class TransactionEngine {
   }
 
   private static async updatePropertyTokens(propertyId: string, tokenAmount: number): Promise<void> {
-    const property = await DatabaseService.getProperty(propertyId);
-    await DatabaseService.updateProperty(propertyId, {
-      available_tokens: property.available_tokens - tokenAmount
-    });
+    try {
+      const property = await DatabaseService.getProperty(propertyId);
+      console.log(`Updating property ${propertyId} tokens from ${property.available_tokens} to ${property.available_tokens - tokenAmount}`);
+
+      if (property.available_tokens < tokenAmount) {
+        throw new Error(`Insufficient tokens available. Available: ${property.available_tokens}, Requested: ${tokenAmount}`);
+      }
+
+      await DatabaseService.updateProperty(propertyId, {
+        available_tokens: property.available_tokens - tokenAmount
+      });
+
+      console.log('Property tokens updated successfully');
+    } catch (error) {
+      console.error('Error updating property tokens:', error);
+      throw new Error(`Failed to update property tokens: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private static async updateUserShares(
-    userId: string, 
-    propertyId: string, 
-    tokenAmount: number, 
+    userId: string,
+    propertyId: string,
+    tokenAmount: number,
     totalCost: number
   ): Promise<void> {
-    const existingShares = await DatabaseService.getUserShares(userId);
-    const existingShare = existingShares.find(s => s.property_id === propertyId);
+    try {
+      const existingShares = await DatabaseService.getUserShares(userId);
+      const existingShare = existingShares.find(s => s.property_id === propertyId);
 
-    if (existingShare) {
-      // Update existing share
-      await DatabaseService.updateShare(existingShare.id, {
-        tokens_owned: existingShare.tokens_owned + tokenAmount,
-        current_value: existingShare.current_value + totalCost
-      });
-    } else {
-      // Create new share
-      await DatabaseService.createShare({
-        user_id: userId,
-        property_id: propertyId,
-        tokens_owned: tokenAmount,
-        purchase_price: totalCost,
-        current_value: totalCost
-      });
+      if (existingShare) {
+        // Update existing share
+        console.log('Updating existing share:', existingShare.id);
+        await DatabaseService.updateShare(existingShare.id, {
+          tokens_owned: existingShare.tokens_owned + tokenAmount,
+          current_value: existingShare.current_value + totalCost
+        });
+      } else {
+        // Create new share
+        console.log('Creating new share for user:', userId, 'property:', propertyId);
+        await DatabaseService.createShare({
+          user_id: userId,
+          property_id: propertyId,
+          tokens_owned: tokenAmount,
+          purchase_price: totalCost,
+          current_value: totalCost
+        });
+      }
+    } catch (error) {
+      console.error('Error updating user shares:', error);
+      throw new Error(`Failed to update user shares: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

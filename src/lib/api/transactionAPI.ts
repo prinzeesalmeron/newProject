@@ -77,7 +77,7 @@ export class TransactionAPI {
         .from('transactions')
         .select('*')
         .eq('id', transactionId)
-        .single();
+        .maybeSingle();
 
       const updates: any = {
         status,
@@ -93,7 +93,7 @@ export class TransactionAPI {
         .update(updates)
         .eq('id', transactionId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -216,7 +216,7 @@ export class TransactionAPI {
         .from('properties')
         .select('available_tokens')
         .eq('id', propertyId)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
 

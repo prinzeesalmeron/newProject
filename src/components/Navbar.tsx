@@ -57,8 +57,8 @@ export const Navbar = () => {
             <Link
               to="/"
               className={`px-3 py-2 text-sm font-medium transition-colors ${
-                isActive('/') 
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                isActive('/')
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
@@ -67,8 +67,8 @@ export const Navbar = () => {
             <Link
               to="/learn"
               className={`px-3 py-2 text-sm font-medium transition-colors ${
-                isActive('/learn') 
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                isActive('/learn')
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
@@ -77,19 +77,39 @@ export const Navbar = () => {
             <Link
               to="/portfolio"
               className={`px-3 py-2 text-sm font-medium transition-colors ${
-                isActive('/portfolio') 
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                isActive('/portfolio')
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
               }`}
             >
               Portfolio
             </Link>
+            <Link
+              to="/payments"
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                isActive('/payments')
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+              }`}
+            >
+              Payments
+            </Link>
+            <Link
+              to="/governance"
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                isActive('/governance')
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+              }`}
+            >
+              Governance
+            </Link>
             {user && (
               <Link
                 to="/dashboard"
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive('/dashboard') 
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  isActive('/dashboard')
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                     : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               >
@@ -189,8 +209,8 @@ export const Navbar = () => {
               <Link
                 to="/"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
-                  isActive('/') 
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                  isActive('/')
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400'
                     : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
@@ -199,8 +219,8 @@ export const Navbar = () => {
               <Link
                 to="/learn"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
-                  isActive('/learn') 
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                  isActive('/learn')
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400'
                     : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
@@ -209,12 +229,32 @@ export const Navbar = () => {
               <Link
                 to="/portfolio"
                 className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
-                  isActive('/portfolio') 
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400' 
+                  isActive('/portfolio')
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400'
                     : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
                 }`}
               >
                 📊 Portfolio
+              </Link>
+              <Link
+                to="/payments"
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
+                  isActive('/payments')
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
+                }`}
+              >
+                💳 Payments
+              </Link>
+              <Link
+                to="/governance"
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
+                  isActive('/governance')
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
+                }`}
+              >
+                🗳️ Governance
               </Link>
               {user && (
                 <Link

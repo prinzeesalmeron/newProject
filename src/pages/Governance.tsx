@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Vote, Users, Clock, CheckCircle, XCircle, AlertCircle, Plus, MessageSquare } from 'lucide-react';
+import { Vote, Users, Clock, CheckCircle, XCircle, AlertCircle, Plus, MessageSquare, Coins } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
@@ -184,6 +184,53 @@ export const Governance = () => {
                 <Plus className="h-5 w-5" />
                 <span>Create Proposal</span>
               </button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Governance Token Banner */}
+      <section className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 rounded-xl p-8 text-white shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="bg-white/20 rounded-full p-4">
+                  <Coins className="h-8 w-8" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">BLOCK Governance Token</h2>
+                  <p className="text-blue-100 dark:text-purple-100">
+                    Hold BLOCK tokens to participate in platform governance and earn rewards
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-blue-100 dark:text-purple-100 mb-1">Your Balance</div>
+                <div className="text-3xl font-bold">2,340 BLOCK</div>
+                <div className="text-sm text-blue-100 dark:text-purple-100 mt-1">≈ $4,680 USD</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="text-sm text-blue-100 dark:text-purple-100 mb-1">Voting Power</div>
+                <div className="text-2xl font-bold">2,340</div>
+                <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">1 BLOCK = 1 Vote</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="text-sm text-blue-100 dark:text-purple-100 mb-1">Staking APY</div>
+                <div className="text-2xl font-bold">12.5%</div>
+                <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">Earn rewards by staking</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="text-sm text-blue-100 dark:text-purple-100 mb-1">Participation Rate</div>
+                <div className="text-2xl font-bold">68%</div>
+                <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">Active voters in last 30 days</div>
+              </div>
             </div>
           </motion.div>
         </div>

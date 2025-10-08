@@ -30,7 +30,7 @@ export class DatabaseService {
         ...userData,
         kyc_status: 'pending',
         role: userData.role || 'investor',
-        block_balance: 0,
+        wallet_balance: 0,
         total_portfolio_value: 0,
         is_active: true
       }])

@@ -195,7 +195,7 @@ export class TransactionAPI {
       // Check user wallet balance first
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('block_balance')
+        .select('wallet_balance')
         .eq('id', userId)
         .maybeSingle();
 
@@ -205,8 +205,8 @@ export class TransactionAPI {
         throw new Error('User not found');
       }
 
-      if (userData.block_balance < totalCost) {
-        throw new Error(`Insufficient wallet balance. You have $${userData.block_balance.toLocaleString()} but need $${totalCost.toLocaleString()}`);
+      if (userData.wallet_balance < totalCost) {
+        throw new Error(`Insufficient wallet balance. You have $${userData.wallet_balance.toLocaleString()} but need $${totalCost.toLocaleString()}`);
       }
 
       // Start transaction
@@ -231,7 +231,7 @@ export class TransactionAPI {
       const { error: balanceError } = await supabase
         .from('users')
         .update({
-          block_balance: userData.block_balance - totalCost,
+          wallet_balance: userData.wallet_balance - totalCost,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);

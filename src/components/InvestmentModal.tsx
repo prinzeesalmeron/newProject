@@ -37,12 +37,12 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
       try {
         const { data, error } = await supabase
           .from('users')
-          .select('block_balance')
+          .select('wallet_balance')
           .eq('id', user.id)
           .maybeSingle();
 
         if (error) throw error;
-        setWalletBalance(data?.block_balance || 0);
+        setWalletBalance(data?.wallet_balance || 0);
       } catch (error) {
         console.error('Error fetching wallet balance:', error);
         setWalletBalance(0);

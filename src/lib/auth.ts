@@ -150,7 +150,7 @@ export const useAuth = create<AuthState>((set, get) => ({
                   address: session.user.user_metadata?.address || null,
                   kyc_status: 'pending',
                   role: 'investor',
-                  block_balance: 0,
+                  wallet_balance: 0,
                   total_portfolio_value: 0,
                   is_active: true
                 }])
@@ -233,7 +233,7 @@ export const useAuth = create<AuthState>((set, get) => ({
                   address: session.user.user_metadata?.address || null,
                   kyc_status: 'pending',
                   role: 'investor',
-                  block_balance: 0,
+                  wallet_balance: 0,
                   total_portfolio_value: 0,
                   is_active: true
                 }])
@@ -359,7 +359,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         email,
         full_name: fullName,
         total_portfolio_value: 0,
-        block_balance: 0,
+        wallet_balance: 0,
         kyc_status: 'pending',
         role: 'admin', // Make mock users admin for testing
         is_active: true,
@@ -433,7 +433,7 @@ export const useAuth = create<AuthState>((set, get) => ({
               address: additionalData.address || null,
               kyc_status: 'pending',
               role: 'investor',
-              block_balance: 0,
+              wallet_balance: 0,
               total_portfolio_value: 0,
               is_active: true
             }])

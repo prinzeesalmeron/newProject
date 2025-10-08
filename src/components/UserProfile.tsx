@@ -19,7 +19,7 @@ interface PrivacyData {
   address: any;
   kyc_status: string;
   role: string;
-  block_balance: number;
+  wallet_balance: number;
   total_portfolio_value: number;
   is_active: boolean;
   preferred_currency: string;
@@ -146,7 +146,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
         address: null,
         kyc_status: 'pending',
         role: 'investor',
-        block_balance: 2340,
+        wallet_balance: 2340,
         total_portfolio_value: 0,
         is_active: true,
         preferred_currency: 'USD',
@@ -504,7 +504,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">BLOCK Balance</label>
-                        <p className="text-sm text-gray-900 dark:text-white">{privacyData.block_balance.toLocaleString()}</p>
+                        <p className="text-sm text-gray-900 dark:text-white">{privacyData.wallet_balance.toLocaleString()}</p>
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Portfolio Value</label>

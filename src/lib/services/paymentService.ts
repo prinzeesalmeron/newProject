@@ -722,15 +722,15 @@ export class PaymentService {
     if (currency === 'BLOCK') {
       const { data: user } = await supabase
         .from('users')
-        .select('block_balance')
+        .select('wallet_balance')
         .eq('id', userId)
         .single();
       
       if (user) {
-        const newBalance = (user.block_balance || 0) + amount;
+        const newBalance = (user.wallet_balance || 0) + amount;
         await supabase
           .from('users')
-          .update({ block_balance: newBalance })
+          .update({ wallet_balance: newBalance })
           .eq('id', userId);
       }
     }

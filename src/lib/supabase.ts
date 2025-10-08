@@ -73,7 +73,7 @@ export type UserProfile = {
   email: string;
   full_name: string;
   avatar_url?: string;
-  block_balance: number;
+  wallet_balance: number;
   total_portfolio_value: number;
 };
 

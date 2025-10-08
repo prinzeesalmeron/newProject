@@ -56,7 +56,7 @@ export class TestingService {
       full_name: 'Test User',
       role: 'investor' as const,
       kyc_status: 'verified' as const,
-      block_balance: 1000,
+      wallet_balance: 1000,
       total_portfolio_value: 0,
       is_active: true,
       created_at: new Date().toISOString(),

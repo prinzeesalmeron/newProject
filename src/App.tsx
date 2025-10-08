@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
-import { ToastContainer } from './components/ui/Toast';
+import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
 import { Marketplace } from './pages/Marketplace';
@@ -45,32 +45,56 @@ const AuthCallback = () => {
   );
 };
 
-function App() {
+const AppContent = () => {
   const { initialize } = useAuth();
+  const { addToast } = useToast();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
+  useEffect(() => {
+    (window as any).__toastAddFunction = addToast;
+
+    const handleToastEvent = (e: any) => {
+      addToast(e.detail);
+    };
+
+    window.addEventListener('toast', handleToastEvent);
+
+    return () => {
+      window.removeEventListener('toast', handleToastEvent);
+      delete (window as any).__toastAddFunction;
+    };
+  }, [addToast]);
+
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors" data-toast-context>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Marketplace />} />
+          <Route path="/learn" element={<Learn />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/dashboard" element={<InvestmentDashboard />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+        </Routes>
+        <Footer />
+        <ToastContainer />
+      </div>
+    </Router>
+  );
+};
+
+function App() {
   return (
     <ErrorBoundary>
-      <PaymentProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Marketplace />} />
-              <Route path="/learn" element={<Learn />} />
-              <Route path="/portfolio" element={<Portfolio />} />
-              <Route path="/dashboard" element={<InvestmentDashboard />} />
-              <Route path="/payments" element={<Payments />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-            </Routes>
-            <Footer />
-            <ToastContainer />
-          </div>
-        </Router>
-      </PaymentProvider>
+      <ToastProvider>
+        <PaymentProvider>
+          <AppContent />
+        </PaymentProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

@@ -5,6 +5,7 @@ import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
 import { Marketplace } from './pages/Marketplace';
+import { Blockchain } from './pages/Blockchain';
 import { Learn } from './pages/Learn';
 import { InvestmentDashboard } from './pages/InvestmentDashboard';
 import { Portfolio } from './pages/Portfolio';
@@ -76,6 +77,7 @@ const AppContent = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<Marketplace />} />
+          <Route path="/blockchain" element={<Blockchain />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/dashboard" element={<InvestmentDashboard />} />

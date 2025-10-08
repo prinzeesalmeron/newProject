@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Wallet, DollarSign, Info } from 'lucide-react';
+import { X, TrendingUp, Wallet, DollarSign, Info, AlertCircle } from 'lucide-react';
 import { Property } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { Button, LoadingSpinner } from './ui';
 import { toast } from './ui/Toast';
 import { TransactionAPI } from '../lib/api/transactionAPI';
 import { PropertyAPI } from '../lib/api/propertyAPI';
+import { supabase } from '../lib/supabase';
 
 interface InvestmentModalProps {
   property: Property;
@@ -23,44 +24,38 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
   const { user } = useAuth();
   const [tokenAmount, setTokenAmount] = useState<number>(1);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [loadingBalance, setLoadingBalance] = useState(true);
 
   useEffect(() => {
-    const checkWallet = async () => {
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        try {
-          const accounts = await (window as any).ethereum.request({
-            method: 'eth_accounts'
-          });
-          setWalletConnected(accounts.length > 0);
-        } catch (error) {
-          console.error('Error checking wallet:', error);
-          setWalletConnected(false);
-        }
+    const fetchWalletBalance = async () => {
+      if (!user || !supabase) {
+        setLoadingBalance(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('block_balance')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        setWalletBalance(data?.block_balance || 0);
+      } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+        setWalletBalance(0);
+      } finally {
+        setLoadingBalance(false);
       }
     };
 
     if (isOpen) {
-      checkWallet();
+      fetchWalletBalance();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
-  const connectWallet = async () => {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      try {
-        await (window as any).ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-        setWalletConnected(true);
-        toast.success('Wallet Connected', 'Your wallet has been connected successfully');
-      } catch (error) {
-        console.error('Error connecting wallet:', error);
-        toast.error('Connection Failed', 'Failed to connect wallet');
-      }
-    } else {
-      toast.error('No Wallet Found', 'Please install MetaMask or another Web3 wallet');
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -86,13 +81,13 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
       return;
     }
 
-    if (!walletConnected) {
-      toast.error('Wallet Required', 'Please connect your wallet first');
+    if (tokenAmount <= 0 || tokenAmount > property.available_tokens) {
+      toast.error('Invalid Amount', 'Please select a valid number of tokens');
       return;
     }
 
-    if (tokenAmount <= 0 || tokenAmount > property.available_tokens) {
-      toast.error('Invalid Amount', 'Please select a valid number of tokens');
+    if (totalCost > walletBalance) {
+      toast.error('Insufficient Balance', `You need $${totalCost.toLocaleString()} but only have $${walletBalance.toLocaleString()} in your wallet`);
       return;
     }
 
@@ -176,29 +171,31 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
             </div>
           </div>
 
-          {!walletConnected && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div>
                   <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
-                    Wallet Connection Required
+                    Wallet Balance
                   </p>
-                  <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
-                    Connect your wallet to proceed with the investment
-                  </p>
-                  <Button
-                    onClick={connectWallet}
-                    size="sm"
-                    className="mt-3"
-                  >
-                    <Wallet className="h-4 w-4 mr-2" />
-                    Connect Wallet
-                  </Button>
+                  {loadingBalance ? (
+                    <p className="text-xs text-blue-800 dark:text-blue-200">Loading...</p>
+                  ) : (
+                    <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                      ${walletBalance.toLocaleString()}
+                    </p>
+                  )}
                 </div>
               </div>
+              {!loadingBalance && totalCost > walletBalance && (
+                <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-xs font-medium">Insufficient funds</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           <div className="space-y-4">
             <div>
@@ -282,7 +279,7 @@ export const InvestmentModal: React.FC<InvestmentModalProps> = ({
             </Button>
             <Button
               onClick={handleInvest}
-              disabled={isProcessing || !walletConnected}
+              disabled={isProcessing || loadingBalance || totalCost > walletBalance}
               className="flex-1"
             >
               {isProcessing ? (

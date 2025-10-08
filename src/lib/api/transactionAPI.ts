@@ -192,6 +192,23 @@ export class TransactionAPI {
     }
 
     try {
+      // Check user wallet balance first
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('block_balance')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (userError) throw userError;
+
+      if (!userData) {
+        throw new Error('User not found');
+      }
+
+      if (userData.block_balance < totalCost) {
+        throw new Error(`Insufficient wallet balance. You have $${userData.block_balance.toLocaleString()} but need $${totalCost.toLocaleString()}`);
+      }
+
       // Start transaction
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
@@ -209,6 +226,17 @@ export class TransactionAPI {
         .single();
 
       if (txError) throw txError;
+
+      // Deduct from user wallet balance
+      const { error: balanceError } = await supabase
+        .from('users')
+        .update({
+          block_balance: userData.block_balance - totalCost,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (balanceError) throw balanceError;
 
       // Update property available tokens
       // First, get the current property data

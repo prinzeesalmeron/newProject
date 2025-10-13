@@ -33,36 +33,13 @@ const MARKETPLACE_ABI = [
   "event RentalClaimed(uint256 indexed payoutId, uint256 indexed propertyId, address indexed recipient, uint256 amount)"
 ];
 
-const STAKING_ABI = [
-  "function stake(uint256 poolId, uint256 amount) public",
-  "function unstake(uint256 poolId, uint256 amount) public",
-  "function claimRewards(uint256 poolId) public",
-  "function getStakedAmount(address user, uint256 poolId) public view returns (uint256)",
-  "function getPendingRewards(address user, uint256 poolId) public view returns (uint256)",
-  "function getPoolInfo(uint256 poolId) public view returns (uint256, uint256, uint256, uint256, uint256, bool)",
-  "event Staked(address indexed user, uint256 indexed poolId, uint256 amount)",
-  "event Unstaked(address indexed user, uint256 indexed poolId, uint256 amount)",
-  "event RewardsClaimed(address indexed user, uint256 indexed poolId, uint256 amount)"
-];
 
-const BLOCK_TOKEN_ABI = [
-  "function balanceOf(address account) public view returns (uint256)",
-  "function transfer(address to, uint256 amount) public returns (bool)",
-  "function approve(address spender, uint256 amount) public returns (bool)",
-  "function allowance(address owner, address spender) public view returns (uint256)",
-  "function totalSupply() public view returns (uint256)",
-  "function decimals() public view returns (uint8)",
-  "event Transfer(address indexed from, address indexed to, uint256 value)",
-  "event Approval(address indexed owner, address indexed spender, uint256 value)"
-];
 
 // Testnet contract addresses (these would be deployed addresses)
 export const CONTRACT_ADDRESSES = {
   // Sepolia Testnet addresses
   PROPERTY_TOKEN: ethers.utils.getAddress('0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5e'.toLowerCase()),
   MARKETPLACE: ethers.utils.getAddress('0x8464135c8F25Da09e49BC8782676a84730C318bC'.toLowerCase()),
-  STAKING: ethers.utils.getAddress('0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6'.toLowerCase()),
-  BLOCK_TOKEN: ethers.utils.getAddress('0x8A791620dd6260079BF849Dc5567aDC3F2FdC318'.toLowerCase()),
   GOVERNANCE: ethers.utils.getAddress('0x610178dA211FEF7D417bC0e6FeD39F05609AD788'.toLowerCase()),
   TIMELOCK: ethers.utils.getAddress('0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'.toLowerCase())
 };
@@ -92,18 +69,6 @@ export class ContractManager {
     this.contracts.marketplace = new ethers.Contract(
       CONTRACT_ADDRESSES.MARKETPLACE,
       MARKETPLACE_ABI,
-      this.signer
-    );
-
-    this.contracts.staking = new ethers.Contract(
-      CONTRACT_ADDRESSES.STAKING,
-      STAKING_ABI,
-      this.signer
-    );
-
-    this.contracts.blockToken = new ethers.Contract(
-      CONTRACT_ADDRESSES.BLOCK_TOKEN,
-      BLOCK_TOKEN_ABI,
       this.signer
     );
 
@@ -165,23 +130,17 @@ export class ContractManager {
   }
 
   async buyTokensFromListing(listingId: number, amount: number): Promise<string> {
-    // First approve marketplace to spend BLOCK tokens
     const listing = await this.contracts.marketplace.getListing(listingId);
     const totalCost = listing.pricePerToken.mul(amount);
-    
-    await this.approveBlockTokens(CONTRACT_ADDRESSES.MARKETPLACE, totalCost);
-    
-    const tx = await this.contracts.marketplace.buyTokens(listingId, amount);
+
+    const tx = await this.contracts.marketplace.buyTokens(listingId, amount, {
+      value: totalCost
+    });
     await tx.wait();
     return tx.hash;
   }
 
   async instantBuyTokens(propertyId: number, tokenAmount: number): Promise<string> {
-    const poolInfo = await this.contracts.marketplace.getPoolInfo(propertyId);
-    const blockCost = poolInfo.blockAmount.mul(tokenAmount).div(poolInfo.tokenAmount);
-    
-    await this.approveBlockTokens(CONTRACT_ADDRESSES.MARKETPLACE, blockCost);
-    
     const tx = await this.contracts.marketplace.instantBuy(propertyId, tokenAmount);
     await tx.wait();
     return tx.hash;
@@ -201,59 +160,6 @@ export class ContractManager {
     return tx.hash;
   }
 
-  // BLOCK Token Operations
-  async getBlockTokenBalance(userAddress: string): Promise<string> {
-    const balance = await this.contracts.blockToken.balanceOf(userAddress);
-    return ethers.utils.formatUnits(balance, 18);
-  }
-
-  async approveBlockTokens(spender: string, amount: ethers.BigNumber): Promise<string> {
-    const tx = await this.contracts.blockToken.approve(spender, amount);
-    await tx.wait();
-    return tx.hash;
-  }
-
-  async transferBlockTokens(to: string, amount: string): Promise<string> {
-    const transferAmount = ethers.utils.parseUnits(amount, 18);
-    const tx = await this.contracts.blockToken.transfer(to, transferAmount);
-    await tx.wait();
-    return tx.hash;
-  }
-
-  // Staking Operations
-  async stakeTokens(poolId: number, amount: string): Promise<string> {
-    const stakeAmount = ethers.utils.parseUnits(amount, 18);
-    
-    // Approve staking contract
-    await this.approveBlockTokens(CONTRACT_ADDRESSES.STAKING, stakeAmount);
-    
-    const tx = await this.contracts.staking.stake(poolId, stakeAmount);
-    await tx.wait();
-    return tx.hash;
-  }
-
-  async unstakeTokens(poolId: number, amount: string): Promise<string> {
-    const unstakeAmount = ethers.utils.parseUnits(amount, 18);
-    const tx = await this.contracts.staking.unstake(poolId, unstakeAmount);
-    await tx.wait();
-    return tx.hash;
-  }
-
-  async claimStakingRewards(poolId: number): Promise<string> {
-    const tx = await this.contracts.staking.claimRewards(poolId);
-    await tx.wait();
-    return tx.hash;
-  }
-
-  async getStakedAmount(userAddress: string, poolId: number): Promise<string> {
-    const amount = await this.contracts.staking.getStakedAmount(userAddress, poolId);
-    return ethers.utils.formatUnits(amount, 18);
-  }
-
-  async getPendingRewards(userAddress: string, poolId: number): Promise<string> {
-    const rewards = await this.contracts.staking.getPendingRewards(userAddress, poolId);
-    return ethers.utils.formatUnits(rewards, 18);
-  }
 
   // Event Listeners
   onPropertyTokenized(callback: (propertyId: number, owner: string, totalTokens: number, pricePerToken: string) => void) {
@@ -288,11 +194,6 @@ export class ContractManager {
     });
   }
 
-  onStaked(callback: (user: string, poolId: number, amount: string) => void) {
-    this.contracts.staking.on('Staked', (user, poolId, amount) => {
-      callback(user, poolId.toNumber(), ethers.utils.formatUnits(amount, 18));
-    });
-  }
 
   // Utility Methods
   async estimateGas(contractMethod: any, ...args: any[]): Promise<ethers.BigNumber> {

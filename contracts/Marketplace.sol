@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
-    IERC20 public blockToken;
+    IERC20 public paymentToken;
     uint256 public marketplaceFee; // Fee in basis points (e.g., 250 = 2.5%)
 
     struct Listing {
@@ -27,8 +27,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     event TokenPurchased(uint256 indexed listingId, address buyer, uint256 amount);
     event ListingCancelled(uint256 indexed listingId);
 
-    constructor(address _blockToken, uint256 _marketplaceFee) Ownable(msg.sender) {
-        blockToken = IERC20(_blockToken);
+    constructor(address _paymentToken, uint256 _marketplaceFee) Ownable(msg.sender) {
+        paymentToken = IERC20(_paymentToken);
         marketplaceFee = _marketplaceFee;
     }
 
@@ -38,7 +38,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
         require(pricePerToken > 0, "Price must be > 0");
 
         // Transfer tokens from seller to marketplace (escrow)
-        blockToken.safeTransferFrom(msg.sender, address(this), amount);
+        paymentToken.safeTransferFrom(msg.sender, address(this), amount);
 
         nextListingId++;
         listings[nextListingId] = Listing({
@@ -70,7 +70,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
         }
 
         // Transfer tokens to buyer
-        blockToken.safeTransfer(msg.sender, amount);
+        paymentToken.safeTransfer(msg.sender, amount);
 
         // Update listing
         listing.amount -= amount;
@@ -88,7 +88,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
         require(listing.seller == msg.sender, "Not the seller");
 
         // Return tokens to seller
-        blockToken.safeTransfer(listing.seller, listing.amount);
+        paymentToken.safeTransfer(listing.seller, listing.amount);
         listing.isActive = false;
 
         emit ListingCancelled(_listingId);

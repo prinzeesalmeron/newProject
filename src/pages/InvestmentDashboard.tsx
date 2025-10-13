@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, Home, BarChart3, Download, MoreHorizontal, Code, Zap } from 'lucide-react';
+import { TrendingUp, DollarSign, Home, BarChart3, Download, MoreHorizontal, Wallet, Users, Calendar, Activity } from 'lucide-react';
 import { Investment, UserProfile } from '../lib/supabase';
 import { PortfolioAPI, TransactionAPI, NotificationAPI } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { useWallet } from '../lib/wallet';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/ui/Toast';
+import { DatabaseService } from '../lib/database';
 
 export const InvestmentDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { isConnected, address, balance, provider } = useWallet();
+  const { user, profile } = useAuth();
   const [portfolio, setPortfolio] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [investments, setInvestments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('properties');
+  const [activeTab, setActiveTab] = useState('overview');
   const [performanceData, setPerformanceData] = useState<any[]>([]);
   const [allocationData, setAllocationData] = useState<any[]>([]);
+  const [generalStats, setGeneralStats] = useState<any>(null);
 
   const tabs = [
+    { id: 'overview', label: 'Overview' },
     { id: 'properties', label: 'My Properties' },
     { id: 'transactions', label: 'Transactions' },
-    { id: 'income', label: 'Income History' },
-    { id: 'blockchain', label: 'Blockchain' }
+    { id: 'income', label: 'Income History' }
   ];
 
   useEffect(() => {
@@ -58,12 +58,35 @@ export const InvestmentDashboard = () => {
       // Fetch notifications
       const notificationData = await NotificationAPI.getUserNotifications();
       setNotifications(notificationData);
+
+      // Calculate general statistics
+      const stats = {
+        totalInvested: transactionData
+          .filter((t: any) => t.transaction_type === 'purchase')
+          .reduce((sum: number, t: any) => sum + t.amount, 0),
+        totalTransactions: transactionData.length,
+        accountAge: calculateAccountAge(profile?.created_at),
+        lastActivity: transactionData.length > 0
+          ? new Date(transactionData[0].created_at).toLocaleDateString()
+          : 'No activity yet'
+      };
+      setGeneralStats(stats);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard', 'Please try refreshing the page');
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateAccountAge = (createdAt?: string) => {
+    if (!createdAt) return 'New account';
+    const created = new Date(createdAt);
+    const now = new Date();
+    const days = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    if (days < 30) return `${days} days`;
+    if (days < 365) return `${Math.floor(days / 30)} months`;
+    return `${Math.floor(days / 365)} years`;
   };
 
   const generatePerformanceData = (portfolioData: any) => {
@@ -114,7 +137,12 @@ export const InvestmentDashboard = () => {
     totalValue: portfolio?.summary?.current_value || 0,
     monthlyIncome: portfolio?.summary?.total_rental_income || 0,
     propertiesOwned: portfolio?.summary?.properties_count || 0,
-    averageYield: portfolio?.summary?.total_return || 0
+    averageYield: portfolio?.summary?.total_return || 0,
+    walletBalance: profile?.wallet_balance || 0,
+    totalInvested: generalStats?.totalInvested || 0,
+    totalTransactions: generalStats?.totalTransactions || 0,
+    accountAge: generalStats?.accountAge || 'New account',
+    lastActivity: generalStats?.lastActivity || 'No activity'
   };
 
   if (loading) {
@@ -187,7 +215,20 @@ export const InvestmentDashboard = () => {
       {/* Stats Cards */}
       <section className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Wallet Balance</div>
+                <Wallet className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">${stats.walletBalance.toLocaleString()}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Available funds</div>
+            </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -488,15 +529,177 @@ export const InvestmentDashboard = () => {
             {activeTab === 'income' && (
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Income History</h3>
-                <div className="text-center py-12">
-                  <div className="text-gray-400 text-6xl mb-4">💰</div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No income history yet</h4>
-                  <p className="text-gray-600 dark:text-gray-400">Your rental income and dividend payments will be tracked here.</p>
+                {transactions.filter((t: any) => t.transaction_type === 'rental').length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 text-6xl mb-4">💰</div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No income history yet</h4>
+                    <p className="text-gray-600 dark:text-gray-400">Your rental income and dividend payments will be tracked here.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {transactions
+                      .filter((t: any) => t.transaction_type === 'rental')
+                      .map((transaction: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900/30">
+                              💰
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 dark:text-white">Rental Income</h4>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(transaction.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-green-600 dark:text-green-400">
+                              +${transaction.amount.toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{transaction.status}</p>
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'overview' && (
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">General Dashboard</h3>
+
+                {/* Account Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
+                        <Users className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Account Status</div>
+                        <div className="text-xs text-blue-500 dark:text-blue-300">Active Member</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Account Age</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.accountAge}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">KYC Status</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{profile?.kyc_status || 'Pending'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 border border-green-200 dark:border-green-800">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-green-600 dark:bg-green-500 rounded-lg flex items-center justify-center">
+                        <DollarSign className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-green-600 dark:text-green-400 font-medium">Total Invested</div>
+                        <div className="text-xs text-green-500 dark:text-green-300">All-time</div>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                      ${stats.totalInvested.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {stats.propertiesOwned} {stats.propertiesOwned === 1 ? 'property' : 'properties'}
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-purple-600 dark:bg-purple-500 rounded-lg flex items-center justify-center">
+                        <Activity className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Activity</div>
+                        <div className="text-xs text-purple-500 dark:text-purple-300">Recent</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Transactions</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.totalTransactions}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Last Activity</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.lastActivity}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Summary */}
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8">
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4">Financial Summary</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Available Balance</div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">${stats.walletBalance.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Portfolio Value</div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">${stats.totalValue.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Monthly Income</div>
+                      <div className="text-xl font-bold text-green-600 dark:text-green-400">${stats.monthlyIncome.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Returns</div>
+                      <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{stats.averageYield.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div>
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h4>
+                  {transactions.length === 0 ? (
+                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <Calendar className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400">No recent activity</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {transactions.slice(0, 5).map((transaction: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              transaction.transaction_type === 'purchase' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                              transaction.transaction_type === 'rental' ? 'bg-green-100 dark:bg-green-900/30' :
+                              'bg-gray-100 dark:bg-gray-700'
+                            }`}>
+                              {transaction.transaction_type === 'purchase' ? '🏠' : transaction.transaction_type === 'rental' ? '💰' : '📊'}
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900 dark:text-white">{transaction.description || 'Transaction'}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">{new Date(transaction.created_at).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-sm font-semibold ${
+                              transaction.transaction_type === 'rental' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'
+                            }`}>
+                              {transaction.transaction_type === 'rental' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">{transaction.status}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {activeTab === 'blockchain' && (
+            {activeTab === 'income' && (
               <div className="p-6">
                 <div className="flex items-center space-x-2 mb-6">
                   <Code className="h-6 w-6 text-blue-600 dark:text-blue-400" />

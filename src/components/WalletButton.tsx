@@ -14,7 +14,6 @@ export const WalletButton = () => {
   const [copied, setCopied] = React.useState(false);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [showWalletOptions, setShowWalletOptions] = React.useState(false);
-  const [blockBalance, setBlockBalance] = React.useState(2340); // Mock balance
 
   const handleCopyAddress = () => {
     if (address) {
@@ -44,14 +43,11 @@ export const WalletButton = () => {
     return (
       <div className="relative flex items-center space-x-3">
         <div className="hidden md:block text-right">
-          <div className="text-sm font-medium text-gray-900">
-            {blockBalance.toLocaleString()} BLOCK
-          </div>
-          <div className="text-xs text-gray-500">
+          <div className="text-sm font-medium text-gray-900 dark:text-white">
             {parseFloat(balance).toFixed(4)} ETH
           </div>
         </div>
-        
+
         <button
           onClick={() => setShowDropdown(!showDropdown)}
           className="flex items-center space-x-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"

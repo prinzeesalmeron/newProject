@@ -32,7 +32,7 @@ interface PrivacyData {
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
-  const { isConnected, address, balance, blockBalance, provider, disconnectWallet } = useWallet();
+  const { isConnected, address, balance, provider, disconnectWallet } = useWallet();
   const { user, profile, signOut, updateProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -383,12 +383,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                         {balance} {provider === 'phantom' ? 'SOL' : 'ETH'}
                       </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">BLOCK Balance</div>
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {blockBalance.toLocaleString()} BLOCK
-                      </div>
-                    </div>
                   </div>
 
                   <button
@@ -501,10 +495,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                       <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
                         <p className="text-sm text-gray-900 dark:text-white capitalize">{privacyData.role}</p>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">BLOCK Balance</label>
-                        <p className="text-sm text-gray-900 dark:text-white">{privacyData.wallet_balance.toLocaleString()}</p>
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Portfolio Value</label>

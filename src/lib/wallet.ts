@@ -19,7 +19,6 @@ interface WalletState {
   isConnected: boolean;
   address: string | null;
   balance: string;
-  blockBalance: number;
   connecting: boolean;
   provider: WalletProvider | null;
   connectWallet: (provider: WalletProvider) => Promise<void>;
@@ -108,7 +107,6 @@ export const useWallet = create<WalletState>()(
       isConnected: false,
       address: null,
       balance: '0.0000',
-      blockBalance: 0,
       connecting: false,
       provider: null,
       
@@ -157,27 +155,11 @@ export const useWallet = create<WalletState>()(
             balanceEth = (parseInt(balanceWei, 16) / Math.pow(10, 18)).toFixed(4);
           }
           
-          // Simulate BLOCK token balance
-          let blockBalance = Math.floor(Math.random() * 10000) + 100;
-          
-          // Try to get real BLOCK token balance from smart contract
-          // Only attempt to get real BLOCK token balance if supabase is configured
-          // This prevents call revert exceptions when using placeholder contract addresses
-          if (supabase) {
-            try {
-              await contractService.initialize(provider);
-              const realBalance = await contractService.getBlockTokenBalance(address);
-              blockBalance = Math.floor(parseFloat(realBalance));
-            } catch (error) {
-              console.log('Using simulated BLOCK balance - contracts not available:', error);
-            }
-          }
           
           set({
             isConnected: true,
             address,
             balance: balanceEth,
-            blockBalance,
             connecting: false,
             provider: providerType,
           });
@@ -250,7 +232,6 @@ export const useWallet = create<WalletState>()(
           isConnected: false,
           address: null,
           balance: '0.0000',
-          blockBalance: 0,
           connecting: false,
           provider: null,
         });

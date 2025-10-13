@@ -71,8 +71,8 @@ export const Governance = () => {
     },
     {
       id: '4',
-      title: 'Implement Staking Rewards Program',
-      description: 'Create a staking rewards program for BLOCK token holders with tiered APY rates based on staking duration.',
+      title: 'Implement Property Token Governance',
+      description: 'Enable property token holders to vote on property-related decisions with voting power based on token holdings.',
       type: 'upgrade',
       status: 'rejected',
       votesFor: 8200,
@@ -297,9 +297,9 @@ export const Governance = () => {
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Stake Your BLOCK</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Delegate Voting</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Stake your tokens to earn 12.5% APY and participate in governance decisions
+                    Delegate your voting power to trusted community members
                   </p>
                 </div>
               </div>
@@ -316,9 +316,9 @@ export const Governance = () => {
                   <Award className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Claim Rewards</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">View History</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    You have 142.8 BLOCK tokens available to claim from governance rewards
+                    Review your voting history and participation in governance decisions
                   </p>
                 </div>
               </div>
@@ -385,7 +385,7 @@ export const Governance = () => {
                 <Users className="h-5 w-5 text-purple-500 dark:text-purple-400" />
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">2,340</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">BLOCK tokens</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">voting power</div>
             </motion.div>
           </div>
         </div>

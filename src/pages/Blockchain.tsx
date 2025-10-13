@@ -1,21 +1,15 @@
 import React, { useState } from 'react';
 import { Code, Zap, Shield, TrendingUp, ArrowUpDown, DollarSign } from 'lucide-react';
 import { WalletConnector } from '../components/blockchain/WalletConnector';
-import { TokenizedMarketplace } from '../components/blockchain/TokenizedMarketplace';
-import { RentalPayoutSystem } from '../components/blockchain/RentalPayoutSystem';
-import { SmartContractInterface } from '../components/SmartContractInterface';
 import { useWalletConnector } from '../lib/blockchain/walletConnector';
 import { motion } from 'framer-motion';
 
 export const Blockchain = () => {
   const { isConnected } = useWalletConnector();
-  const [activeSection, setActiveSection] = useState<'wallet' | 'marketplace' | 'payouts' | 'contracts'>('wallet');
+  const [activeSection, setActiveSection] = useState<'wallet'>('wallet');
 
   const sections = [
-    { id: 'wallet', label: 'Wallet Connection', icon: Shield, description: 'Connect and manage your wallet' },
-    { id: 'marketplace', label: 'Token Trading', icon: ArrowUpDown, description: 'Trade property tokens with liquidity' },
-    { id: 'payouts', label: 'Rental Payouts', icon: DollarSign, description: 'Automated rental income distribution' },
-    { id: 'contracts', label: 'Smart Contracts', icon: Code, description: 'Direct contract interactions' }
+    { id: 'wallet', label: 'Wallet Connection', icon: Shield, description: 'Connect and manage your wallet' }
   ];
 
   return (
@@ -74,9 +68,6 @@ export const Blockchain = () => {
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {activeSection === 'wallet' && <WalletConnector />}
-          {activeSection === 'marketplace' && <TokenizedMarketplace />}
-          {activeSection === 'payouts' && <RentalPayoutSystem />}
-          {activeSection === 'contracts' && <SmartContractInterface />}
         </div>
       </section>
 
@@ -127,31 +118,6 @@ export const Blockchain = () => {
                 </a>
               </div>
               
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">BLOCK Token</h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">0x8A79...318</p>
-                <a 
-                  href="https://sepolia.etherscan.io/address/0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                >
-                  View on Etherscan
-                </a>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Staking</h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">0x2279...eBe6</p>
-                <a 
-                  href="https://sepolia.etherscan.io/address/0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                >
-                  View on Etherscan
-                </a>
-              </div>
             </div>
           </motion.div>
         </div>

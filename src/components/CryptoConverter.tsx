@@ -184,7 +184,7 @@ export const CryptoConverter = () => {
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               <select
                 value={toCurrency}
-                onChange={(e) => setToCurrency(e.target.value as 'BLOCK' | 'ETH')}
+                onChange={(e) => setToCurrency(e.target.value as 'ETH')}
                 className="bg-transparent text-gray-700 dark:text-gray-300 font-medium focus:outline-none"
               >
                 <option value="ETH">ETH</option>

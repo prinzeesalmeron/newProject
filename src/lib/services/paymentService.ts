@@ -15,7 +15,7 @@ export interface PaymentMethod {
 
 export interface PaymentRequest {
   amount: number;
-  currency: 'USD' | 'ETH' | 'BLOCK';
+  currency: 'USD' | 'ETH';
   payment_method_id?: string;
   description: string;
   metadata?: any;
@@ -178,13 +178,13 @@ export class PaymentService {
   }
 
   /**
-   * Convert fiat to crypto (USD to BLOCK tokens)
+   * Convert fiat to crypto (USD to ETH)
    */
   static async convertFiatToCrypto(
     userId: string,
     fromAmount: number,
     fromCurrency: 'USD',
-    toCurrency: 'BLOCK' | 'ETH'
+    toCurrency: 'ETH'
   ): Promise<CryptoConversion> {
     try {
       // Get current exchange rates (mock implementation)

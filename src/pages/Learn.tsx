@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Clock, Users, Star, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { Book, Clock, Users, Star, Play, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../components/ui/Toast';
+import { useAuth } from '../lib/auth';
 
 interface Course {
   id: string;
@@ -33,6 +36,13 @@ export const Learn = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [showAllCourses, setShowAllCourses] = useState(false);
+  const [showAllArticles, setShowAllArticles] = useState(false);
+  const navigate = useNavigate();
+  const { addToast } = useToast();
+  const { user } = useAuth();
 
   const faqs = [
     {
@@ -78,9 +88,52 @@ export const Learn = () => {
     }
   };
 
+  const handleStartCourse = async (course: Course) => {
+    if (!user) {
+      addToast({
+        type: 'error',
+        message: 'Please sign in to start a course'
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_courses')
+        .upsert({
+          user_id: user.id,
+          course_id: course.id,
+          started_at: new Date().toISOString(),
+          progress: 0
+        });
+
+      if (error) throw error;
+
+      addToast({
+        type: 'success',
+        message: `Started course: ${course.title}`
+      });
+
+      setSelectedCourse(course);
+    } catch (error) {
+      console.error('Error starting course:', error);
+      addToast({
+        type: 'error',
+        message: 'Failed to start course. Please try again.'
+      });
+    }
+  };
+
+  const handleReadArticle = (article: Article) => {
+    setSelectedArticle(article);
+  };
+
   const featuredCourse = courses.find(course => course.is_featured);
   const popularCourses = courses.filter(course => !course.is_featured);
   const featuredArticles = articles.filter(article => article.is_featured);
+
+  const displayedCourses = showAllCourses ? (featuredCourse ? popularCourses : courses) : (featuredCourse ? popularCourses.slice(0, 6) : courses.slice(0, 6));
+  const displayedArticles = showAllArticles ? articles : (featuredArticles.length > 0 ? featuredArticles : articles.slice(0, 2));
 
   if (loading) {
     return (
@@ -146,7 +199,10 @@ export const Learn = () => {
                     </div>
                   </div>
 
-                  <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2">
+                  <button
+                    onClick={() => handleStartCourse(featuredCourse)}
+                    className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                  >
                     <Play className="h-5 w-5" />
                     <span>Start Learning</span>
                   </button>
@@ -178,13 +234,18 @@ export const Learn = () => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {featuredCourse ? 'Popular Courses' : 'Available Courses'}
               </h2>
-              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
-                View All Courses
-              </button>
+              {(featuredCourse ? popularCourses.length : courses.length) > 6 && (
+                <button
+                  onClick={() => setShowAllCourses(!showAllCourses)}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                >
+                  {showAllCourses ? 'Show Less' : 'View All Courses'}
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {(featuredCourse ? popularCourses : courses).map((course, index) => (
+              {displayedCourses.map((course, index) => (
                 <motion.div
                   key={course.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -234,7 +295,10 @@ export const Learn = () => {
                       ))}
                     </div>
 
-                    <button className="w-full bg-blue-600 dark:bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2">
+                    <button
+                      onClick={() => handleStartCourse(course)}
+                      className="w-full bg-blue-600 dark:bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+                    >
                       <Book className="h-4 w-4" />
                       <span>Start Course</span>
                     </button>
@@ -264,13 +328,18 @@ export const Learn = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Latest Articles</h2>
-              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
-                View All Articles
-              </button>
+              {articles.length > 2 && (
+                <button
+                  onClick={() => setShowAllArticles(!showAllArticles)}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                >
+                  {showAllArticles ? 'Show Less' : 'View All Articles'}
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {(featuredArticles.length > 0 ? featuredArticles : articles.slice(0, 2)).map((article, index) => (
+              {displayedArticles.map((article, index) => (
                 <motion.div
                   key={article.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -300,8 +369,12 @@ export const Learn = () => {
                         <span className="text-sm text-gray-500 dark:text-gray-400">By {article.author}</span>
                         <span className="text-sm text-gray-500 dark:text-gray-400">{article.read_time}</span>
                       </div>
-                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
-                        Read More
+                      <button
+                        onClick={() => handleReadArticle(article)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center space-x-1"
+                      >
+                        <span>Read More</span>
+                        <ExternalLink className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -371,15 +444,149 @@ export const Learn = () => {
             Join thousands of investors already building wealth with fractional real estate.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-blue-600 dark:text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <button
+              onClick={() => navigate('/')}
+              className="bg-white text-blue-600 dark:text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            >
               Browse Properties
             </button>
-            <button className="bg-blue-700 dark:bg-blue-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 dark:hover:bg-blue-900 transition-colors">
+            <button
+              onClick={() => window.open('https://discord.gg/blockprop', '_blank')}
+              className="bg-blue-700 dark:bg-blue-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 dark:hover:bg-blue-900 transition-colors"
+            >
               Join Community
             </button>
           </div>
         </div>
       </section>
+
+      {/* Course Detail Modal */}
+      {selectedCourse && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedCourse(null)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{selectedCourse.title}</h2>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {selectedCourse.duration}
+                    </span>
+                    <span className="flex items-center">
+                      <Star className="h-4 w-4 mr-1 text-yellow-400 fill-current" />
+                      {selectedCourse.rating}
+                    </span>
+                    <span className="flex items-center">
+                      <Users className="h-4 w-4 mr-1" />
+                      {selectedCourse.students_count.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedCourse(null)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-400 mb-6">{selectedCourse.description}</p>
+
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">What you'll learn:</h3>
+                <ul className="space-y-2">
+                  {selectedCourse.topics.map((topic, index) => (
+                    <li key={index} className="flex items-center text-gray-700 dark:text-gray-300">
+                      <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></div>
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 text-center">
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  You've been enrolled in this course! Course content will be available soon.
+                </p>
+                <button
+                  onClick={() => setSelectedCourse(null)}
+                  className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                >
+                  Continue Browsing
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Article Detail Modal */}
+      {selectedArticle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedArticle(null)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                      {selectedArticle.category}
+                    </span>
+                    <button
+                      onClick={() => setSelectedArticle(null)}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{selectedArticle.title}</h2>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                    <span>By {selectedArticle.author}</span>
+                    <span>•</span>
+                    <span>{selectedArticle.read_time}</span>
+                    <span>•</span>
+                    <span>
+                      {new Date(selectedArticle.published_date).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="prose prose-lg dark:prose-invert max-w-none">
+                <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">{selectedArticle.excerpt}</p>
+                <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selectedArticle.content}</div>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setSelectedArticle(null)}
+                  className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

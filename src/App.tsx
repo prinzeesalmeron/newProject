@@ -11,6 +11,7 @@ import { InvestmentDashboard } from './pages/InvestmentDashboard';
 import { Portfolio } from './pages/Portfolio';
 import { Payments } from './pages/Payments';
 import { Governance } from './pages/Governance';
+import { Staking } from './pages/Staking';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
 
@@ -82,6 +83,7 @@ const AppContent = () => {
           <Route path="/dashboard" element={<InvestmentDashboard />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/governance" element={<Governance />} />
+          <Route path="/staking" element={<Staking />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>
         <Footer />

@@ -1,0 +1,561 @@
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, Clock, DollarSign, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { useWalletConnector } from '../lib/blockchain/walletConnector';
+import { Card, Button, LoadingSpinner } from '../components/ui';
+import { toast } from '../components/ui/Toast';
+import { motion } from 'framer-motion';
+
+interface StakingPool {
+  id: number;
+  name: string;
+  lockPeriod: number;
+  apy: number;
+  totalStaked: string;
+  maxCapacity: string;
+  active: boolean;
+}
+
+interface UserStake {
+  poolId: number;
+  amount: string;
+  startTime: number;
+  lastClaimTime: number;
+  active: boolean;
+  rewards: string;
+}
+
+export const Staking = () => {
+  const { isConnected, address, balance } = useWalletConnector();
+  const [pools, setPools] = useState<StakingPool[]>([]);
+  const [userStakes, setUserStakes] = useState<UserStake[]>([]);
+  const [selectedPool, setSelectedPool] = useState<number>(1);
+  const [stakeAmount, setStakeAmount] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [loadingPools, setLoadingPools] = useState(true);
+
+  // Mock data for pools (replace with actual contract calls)
+  const mockPools: StakingPool[] = [
+    {
+      id: 1,
+      name: 'Flexible',
+      lockPeriod: 0,
+      apy: 5,
+      totalStaked: '125.5',
+      maxCapacity: '1000',
+      active: true
+    },
+    {
+      id: 2,
+      name: '30 Days',
+      lockPeriod: 30,
+      apy: 8,
+      totalStaked: '245.8',
+      maxCapacity: '500',
+      active: true
+    },
+    {
+      id: 3,
+      name: '90 Days',
+      lockPeriod: 90,
+      apy: 12,
+      totalStaked: '189.2',
+      maxCapacity: '300',
+      active: true
+    },
+    {
+      id: 4,
+      name: '180 Days',
+      lockPeriod: 180,
+      apy: 15,
+      totalStaked: '98.5',
+      maxCapacity: '200',
+      active: true
+    }
+  ];
+
+  useEffect(() => {
+    // Simulate loading pools
+    setTimeout(() => {
+      setPools(mockPools);
+      setLoadingPools(false);
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      // Load user stakes (mock data)
+      setUserStakes([
+        {
+          poolId: 2,
+          amount: '1.5',
+          startTime: Date.now() - 15 * 24 * 60 * 60 * 1000,
+          lastClaimTime: Date.now() - 5 * 24 * 60 * 60 * 1000,
+          active: true,
+          rewards: '0.0164'
+        }
+      ]);
+    }
+  }, [isConnected, address]);
+
+  const handleStake = async () => {
+    if (!isConnected) {
+      toast.error('Connect Wallet', 'Please connect your wallet to stake ETH');
+      return;
+    }
+
+    if (!stakeAmount || parseFloat(stakeAmount) <= 0) {
+      toast.error('Invalid Amount', 'Please enter a valid amount to stake');
+      return;
+    }
+
+    if (parseFloat(stakeAmount) > parseFloat(balance)) {
+      toast.error('Insufficient Balance', 'You do not have enough ETH');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // TODO: Call smart contract stake function
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate transaction
+
+      toast.success('Staking Successful', `Successfully staked ${stakeAmount} ETH!`);
+      setStakeAmount('');
+
+      // Refresh user stakes
+      // TODO: Fetch actual stakes from contract
+    } catch (error) {
+      toast.error('Staking Failed', 'Failed to stake ETH. Please try again.');
+      console.error('Stake error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnstake = async (stakeIndex: number) => {
+    setLoading(true);
+    try {
+      // TODO: Call smart contract unstake function
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      toast.success('Unstake Successful', 'Successfully unstaked your ETH!');
+
+      // Refresh user stakes
+      // TODO: Fetch actual stakes from contract
+    } catch (error) {
+      toast.error('Unstake Failed', 'Failed to unstake. Please try again.');
+      console.error('Unstake error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClaimRewards = async (stakeIndex: number) => {
+    setLoading(true);
+    try {
+      // TODO: Call smart contract claim rewards function
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      toast.success('Rewards Claimed', 'Successfully claimed your rewards!');
+
+      // Refresh user stakes
+      // TODO: Fetch actual stakes from contract
+    } catch (error) {
+      toast.error('Claim Failed', 'Failed to claim rewards. Please try again.');
+      console.error('Claim error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedPoolData = pools.find(p => p.id === selectedPool);
+  const totalStaked = userStakes.reduce((sum, stake) => sum + parseFloat(stake.amount), 0);
+  const totalRewards = userStakes.reduce((sum, stake) => sum + parseFloat(stake.rewards), 0);
+
+  const formatLockPeriod = (days: number) => {
+    if (days === 0) return 'No Lock';
+    if (days < 30) return `${days} Days`;
+    if (days < 365) return `${Math.floor(days / 30)} Months`;
+    return `${Math.floor(days / 365)} Years`;
+  };
+
+  if (loadingPools) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            ETH Staking
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Stake your ETH to earn passive rewards. Choose from multiple pools with different lock periods and APY rates.
+          </p>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Staked</span>
+                <Lock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{totalStaked.toFixed(4)} ETH</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                ${(totalStaked * 2000).toFixed(2)} USD
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Rewards</span>
+                <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{totalRewards.toFixed(4)} ETH</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Claimable rewards
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Stakes</span>
+                <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                {userStakes.filter(s => s.active).length}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Across all pools
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Available Balance</span>
+                <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{parseFloat(balance).toFixed(4)} ETH</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                In your wallet
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Staking Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Stake ETH</h2>
+
+              {!isConnected ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Connect your wallet to start staking
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Pool Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Select Pool
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {pools.map(pool => (
+                        <button
+                          key={pool.id}
+                          onClick={() => setSelectedPool(pool.id)}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            selectedPool === pool.id
+                              ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                          }`}
+                        >
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                            {pool.name}
+                          </div>
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {pool.apy}% APY
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {formatLockPeriod(pool.lockPeriod)}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Amount Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Amount
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={stakeAmount}
+                        onChange={(e) => setStakeAmount(e.target.value)}
+                        placeholder="0.0"
+                        step="0.01"
+                        min="0.01"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                      />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">ETH</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-2">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Available: {parseFloat(balance).toFixed(4)} ETH</span>
+                      <button
+                        onClick={() => setStakeAmount(balance)}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                      >
+                        Max
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Pool Details */}
+                  {selectedPoolData && (
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Lock Period</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {formatLockPeriod(selectedPoolData.lockPeriod)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">APY</span>
+                        <span className="font-medium text-green-600 dark:text-green-400">
+                          {selectedPoolData.apy}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Pool Utilization</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {((parseFloat(selectedPoolData.totalStaked) / parseFloat(selectedPoolData.maxCapacity)) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      {stakeAmount && parseFloat(stakeAmount) > 0 && (
+                        <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-600">
+                          <span className="text-gray-600 dark:text-gray-400">Estimated Yearly Rewards</span>
+                          <span className="font-medium text-blue-600 dark:text-blue-400">
+                            {(parseFloat(stakeAmount) * selectedPoolData.apy / 100).toFixed(4)} ETH
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleStake}
+                    disabled={loading || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                    className="w-full"
+                  >
+                    {loading ? 'Staking...' : 'Stake ETH'}
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </motion.div>
+
+          {/* Active Stakes */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Your Stakes</h2>
+
+              {!isConnected ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Connect wallet to view your stakes
+                  </p>
+                </div>
+              ) : userStakes.length === 0 ? (
+                <div className="text-center py-8">
+                  <Lock className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    You don't have any active stakes yet
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userStakes.map((stake, index) => {
+                    const pool = pools.find(p => p.id === stake.poolId);
+                    if (!pool) return null;
+
+                    const lockEndTime = stake.startTime + pool.lockPeriod * 24 * 60 * 60 * 1000;
+                    const isLocked = Date.now() < lockEndTime;
+                    const daysRemaining = Math.max(0, Math.ceil((lockEndTime - Date.now()) / (24 * 60 * 60 * 1000)));
+
+                    return (
+                      <div
+                        key={index}
+                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="font-semibold text-gray-900 dark:text-white">{pool.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{pool.apy}% APY</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-gray-900 dark:text-white">{stake.amount} ETH</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              ${(parseFloat(stake.amount) * 2000).toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded p-3 mb-3">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-gray-600 dark:text-gray-400">Pending Rewards</span>
+                            <span className="font-medium text-green-600 dark:text-green-400">
+                              {stake.rewards} ETH
+                            </span>
+                          </div>
+                          {isLocked && (
+                            <div className="flex items-center text-sm text-orange-600 dark:text-orange-400">
+                              <Clock className="h-4 w-4 mr-1" />
+                              <span>Locked for {daysRemaining} more days</span>
+                            </div>
+                          )}
+                          {!isLocked && (
+                            <div className="flex items-center text-sm text-green-600 dark:text-green-400">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              <span>Ready to unstake</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleClaimRewards(index)}
+                            disabled={loading || parseFloat(stake.rewards) === 0}
+                            variant="secondary"
+                            className="flex-1"
+                          >
+                            Claim Rewards
+                          </Button>
+                          <Button
+                            onClick={() => handleUnstake(index)}
+                            disabled={loading || isLocked}
+                            variant="secondary"
+                            className="flex-1"
+                          >
+                            {isLocked ? 'Locked' : 'Unstake'}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Staking Pools Overview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="mt-8"
+        >
+          <Card>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">All Staking Pools</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Pool</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Lock Period</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">APY</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Total Staked</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Capacity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pools.map(pool => (
+                    <tr key={pool.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                      <td className="py-4 px-4">
+                        <div className="font-medium text-gray-900 dark:text-white">{pool.name}</div>
+                      </td>
+                      <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                        {formatLockPeriod(pool.lockPeriod)}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-green-600 dark:text-green-400 font-semibold">{pool.apy}%</span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-900 dark:text-white">
+                        {pool.totalStaked} ETH
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center">
+                          <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
+                            <div
+                              className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
+                              style={{
+                                width: `${Math.min(100, (parseFloat(pool.totalStaked) / parseFloat(pool.maxCapacity)) * 100)}%`
+                              }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {((parseFloat(pool.totalStaked) / parseFloat(pool.maxCapacity)) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  );
+};

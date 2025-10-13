@@ -1,7 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Book, Clock, Users, Star, Play, ChevronDown, ChevronUp } from 'lucide-react';
-import { Course, Article, mockApi } from '../lib/mockData';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: string;
+  duration: string;
+  rating: number;
+  students_count: number;
+  topics: string[];
+  image_url: string | null;
+  is_featured: boolean;
+}
+
+interface Article {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  category: string;
+  read_time: string;
+  published_date: string;
+  is_featured: boolean;
+}
 
 export const Learn = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -30,13 +55,22 @@ export const Learn = () => {
 
   const fetchEducationalContent = async () => {
     try {
-      const [courses, articles] = await Promise.all([
-        mockApi.getCourses(),
-        mockApi.getArticles()
+      const [coursesResult, articlesResult] = await Promise.all([
+        supabase
+          .from('courses')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('articles')
+          .select('*')
+          .order('published_date', { ascending: false })
       ]);
 
-      setCourses(courses);
-      setArticles(articles);
+      if (coursesResult.error) throw coursesResult.error;
+      if (articlesResult.error) throw articlesResult.error;
+
+      setCourses(coursesResult.data || []);
+      setArticles(articlesResult.data || []);
     } catch (error) {
       console.error('Error fetching educational content:', error);
     } finally {

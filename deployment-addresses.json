@@ -1,0 +1,38 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": null,
+  "deployer": null,
+  "contracts": {
+    "PropertyToken": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "deploymentTx": null,
+      "gasUsed": null,
+      "verified": false
+    },
+    "Marketplace": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "deploymentTx": null,
+      "gasUsed": null,
+      "verified": false
+    },
+    "Governance": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "deploymentTx": null,
+      "gasUsed": null,
+      "verified": false
+    },
+    "Staking": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "deploymentTx": null,
+      "gasUsed": null,
+      "verified": false
+    }
+  },
+  "notes": [
+    "Update this file after deploying contracts to Sepolia testnet",
+    "Replace addresses with actual deployed contract addresses",
+    "Update src/lib/contractConfig.ts with these addresses",
+    "Verify contracts on Etherscan after deployment"
+  ]
+}

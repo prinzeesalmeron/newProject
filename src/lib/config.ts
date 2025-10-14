@@ -15,6 +15,12 @@ interface AppConfig {
     anonKey: string | null;
     configured: boolean;
   };
+  blockchain: {
+    chainId: number;
+    networkName: string;
+    rpcUrl: string;
+    explorerUrl: string;
+  };
   features: {
     [key: string]: boolean;
   };
@@ -37,6 +43,41 @@ interface AppConfig {
 const createConfig = (): AppConfig => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const chainId = parseInt(import.meta.env.VITE_CHAIN_ID || '11155111');
+
+  // Network configuration based on chain ID
+  const getNetworkConfig = () => {
+    switch (chainId) {
+      case 1:
+        return {
+          chainId: 1,
+          networkName: 'Ethereum Mainnet',
+          rpcUrl: import.meta.env.VITE_MAINNET_RPC_URL || 'https://mainnet.infura.io/v3/YOUR_KEY',
+          explorerUrl: 'https://etherscan.io'
+        };
+      case 11155111:
+        return {
+          chainId: 11155111,
+          networkName: 'Sepolia Testnet',
+          rpcUrl: import.meta.env.VITE_SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/YOUR_KEY',
+          explorerUrl: 'https://sepolia.etherscan.io'
+        };
+      case 31337:
+        return {
+          chainId: 31337,
+          networkName: 'Localhost',
+          rpcUrl: 'http://localhost:8545',
+          explorerUrl: ''
+        };
+      default:
+        return {
+          chainId: 11155111,
+          networkName: 'Sepolia Testnet',
+          rpcUrl: 'https://sepolia.infura.io/v3/YOUR_KEY',
+          explorerUrl: 'https://sepolia.etherscan.io'
+        };
+    }
+  };
 
   return {
     app: {
@@ -54,6 +95,7 @@ const createConfig = (): AppConfig => {
       anonKey: supabaseAnonKey || null,
       configured: !!(supabaseUrl && supabaseAnonKey)
     },
+    blockchain: getNetworkConfig(),
     features: {
       darkMode: true,
       notifications: true,

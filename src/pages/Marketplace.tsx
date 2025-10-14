@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, SlidersHorizontal, Plus, Shield, X } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Plus, Shield, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApi } from '../hooks/useApi';
 import { EmptyState, LoadingSpinner, Button, Card } from '../components/ui';
 import { toast } from '../components/ui/Toast';
@@ -25,6 +25,8 @@ export const Marketplace = () => {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 50;
 
   // Use the new useApi hook for better data management
   const {
@@ -101,6 +103,50 @@ export const Marketplace = () => {
                          property.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesType && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedProperties = filteredProperties.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 7;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedType]);
 
   const handleInvest = (propertyId: string) => {
     if (!user) {
@@ -228,9 +274,16 @@ export const Marketplace = () => {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {filteredProperties.length} Properties Available
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {filteredProperties.length} Properties Available
+              </h2>
+              {filteredProperties.length > 0 && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredProperties.length)} of {filteredProperties.length}
+                </p>
+              )}
+            </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {selectedType === 'All Markets' ? 'all' : selectedType.toLowerCase()} properties
@@ -286,7 +339,7 @@ export const Marketplace = () => {
                 animate={{ opacity: 1 }}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr"
               >
-                {filteredProperties.map((property) => (
+                {paginatedProperties.map((property) => (
                   <PropertyCard
                     key={property.id}
                     property={property}
@@ -296,11 +349,54 @@ export const Marketplace = () => {
                 ))}
               </motion.div>
 
-              <div className="text-center mt-12">
-                <Button size="lg">
-                  Load More Properties
-                </Button>
-              </div>
+              {totalPages > 1 && (
+                <div className="mt-12">
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+
+                    <div className="flex items-center space-x-1">
+                      {getPageNumbers().map((page, index) => (
+                        <React.Fragment key={index}>
+                          {page === '...' ? (
+                            <span className="px-3 py-2 text-gray-500 dark:text-gray-400">...</span>
+                          ) : (
+                            <button
+                              onClick={() => setCurrentPage(page as number)}
+                              className={`min-w-[40px] px-3 py-2 rounded-lg font-medium transition-colors ${
+                                currentPage === page
+                                  ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="text-center mt-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Page {currentPage} of {totalPages}
+                    </p>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

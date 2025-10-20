@@ -17,11 +17,12 @@ import "../contracts/Staking.sol";
 contract DeployStaking is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerPrivateKey); // Define deployer address
 
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy Staking contract
-        Staking staking = new Staking();
+        Staking staking = new Staking(deployer);
 
         console.log("Staking deployed to:", address(staking));
         console.log("Default pools created:");

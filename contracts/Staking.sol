@@ -1,15 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // Updated import path
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
-/**
- * @title Staking
- * @dev ETH staking contract with multiple pools and flexible rewards
- * Users can stake ETH to earn rewards based on pool APY rates
- */
 contract Staking is ReentrancyGuard, Ownable, Pausable {
     struct Pool {
         uint256 id;
@@ -55,7 +50,7 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
     event RewardsDeposited(uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 amount);
 
-    constructor() {
+    constructor(address initialOwner) Ownable(initialOwner) {
         // Create default pools
         _createPool("Flexible", 0, 500, 1000 ether); // 5% APY, no lock
         _createPool("30 Days", 30 days, 800, 500 ether); // 8% APY
@@ -63,9 +58,7 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         _createPool("180 Days", 180 days, 1500, 200 ether); // 15% APY
     }
 
-    /**
-     * @dev Create a new staking pool (only owner)
-     */
+    // Rest of the contract remains unchanged
     function createPool(
         string memory name,
         uint256 lockPeriod,
@@ -95,9 +88,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         emit PoolCreated(poolCount, name, lockPeriod, apy);
     }
 
-    /**
-     * @dev Update pool parameters (only owner)
-     */
     function updatePool(
         uint256 poolId,
         uint256 apy,
@@ -114,9 +104,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         emit PoolUpdated(poolId, apy, maxCapacity, active);
     }
 
-    /**
-     * @dev Stake ETH in a specific pool
-     */
     function stake(uint256 poolId) external payable nonReentrant whenNotPaused {
         require(poolId > 0 && poolId <= poolCount, "Invalid pool");
         require(msg.value >= minStakeAmount, "Amount below minimum");
@@ -141,9 +128,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         emit Staked(msg.sender, poolId, stakeId, msg.value);
     }
 
-    /**
-     * @dev Unstake ETH from a specific stake
-     */
     function unstake(uint256 stakeId) external nonReentrant {
         require(stakeId < userStakeCount[msg.sender], "Invalid stake ID");
 
@@ -156,7 +140,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
             "Lock period not ended"
         );
 
-        // Claim pending rewards first
         _claimRewards(msg.sender, stakeId);
 
         uint256 amount = userStake.amount;
@@ -171,9 +154,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         emit Unstaked(msg.sender, userStake.poolId, stakeId, amount);
     }
 
-    /**
-     * @dev Claim rewards for a specific stake
-     */
     function claimRewards(uint256 stakeId) external nonReentrant {
         require(stakeId < userStakeCount[msg.sender], "Invalid stake ID");
         _claimRewards(msg.sender, stakeId);
@@ -196,9 +176,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         emit RewardsClaimed(user, userStake.poolId, stakeId, rewards);
     }
 
-    /**
-     * @dev Calculate pending rewards for a stake
-     */
     function calculateRewards(address user, uint256 stakeId) public view returns (uint256) {
         require(stakeId < userStakeCount[user], "Invalid stake ID");
 
@@ -213,9 +190,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         return rewards;
     }
 
-    /**
-     * @dev Get user's active stakes
-     */
     function getUserStakes(address user) external view returns (Stake[] memory) {
         uint256 count = userStakeCount[user];
         Stake[] memory userStakes = new Stake[](count);
@@ -227,9 +201,6 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         return userStakes;
     }
 
-    /**
-     * @dev Get all pools
-     */
     function getAllPools() external view returns (Pool[] memory) {
         Pool[] memory allPools = new Pool[](poolCount);
 
@@ -240,26 +211,17 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         return allPools;
     }
 
-    /**
-     * @dev Get pool details
-     */
     function getPool(uint256 poolId) external view returns (Pool memory) {
         require(poolId > 0 && poolId <= poolCount, "Invalid pool");
         return pools[poolId];
     }
 
-    /**
-     * @dev Deposit ETH to rewards pool (anyone can contribute)
-     */
     function depositRewards() external payable {
         require(msg.value > 0, "Amount must be greater than 0");
         rewardsPool += msg.value;
         emit RewardsDeposited(msg.value);
     }
 
-    /**
-     * @dev Emergency withdraw (only owner, when paused)
-     */
     function emergencyWithdraw() external onlyOwner whenPaused {
         uint256 balance = address(this).balance;
         (bool success, ) = owner().call{value: balance}("");
@@ -267,37 +229,22 @@ contract Staking is ReentrancyGuard, Ownable, Pausable {
         emit EmergencyWithdraw(owner(), balance);
     }
 
-    /**
-     * @dev Update minimum stake amount (only owner)
-     */
     function setMinStakeAmount(uint256 amount) external onlyOwner {
         minStakeAmount = amount;
     }
 
-    /**
-     * @dev Pause staking (only owner)
-     */
     function pause() external onlyOwner {
         _pause();
     }
 
-    /**
-     * @dev Unpause staking (only owner)
-     */
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /**
-     * @dev Get contract balance
-     */
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
     }
 
-    /**
-     * @dev Receive ETH directly to rewards pool
-     */
     receive() external payable {
         rewardsPool += msg.value;
         emit RewardsDeposited(msg.value);

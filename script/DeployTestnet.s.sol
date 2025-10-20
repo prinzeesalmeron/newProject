@@ -2,70 +2,74 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Script.sol";
+import "forge-std/console.sol"; // Ensure console is imported
 import "../contracts/PropertyToken.sol";
 import "../contracts/Marketplace.sol";
+import "../contracts/Staking.sol";
 import "@openzeppelin/contracts/governance/TimelockController.sol";
 
-contract DeployTestnetScript is Script {
+contract DeployTestnet is Script {
     function run() external {
+        // Load deployer's private key and address
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
-        
+
+        // Start broadcasting transactions
         vm.startBroadcast(deployerPrivateKey);
-        
-        console.log("Deploying to Sepolia Testnet...");
+
+        console.log("Deploying contracts to Sepolia Testnet...");
         console.log("Deployer address:", deployer);
 
-        // Deploy PropertyToken
+        // 1. Deploy PropertyToken
         PropertyToken propertyToken = new PropertyToken("https://api.blockestate.com/metadata/");
         console.log("PropertyToken deployed at:", address(propertyToken));
 
-        // Deploy Marketplace (250 = 2.5% fee)
+        // 2. Deploy Marketplace (2.5% fee)
         Marketplace marketplace = new Marketplace(
-            address(0), // No payment token for now
+            address(0), // No payment token yet
             250
         );
         console.log("Marketplace deployed at:", address(marketplace));
-        
-        // Deploy Timelock (1 hour delay for testnet)
+
+        // 3. Deploy Staking
+        Staking staking = new Staking(deployer); // Use deployer instead of msg.sender for clarity
+        console.log("Staking deployed at:", address(staking));
+
+        // 4. Deploy TimelockController
         address[] memory proposers = new address[](1);
         address[] memory executors = new address[](1);
         proposers[0] = deployer;
         executors[0] = deployer;
-        
+
         TimelockController timelock = new TimelockController(
-            1 hours, // 1 hour delay for testnet
+            1 hours, // Minimum delay
             proposers,
             executors,
-            deployer // admin
+            deployer // Admin
         );
         console.log("TimelockController deployed at:", address(timelock));
-        
-        
-        // Grant roles
+
+        // 5. Configure roles
         timelock.grantRole(timelock.PROPOSER_ROLE(), deployer);
         timelock.grantRole(timelock.EXECUTOR_ROLE(), address(0)); // Anyone can execute
 
-        // Create test property
+        // 6. Create a test property
         propertyToken.tokenizeProperty(
             "Test Property #1",
             "New York, NY",
-            1000, // 1000 tokens
-            1 ether, // 1 ETH per token
+            1000,
+            1 ether,
             "https://api.blockestate.com/metadata/1"
         );
-        
+
+        // Stop broadcasting
         vm.stopBroadcast();
-        
-        // Log deployment summary
-        console.log("\n=== Sepolia Testnet Deployment Summary ===");
-        console.log("Network: Sepolia Testnet (Chain ID: 11155111)");
-        console.log("PropertyToken:", address(propertyToken));
-        console.log("Marketplace:", address(marketplace));
-        console.log("TimelockController:", address(timelock));
-        console.log("Deployer:", deployer);
-        console.log("\n=== Verification Commands ===");
-        console.log("forge verify-contract", address(propertyToken), "contracts/PropertyToken.sol:PropertyToken --chain sepolia --constructor-args", abi.encode("https://api.blockestate.com/metadata/"));
-        console.log("forge verify-contract", address(marketplace), "contracts/Marketplace.sol:Marketplace --chain sepolia --constructor-args", abi.encode(address(0), 250));
+
+        // Summary
+        console.log("Deployment Summary:");
+        console.log("PropertyToken deployed at:", address(propertyToken));
+        console.log("Marketplace deployed at:", address(marketplace));
+        console.log("Staking deployed at:", address(staking));
+        console.log("TimelockController deployed at:", address(timelock));
     }
 }

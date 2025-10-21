@@ -114,6 +114,16 @@ export const Navbar = () => {
             >
               Governance
             </Link>
+            <Link
+              to="/staking"
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                isActive('/staking')
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+              }`}
+            >
+              Staking
+            </Link>
             {user && (
               <Link
                 to="/dashboard"

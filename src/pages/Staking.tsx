@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, DollarSign, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { useWalletConnector } from '../lib/blockchain/walletConnector';
+import { stakingService, StakingPool, UserStake } from '../lib/blockchain/stakingService';
 import { Card, Button, LoadingSpinner } from '../components/ui';
 import { toast } from '../components/ui/Toast';
 import { motion } from 'framer-motion';
+import { ethers } from 'ethers';
 
-interface StakingPool {
-  id: number;
-  name: string;
-  lockPeriod: number;
-  apy: number;
-  totalStaked: string;
-  maxCapacity: string;
-  active: boolean;
-}
-
-interface UserStake {
-  poolId: number;
-  amount: string;
-  startTime: number;
-  lastClaimTime: number;
-  active: boolean;
-  rewards: string;
-}
 
 export const Staking = () => {
   const { isConnected, address, balance } = useWalletConnector();
@@ -33,69 +17,43 @@ export const Staking = () => {
   const [loading, setLoading] = useState(false);
   const [loadingPools, setLoadingPools] = useState(true);
 
-  // Mock data for pools (replace with actual contract calls)
-  const mockPools: StakingPool[] = [
-    {
-      id: 1,
-      name: 'Flexible',
-      lockPeriod: 0,
-      apy: 5,
-      totalStaked: '125.5',
-      maxCapacity: '1000',
-      active: true
-    },
-    {
-      id: 2,
-      name: '30 Days',
-      lockPeriod: 30,
-      apy: 8,
-      totalStaked: '245.8',
-      maxCapacity: '500',
-      active: true
-    },
-    {
-      id: 3,
-      name: '90 Days',
-      lockPeriod: 90,
-      apy: 12,
-      totalStaked: '189.2',
-      maxCapacity: '300',
-      active: true
-    },
-    {
-      id: 4,
-      name: '180 Days',
-      lockPeriod: 180,
-      apy: 15,
-      totalStaked: '98.5',
-      maxCapacity: '200',
-      active: true
-    }
-  ];
-
+  // Load pools from blockchain
   useEffect(() => {
-    // Simulate loading pools
-    setTimeout(() => {
-      setPools(mockPools);
-      setLoadingPools(false);
-    }, 1000);
+    loadPools();
   }, []);
+
+  const loadPools = async () => {
+    try {
+      setLoadingPools(true);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await stakingService.initialize(provider);
+      const poolsData = await stakingService.getAllPools();
+      setPools(poolsData);
+    } catch (error) {
+      console.error('Error loading pools:', error);
+      toast.error('Failed to Load', 'Could not load staking pools');
+    } finally {
+      setLoadingPools(false);
+    }
+  };
 
   useEffect(() => {
     if (isConnected && address) {
-      // Load user stakes (mock data)
-      setUserStakes([
-        {
-          poolId: 2,
-          amount: '1.5',
-          startTime: Date.now() - 15 * 24 * 60 * 60 * 1000,
-          lastClaimTime: Date.now() - 5 * 24 * 60 * 60 * 1000,
-          active: true,
-          rewards: '0.0164'
-        }
-      ]);
+      loadUserStakes();
     }
   }, [isConnected, address]);
+
+  const loadUserStakes = async () => {
+    if (!address) return;
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await stakingService.initialize(provider);
+      const stakes = await stakingService.getUserStakes(address);
+      setUserStakes(stakes);
+    } catch (error) {
+      console.error('Error loading stakes:', error);
+    }
+  };
 
   const handleStake = async () => {
     if (!isConnected) {
@@ -115,17 +73,22 @@ export const Staking = () => {
 
     setLoading(true);
     try {
-      // TODO: Call smart contract stake function
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate transaction
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await stakingService.initialize(provider);
 
+      const tx = await stakingService.stake(selectedPool, stakeAmount);
+      toast.info('Transaction Pending', 'Waiting for confirmation...');
+
+      await tx.wait();
       toast.success('Staking Successful', `Successfully staked ${stakeAmount} ETH!`);
       setStakeAmount('');
 
-      // Refresh user stakes
-      // TODO: Fetch actual stakes from contract
-    } catch (error) {
-      toast.error('Staking Failed', 'Failed to stake ETH. Please try again.');
+      // Refresh data
+      await loadUserStakes();
+      await loadPools();
+    } catch (error: any) {
       console.error('Stake error:', error);
+      toast.error('Staking Failed', error.message || 'Failed to stake ETH. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -134,16 +97,21 @@ export const Staking = () => {
   const handleUnstake = async (stakeIndex: number) => {
     setLoading(true);
     try {
-      // TODO: Call smart contract unstake function
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await stakingService.initialize(provider);
 
+      const tx = await stakingService.unstake(stakeIndex);
+      toast.info('Transaction Pending', 'Waiting for confirmation...');
+
+      await tx.wait();
       toast.success('Unstake Successful', 'Successfully unstaked your ETH!');
 
-      // Refresh user stakes
-      // TODO: Fetch actual stakes from contract
-    } catch (error) {
-      toast.error('Unstake Failed', 'Failed to unstake. Please try again.');
+      // Refresh data
+      await loadUserStakes();
+      await loadPools();
+    } catch (error: any) {
       console.error('Unstake error:', error);
+      toast.error('Unstake Failed', error.message || 'Failed to unstake. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -152,16 +120,20 @@ export const Staking = () => {
   const handleClaimRewards = async (stakeIndex: number) => {
     setLoading(true);
     try {
-      // TODO: Call smart contract claim rewards function
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await stakingService.initialize(provider);
 
+      const tx = await stakingService.claimRewards(stakeIndex);
+      toast.info('Transaction Pending', 'Waiting for confirmation...');
+
+      await tx.wait();
       toast.success('Rewards Claimed', 'Successfully claimed your rewards!');
 
-      // Refresh user stakes
-      // TODO: Fetch actual stakes from contract
-    } catch (error) {
-      toast.error('Claim Failed', 'Failed to claim rewards. Please try again.');
+      // Refresh data
+      await loadUserStakes();
+    } catch (error: any) {
       console.error('Claim error:', error);
+      toast.error('Claim Failed', error.message || 'Failed to claim rewards. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -169,7 +141,7 @@ export const Staking = () => {
 
   const selectedPoolData = pools.find(p => p.id === selectedPool);
   const totalStaked = userStakes.reduce((sum, stake) => sum + parseFloat(stake.amount), 0);
-  const totalRewards = userStakes.reduce((sum, stake) => sum + parseFloat(stake.rewards), 0);
+  const totalRewards = userStakes.reduce((sum, stake) => sum + parseFloat(stake.rewards || '0'), 0);
 
   const formatLockPeriod = (days: number) => {
     if (days === 0) return 'No Lock';

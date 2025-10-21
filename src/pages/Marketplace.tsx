@@ -4,7 +4,7 @@ import { useApi } from '../hooks/useApi';
 import { EmptyState, LoadingSpinner, Button, Card } from '../components/ui';
 import { toast } from '../components/ui/Toast';
 import { PropertyCard } from '../components/PropertyCard';
-import { AddPropertyModal } from '../components/AddPropertyModal';
+import { AddPropertyModalWithBlockchain } from '../components/AddPropertyModalWithBlockchain';
 import { PropertyImportModal } from '../components/PropertyImportModal';
 import { PropertyVerificationPanel } from '../components/PropertyVerificationPanel';
 import { InvestmentModal } from '../components/InvestmentModal';
@@ -56,17 +56,45 @@ export const Marketplace = () => {
     'Owner Occupied'
   ];
 
-  const handleAddProperty = async (propertyData: Omit<Property, 'id'>) => {
+  const handleAddProperty = async (
+    propertyData: Omit<Property, 'id'>,
+    blockchainData?: {
+      propertyId: number;
+      transactionHash: string;
+      blockNumber: number;
+    }
+  ) => {
     try {
       console.log('Adding property:', propertyData);
+      console.log('Blockchain data:', blockchainData);
+
+      // Create property in database
       const newProperty = await PropertyAPI.createProperty(propertyData);
       console.log('Property added successfully:', newProperty);
-      
+
+      // TODO: Store blockchain data when database schema is updated
+      // For now, we'll log it
+      if (blockchainData) {
+        console.log('Property tokenized on blockchain:', {
+          propertyId: blockchainData.propertyId,
+          transactionHash: blockchainData.transactionHash,
+          blockNumber: blockchainData.blockNumber,
+          explorerUrl: `https://sepolia.etherscan.io/tx/${blockchainData.transactionHash}`
+        });
+      }
+
       // Refresh the properties list
       fetchProperties();
-      
-      // Show success toast
-      toast.success('Property Added', `"${newProperty.title}" has been added successfully!`);
+
+      // Show success toast with blockchain info
+      if (blockchainData) {
+        toast.success(
+          'Property Tokenized!',
+          `"${newProperty.title}" has been tokenized on blockchain! TX: ${blockchainData.transactionHash.slice(0, 10)}...`
+        );
+      } else {
+        toast.success('Property Added', `"${newProperty.title}" has been added successfully!`);
+      }
     } catch (error) {
       console.error('Error adding property:', error);
       toast.error('Failed to Add Property', 'Please try again.');
@@ -414,7 +442,7 @@ export const Marketplace = () => {
           <div>Properties Count: {properties?.length || 0}</div>
         </div>
       )}
-      <AddPropertyModal
+      <AddPropertyModalWithBlockchain
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddProperty}

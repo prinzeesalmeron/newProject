@@ -137,19 +137,22 @@ deploy_contract() {
 case $contract_choice in
     1)
         echo "Deploying all contracts..."
-        deploy_contract "PropertyToken" "script/Deploy.s.sol:DeployPropertyToken"
-        deploy_contract "Marketplace" "script/Deploy.s.sol:DeployMarketplace"
-        deploy_contract "Governance" "script/Deploy.s.sol:DeployGovernance"
-        deploy_contract "Staking" "script/DeployStaking.s.sol:DeployStaking"
+        deploy_contract "All Contracts (PropertyToken, Marketplace, Staking, Timelock)" "script/DeployTestnet.s.sol:DeployTestnet"
         ;;
     2)
-        deploy_contract "PropertyToken" "script/Deploy.s.sol:DeployPropertyToken"
+        echo "Deploying PropertyToken only..."
+        deploy_contract "All Contracts (PropertyToken, Marketplace, Staking, Timelock)" "script/DeployTestnet.s.sol:DeployTestnet"
+        echo ""
+        echo "⚠️  Note: DeployTestnet script deploys all contracts together."
+        echo "    You can use the PropertyToken address and ignore the others."
         ;;
     3)
-        deploy_contract "Marketplace" "script/Deploy.s.sol:DeployMarketplace"
+        echo "Deploying all contracts (Marketplace cannot be deployed alone)..."
+        deploy_contract "All Contracts (PropertyToken, Marketplace, Staking, Timelock)" "script/DeployTestnet.s.sol:DeployTestnet"
         ;;
     4)
-        deploy_contract "Governance" "script/Deploy.s.sol:DeployGovernance"
+        echo "Deploying all contracts (Governance/Timelock cannot be deployed alone)..."
+        deploy_contract "All Contracts (PropertyToken, Marketplace, Staking, Timelock)" "script/DeployTestnet.s.sol:DeployTestnet"
         ;;
     5)
         deploy_contract "Staking" "script/DeployStaking.s.sol:DeployStaking"

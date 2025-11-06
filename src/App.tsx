@@ -1,19 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
-import { Marketplace } from './pages/Marketplace';
-import { Blockchain } from './pages/Blockchain';
-import { Learn } from './pages/Learn';
-import { InvestmentDashboard } from './pages/InvestmentDashboard';
-import { Portfolio } from './pages/Portfolio';
-import { Payments } from './pages/Payments';
-import { Governance } from './pages/Governance';
-import { Staking } from './pages/Staking';
 import { Footer } from './components/Footer';
 import { useAuth } from './lib/auth';
+import { LoadingSpinner } from './components/ui';
+
+// Lazy load pages for better performance
+const Marketplace = lazy(() => import('./pages/Marketplace').then(m => ({ default: m.Marketplace })));
+const Blockchain = lazy(() => import('./pages/Blockchain').then(m => ({ default: m.Blockchain })));
+const Learn = lazy(() => import('./pages/Learn').then(m => ({ default: m.Learn })));
+const InvestmentDashboard = lazy(() => import('./pages/InvestmentDashboard').then(m => ({ default: m.InvestmentDashboard })));
+const Portfolio = lazy(() => import('./pages/Portfolio').then(m => ({ default: m.Portfolio })));
+const Payments = lazy(() => import('./pages/Payments').then(m => ({ default: m.Payments })));
+const Governance = lazy(() => import('./pages/Governance').then(m => ({ default: m.Governance })));
+const Staking = lazy(() => import('./pages/Staking').then(m => ({ default: m.Staking })));
 
 const AuthCallback = () => {
   const { initialize } = useAuth();
@@ -71,21 +74,29 @@ const AppContent = () => {
     };
   }, [addToast]);
 
+  const PageLoader = () => (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <LoadingSpinner />
+    </div>
+  );
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors" data-toast-context>
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Marketplace />} />
-          <Route path="/blockchain" element={<Blockchain />} />
-          <Route path="/learn" element={<Learn />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/dashboard" element={<InvestmentDashboard />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/governance" element={<Governance />} />
-          <Route path="/staking" element={<Staking />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Marketplace />} />
+            <Route path="/blockchain" element={<Blockchain />} />
+            <Route path="/learn" element={<Learn />} />
+            <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/dashboard" element={<InvestmentDashboard />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/governance" element={<Governance />} />
+            <Route path="/staking" element={<Staking />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+          </Routes>
+        </Suspense>
         <Footer />
         <ToastContainer />
       </div>

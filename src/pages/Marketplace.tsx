@@ -28,7 +28,7 @@ export const Marketplace = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 50;
 
-  // Use the new useApi hook for better data management
+  // Use the new useApi hook (it has built-in caching for 5 minutes)
   const {
     data: properties,
     loading,

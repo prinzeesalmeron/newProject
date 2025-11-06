@@ -51,7 +51,7 @@ export const Learn = () => {
     },
     {
       question: "How do I receive rental income?",
-      answer: "Rental income is automatically distributed to token holders daily based on their ownership percentage. Payments are made in BLOCK directly to your wallet."
+      answer: "Rental income is automatically distributed to token holders daily based on their ownership percentage. Payments are made in stablecoins or ETH directly to your wallet."
     },
     {
       question: "What are the minimum investment amounts?",

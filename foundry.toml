@@ -13,6 +13,7 @@ gas_reports = ["MyContract"]  # or comment out if not needed
 mainnet = "https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
 goerli = "https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
 sepolia = "https://eth-sepolia.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+lisk_sepolia = "https://rpc.sepolia-api.lisk.com"
 polygon = "https://polygon-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
 arbitrum = "https://arb-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
 
@@ -20,5 +21,6 @@ arbitrum = "https://arb-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
 goerli = { key = "${ETHERSCAN_API_KEY}" }
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
+lisk_sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://sepolia-blockscout.lisk.com/api" }
 polygon = { key = "${POLYGONSCAN_API_KEY}" }
 arbitrum = { key = "${ARBISCAN_API_KEY}" }

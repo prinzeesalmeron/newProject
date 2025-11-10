@@ -19,11 +19,13 @@ Your smart contracts have been successfully deployed to **Lisk Sepolia Testnet**
 
 ### 1. Connect Your Wallet
 
-The application now displays a **"Connect Wallet"** button in the navigation bar. Users can:
+The wallet connection is integrated into the **User Profile**. Users can:
 
+- Click on their profile picture/name in the navigation bar
+- In the profile modal, find the "Wallet Connection" section
 - Click "Connect Wallet" to choose from available wallet providers (MetaMask, Coinbase Wallet, etc.)
 - The wallet will prompt users to connect their account
-- Once connected, the user's address and balance are displayed
+- Once connected, the user's wallet address and balance are displayed in the profile
 
 ### 2. Network Detection & Switching
 
@@ -61,25 +63,34 @@ All blockchain operations now use the **connected wallet address**:
 ## User Experience Flow
 
 1. **User visits the site**
-   - Sees "Connect Wallet" button in navbar
+   - User must sign in or register first
+   - Network status displayed in navbar (if wallet connected)
 
-2. **User clicks "Connect Wallet"**
+2. **User opens their profile**
+   - Clicks on their profile picture/name in the navbar
+   - Profile modal opens showing user information
+
+3. **User connects wallet**
+   - Scrolls to "Wallet Connection" section in profile
+   - Clicks "Connect Wallet" button
    - Dropdown shows available wallet options
    - User selects their preferred wallet (e.g., MetaMask)
 
-3. **Wallet prompts for connection**
+4. **Wallet prompts for connection**
    - User approves the connection in their wallet
    - Application now has access to the wallet address
+   - Wallet address and balance appear in the profile
 
-4. **Network check**
-   - If on wrong network, "Network Switcher" appears
+5. **Network check**
+   - If on wrong network, "Network Switcher" appears in navbar
    - User clicks "Switch to Lisk Sepolia Testnet"
    - Wallet prompts to add/switch network
 
-5. **User can now interact**
+6. **User can now interact**
    - All blockchain operations use their wallet
    - Transactions require wallet approval
    - Transaction history visible in wallet
+   - User can disconnect wallet from the profile modal
 
 ## Configuration
 

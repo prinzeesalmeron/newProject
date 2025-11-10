@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { useWalletConnector } from './walletConnector';
+import { getContractAddresses } from '../contractConfig';
 
 // Contract ABIs
 const PROPERTY_TOKEN_ABI = [
@@ -35,13 +36,15 @@ const MARKETPLACE_ABI = [
 
 
 
-// Testnet contract addresses (these would be deployed addresses)
-export const CONTRACT_ADDRESSES = {
-  // Sepolia Testnet addresses
-  PROPERTY_TOKEN: ethers.utils.getAddress('0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5e'.toLowerCase()),
-  MARKETPLACE: ethers.utils.getAddress('0x8464135c8F25Da09e49BC8782676a84730C318bC'.toLowerCase()),
-  GOVERNANCE: ethers.utils.getAddress('0x610178dA211FEF7D417bC0e6FeD39F05609AD788'.toLowerCase()),
-  TIMELOCK: ethers.utils.getAddress('0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'.toLowerCase())
+// Get contract addresses from config based on current network
+const getAddresses = () => {
+  const addresses = getContractAddresses();
+  return {
+    PROPERTY_TOKEN: addresses.PROPERTY_TOKEN,
+    MARKETPLACE: addresses.MARKETPLACE,
+    GOVERNANCE: addresses.GOVERNANCE,
+    STAKING: addresses.STAKING
+  };
 };
 
 export class ContractManager {
@@ -51,7 +54,7 @@ export class ContractManager {
 
   async initialize() {
     const walletState = useWalletConnector.getState();
-    
+
     if (!walletState.provider || !walletState.signer) {
       throw new Error('Wallet not connected');
     }
@@ -59,20 +62,25 @@ export class ContractManager {
     this.provider = walletState.provider;
     this.signer = walletState.signer;
 
+    const addresses = getAddresses();
+
     // Initialize contracts
     this.contracts.propertyToken = new ethers.Contract(
-      CONTRACT_ADDRESSES.PROPERTY_TOKEN,
+      addresses.PROPERTY_TOKEN,
       PROPERTY_TOKEN_ABI,
       this.signer
     );
 
     this.contracts.marketplace = new ethers.Contract(
-      CONTRACT_ADDRESSES.MARKETPLACE,
+      addresses.MARKETPLACE,
       MARKETPLACE_ABI,
       this.signer
     );
 
     console.log('Smart contracts initialized successfully');
+    console.log('PropertyToken:', addresses.PROPERTY_TOKEN);
+    console.log('Marketplace:', addresses.MARKETPLACE);
+    console.log('Connected wallet:', await this.signer.getAddress());
   }
 
   // Property Token Operations
@@ -116,10 +124,11 @@ export class ContractManager {
     pricePerToken: string
   ): Promise<string> {
     const price = ethers.utils.parseUnits(pricePerToken, 18);
-    
+    const addresses = getAddresses();
+
     // First approve marketplace to transfer tokens
-    await this.approvePropertyTokens(CONTRACT_ADDRESSES.MARKETPLACE);
-    
+    await this.approvePropertyTokens(addresses.MARKETPLACE);
+
     const tx = await this.contracts.marketplace.listTokens(
       propertyId,
       tokensForSale,
@@ -147,8 +156,9 @@ export class ContractManager {
   }
 
   async instantSellTokens(propertyId: number, tokenAmount: number): Promise<string> {
-    await this.approvePropertyTokens(CONTRACT_ADDRESSES.MARKETPLACE);
-    
+    const addresses = getAddresses();
+    await this.approvePropertyTokens(addresses.MARKETPLACE);
+
     const tx = await this.contracts.marketplace.instantSell(propertyId, tokenAmount);
     await tx.wait();
     return tx.hash;

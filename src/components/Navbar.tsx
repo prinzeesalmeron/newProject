@@ -5,6 +5,8 @@ import { useAuth } from '../lib/auth';
 import { AuthModal } from './AuthModal';
 import { UserProfile } from './UserProfile';
 import { ThemeToggle } from './ThemeToggle';
+import { WalletButton } from './WalletButton';
+import { NetworkSwitcher } from './NetworkSwitcher';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -142,6 +144,12 @@ export const Navbar = () => {
 
           {/* User Authentication */}
           <div className="flex items-center space-x-4">
+            {/* Network Switcher */}
+            <NetworkSwitcher />
+
+            {/* Wallet Button */}
+            <WalletButton />
+
             {/* Theme Toggle */}
             <ThemeToggle />
             

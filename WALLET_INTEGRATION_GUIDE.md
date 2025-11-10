@@ -34,7 +34,7 @@ The application automatically:
 - Detects which network the wallet is connected to
 - Shows a **Network Switcher** component if the wrong network is selected
 - Allows users to switch to Lisk Sepolia with one click
-- The network switcher appears in the navbar when a wallet is connected
+- The network switcher appears in the user profile when a wallet is connected
 
 ### 3. Smart Contract Integration
 
@@ -82,9 +82,10 @@ All blockchain operations now use the **connected wallet address**:
    - Wallet address and balance appear in the profile
 
 5. **Network check**
-   - If on wrong network, "Network Switcher" appears in navbar
+   - If on wrong network, "Network Switcher" appears at the top of the Wallet Connection section
    - User clicks "Switch to Lisk Sepolia Testnet"
    - Wallet prompts to add/switch network
+   - Once switched, the network indicator shows the correct network
 
 6. **User can now interact**
    - All blockchain operations use their wallet

@@ -1,6 +1,8 @@
 import { ethers } from 'ethers';
 import { contractManager } from './blockchain/contractManager';
 import { useWalletConnector } from './blockchain/walletConnector';
+import { ContractValidator } from './validators/contractValidator';
+import { AuditService } from './services/auditService';
 
 // Contract ABIs (simplified for demo - in production these would be full ABIs)
 const PROPERTY_TOKEN_ABI = [
@@ -74,25 +76,104 @@ export class ContractService {
   }
 
   async transferPropertyTokens(to: string, propertyId: number, amount: number): Promise<string> {
-    return await this.contractManager.transferPropertyTokens(to, propertyId, amount);
+    // Validate inputs
+    const validation = ContractValidator.validateTokenTransfer({
+      to,
+      propertyId,
+      amount
+    });
+
+    if (!validation.valid) {
+      const error = `Validation failed: ${validation.errors.join(', ')}`;
+      await AuditService.logAudit({
+        action: 'transfer_tokens',
+        resourceType: 'contract',
+        success: false,
+        errorMessage: error
+      });
+      throw new Error(error);
+    }
+
+    try {
+      const txHash = await this.contractManager.transferPropertyTokens(to, propertyId, amount);
+
+      await AuditService.logAudit({
+        action: 'transfer_tokens',
+        resourceType: 'contract',
+        resourceId: txHash,
+        newData: { to, propertyId, amount },
+        success: true
+      });
+
+      return txHash;
+    } catch (error: any) {
+      await AuditService.logAudit({
+        action: 'transfer_tokens',
+        resourceType: 'contract',
+        success: false,
+        errorMessage: error.message
+      });
+      throw error;
+    }
   }
 
 
   // Marketplace Methods
   async buyPropertyTokens(propertyId: number, amount: number, pricePerToken: string): Promise<string> {
-    if (!this.marketplaceContract) throw new Error('Marketplace contract not initialized');
-    
-    try {
-      const totalCost = ethers.utils.parseEther((parseFloat(pricePerToken) * amount).toString());
-      
-      const tx = await this.marketplaceContract.buyTokens(propertyId, amount, {
-        value: totalCost
+    // Validate inputs
+    const totalCost = (parseFloat(pricePerToken) * amount).toString();
+    const validation = ContractValidator.validateTokenPurchase({
+      propertyId,
+      amount,
+      pricePerToken,
+      maxTotalCost: '1000' // 1000 ETH max per transaction
+    });
+
+    if (!validation.valid) {
+      const error = `Validation failed: ${validation.errors.join(', ')}`;
+      await AuditService.logAudit({
+        action: 'buy_tokens',
+        resourceType: 'contract',
+        success: false,
+        errorMessage: error
       });
-      
-      await tx.wait();
-      return tx.hash;
-    } catch (error) {
-      console.error('Error buying property tokens:', error);
+      throw new Error(error);
+    }
+
+    // Check for suspicious activity
+    const suspiciousCheck = ContractValidator.detectSuspiciousTransaction({
+      amount,
+      totalCost,
+      recentTransactionCount: 0 // Would be tracked in real implementation
+    });
+
+    if (suspiciousCheck.suspicious) {
+      await AuditService.logSuspiciousActivity({
+        description: `Suspicious token purchase: ${suspiciousCheck.reasons.join(', ')}`,
+        metadata: { propertyId, amount, totalCost }
+      });
+    }
+
+    try {
+      const totalCostBN = ethers.utils.parseEther(totalCost);
+      const txHash = await this.contractManager.buyPropertyTokens(propertyId, amount, pricePerToken);
+
+      await AuditService.logTransaction({
+        transactionId: txHash,
+        amount: parseFloat(totalCost),
+        type: 'token_purchase',
+        success: true
+      });
+
+      return txHash;
+    } catch (error: any) {
+      await AuditService.logTransaction({
+        transactionId: '',
+        amount: parseFloat(totalCost),
+        type: 'token_purchase',
+        success: false,
+        errorMessage: error.message
+      });
       throw error;
     }
   }
@@ -104,23 +185,46 @@ export class ContractService {
     pricePerToken: string,
     metadataURI: string
   ): Promise<string> {
-    if (!this.marketplaceContract) throw new Error('Marketplace contract not initialized');
-    
+    // Validate and sanitize inputs
+    const validation = await ContractValidator.validateAndLogPropertyListing({
+      title,
+      location,
+      totalTokens,
+      pricePerToken,
+      metadataURI
+    });
+
+    if (!validation.valid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    const sanitized = validation.sanitized!;
+
     try {
-      const price = ethers.utils.parseEther(pricePerToken);
-      
-      const tx = await this.marketplaceContract.listProperty(
-        title,
-        location,
-        totalTokens,
-        price,
-        metadataURI
+      const txHash = await this.contractManager.listProperty(
+        sanitized.title,
+        sanitized.location,
+        sanitized.totalTokens,
+        sanitized.pricePerToken,
+        sanitized.metadataURI
       );
-      
-      await tx.wait();
-      return tx.hash;
-    } catch (error) {
-      console.error('Error listing property:', error);
+
+      await AuditService.logAudit({
+        action: 'list_property',
+        resourceType: 'contract',
+        resourceId: txHash,
+        newData: sanitized,
+        success: true
+      });
+
+      return txHash;
+    } catch (error: any) {
+      await AuditService.logAudit({
+        action: 'list_property',
+        resourceType: 'contract',
+        success: false,
+        errorMessage: error.message
+      });
       throw error;
     }
   }

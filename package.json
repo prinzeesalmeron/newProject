@@ -8,10 +8,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:e2e": "playwright test"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:load": "node scripts/load-test.js",
+    "health-check": "curl http://localhost:5173/health-check || echo 'Health check failed'",
+    "backup:db": "echo 'Database backup via Supabase dashboard'",
+    "validate": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

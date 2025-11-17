@@ -16,6 +16,7 @@ export const Staking = () => {
   const [stakeAmount, setStakeAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [loadingPools, setLoadingPools] = useState(true);
+  const [useMockData, setUseMockData] = useState(false);
 
   // Load pools from blockchain
   useEffect(() => {
@@ -29,6 +30,11 @@ export const Staking = () => {
       await stakingService.initialize(provider);
       const poolsData = await stakingService.getAllPools();
       setPools(poolsData);
+
+      // Check if we got mock data
+      if (poolsData.length > 0 && poolsData[0].totalStaked === '125.5') {
+        setUseMockData(true);
+      }
     } catch (error) {
       console.error('Error loading pools:', error);
       toast.error('Failed to Load', 'Could not load staking pools');
@@ -56,6 +62,11 @@ export const Staking = () => {
   };
 
   const handleStake = async () => {
+    if (useMockData) {
+      toast.error('Demo Mode', 'Staking is disabled in demo mode. Deploy the contract to use this feature.');
+      return;
+    }
+
     if (!isConnected) {
       toast.error('Connect Wallet', 'Please connect your wallet to stake ETH');
       return;
@@ -174,6 +185,28 @@ export const Staking = () => {
             Stake your ETH to earn passive rewards. Choose from multiple pools with different lock periods and APY rates.
           </p>
         </motion.div>
+
+        {/* Mock Data Banner */}
+        {useMockData && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4"
+          >
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-yellow-900 dark:text-yellow-200 mb-1">
+                  Demo Mode
+                </h3>
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                  The staking contract is not deployed on the connected network. You're viewing demo data.
+                  Actual staking requires the contract to be deployed on Lisk Sepolia testnet.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

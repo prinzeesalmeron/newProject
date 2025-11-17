@@ -152,7 +152,7 @@ export class NotificationService {
     await DatabaseService.createNotification({
       user_id: userId,
       title: 'Staking Rewards Earned',
-      message: `You earned ${amount.toFixed(2)} BLOCK tokens from staking in ${poolName}.`,
+      message: `You earned ${amount.toFixed(2)} tokens from staking in ${poolName}.`,
       type: 'success',
       action_url: '/staking'
     });

@@ -1,3 +1,5 @@
+import { checkRateLimit, createRateLimitResponse } from '../_shared/rateLimitMiddleware.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -10,12 +12,32 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 10 payment intent creations per minute per user
+    const rateLimitResult = await checkRateLimit(req, {
+      endpoint: 'create-payment-intent',
+      maxTokens: 10,
+      refillRate: 10
+    });
+
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult.error!);
+    }
+
     const { amount, currency, payment_method_id, metadata } = await req.json()
 
     // Validate request
     if (!amount || amount <= 0) {
       return new Response(
         JSON.stringify({ error: 'Invalid amount' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate amount limits (prevent extremely large transactions without additional verification)
+    const maxSingleTransaction = 100000000; // $1M in cents
+    if (amount > maxSingleTransaction) {
+      return new Response(
+        JSON.stringify({ error: 'Transaction amount exceeds maximum limit. Please contact support.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

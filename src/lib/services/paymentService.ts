@@ -719,7 +719,7 @@ export class PaymentService {
       return;
     }
     
-    if (currency === 'BLOCK') {
+    if (currency === 'TOKEN') {
       const { data: user } = await supabase
         .from('users')
         .select('wallet_balance')

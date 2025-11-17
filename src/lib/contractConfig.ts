@@ -18,6 +18,12 @@ export const NETWORKS = {
     rpcUrl: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
     explorerUrl: 'https://sepolia.etherscan.io'
   },
+  LISK_SEPOLIA: {
+    chainId: 4202,
+    name: 'Lisk Sepolia Testnet',
+    rpcUrl: 'https://rpc.sepolia-api.lisk.com',
+    explorerUrl: 'https://sepolia-blockscout.lisk.com'
+  },
   LOCALHOST: {
     chainId: 31337,
     name: 'Localhost',
@@ -47,13 +53,16 @@ export const CONTRACT_ADDRESSES: Record<NetworkName, {
     STAKING: '0x0000000000000000000000000000000000000000',
   },
   SEPOLIA: {
-    // ⚠️ IMPORTANT: Replace these with your deployed contract addresses!
-    // After running: ./scripts/deploy.sh
-    // Example: PROPERTY_TOKEN: '0x1234567890abcdef1234567890abcdef12345678',
-    PROPERTY_TOKEN: '0x0000000000000000000000000000000000000000', // ← PASTE YOUR DEPLOYED ADDRESS HERE
+    PROPERTY_TOKEN: '0x0000000000000000000000000000000000000000',
     MARKETPLACE: '0x0000000000000000000000000000000000000000',
     GOVERNANCE: '0x0000000000000000000000000000000000000000',
     STAKING: '0x0000000000000000000000000000000000000000',
+  },
+  LISK_SEPOLIA: {
+    PROPERTY_TOKEN: '0x4817b4059BFa893be869BAcEd8aCC6e54d8bb8fB',
+    MARKETPLACE: '0x66CD1116101F811d4eacE535d1F9EbfF1D5136C2',
+    GOVERNANCE: '0x2BF28F5a09fc675F50A7d17E5A3eA1D94638eccD',
+    STAKING: '0x3Db34c54D5dbb10Cdc4BA78e072ef054d9eB9950',
   },
   LOCALHOST: {
     PROPERTY_TOKEN: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat/Foundry addresses
@@ -67,18 +76,20 @@ export const CONTRACT_ADDRESSES: Record<NetworkName, {
  * Get the current network based on environment
  */
 export function getCurrentNetwork(): NetworkName {
-  const chainId = parseInt(import.meta.env.VITE_CHAIN_ID || '11155111');
+  const chainId = parseInt(import.meta.env.VITE_CHAIN_ID || '4202');
 
   switch (chainId) {
     case 1:
       return 'MAINNET';
     case 11155111:
       return 'SEPOLIA';
+    case 4202:
+      return 'LISK_SEPOLIA';
     case 31337:
       return 'LOCALHOST';
     default:
-      console.warn(`Unknown chain ID ${chainId}, defaulting to SEPOLIA`);
-      return 'SEPOLIA';
+      console.warn(`Unknown chain ID ${chainId}, defaulting to LISK_SEPOLIA`);
+      return 'LISK_SEPOLIA';
   }
 }
 

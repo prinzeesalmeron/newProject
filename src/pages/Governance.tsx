@@ -207,16 +207,16 @@ export const Governance = () => {
                     <Coins className="h-8 w-8" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold mb-1">BLOCK Governance Token</h2>
+                    <h2 className="text-2xl font-bold mb-1">Platform Governance</h2>
                     <p className="text-blue-100 dark:text-purple-100">
-                      Hold BLOCK tokens to participate in platform governance and earn rewards
+                      All registered members can participate in platform governance and vote on proposals
                     </p>
                   </div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-right">
-                  <div className="text-sm text-blue-100 dark:text-purple-100 mb-1">Your Balance</div>
-                  <div className="text-3xl font-bold">2,340 BLOCK</div>
-                  <div className="text-sm text-blue-100 dark:text-purple-100 mt-1">≈ $4,680 USD</div>
+                  <div className="text-sm text-blue-100 dark:text-purple-100 mb-1">Your Status</div>
+                  <div className="text-3xl font-bold">Active Member</div>
+                  <div className="text-sm text-blue-100 dark:text-purple-100 mt-1">Verified Voter</div>
                   <div className="flex items-center justify-end space-x-1 mt-2 text-green-300">
                     <TrendingUp className="h-4 w-4" />
                     <span className="text-xs font-medium">+5.2% (24h)</span>
@@ -230,8 +230,8 @@ export const Governance = () => {
                     <Vote className="h-4 w-4 text-blue-200" />
                     <div className="text-sm text-blue-100 dark:text-purple-100">Voting Power</div>
                   </div>
-                  <div className="text-2xl font-bold">2,340</div>
-                  <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">1 BLOCK = 1 Vote</div>
+                  <div className="text-2xl font-bold">1</div>
+                  <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">1 Member = 1 Vote</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors">
                   <div className="flex items-center space-x-2 mb-2">
@@ -254,8 +254,8 @@ export const Governance = () => {
                     <Award className="h-4 w-4 text-blue-200" />
                     <div className="text-sm text-blue-100 dark:text-purple-100">Rewards Earned</div>
                   </div>
-                  <div className="text-2xl font-bold">142.8</div>
-                  <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">BLOCK this month</div>
+                  <div className="text-2xl font-bold">8</div>
+                  <div className="text-xs text-blue-100 dark:text-purple-100 mt-1">votes this month</div>
                 </div>
               </div>
             </div>
@@ -278,9 +278,9 @@ export const Governance = () => {
                   <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Buy BLOCK Tokens</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Create Proposal</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Purchase BLOCK tokens to increase your voting power and earn staking rewards
+                    Submit new proposals for the community to vote on and shape the platform
                   </p>
                 </div>
               </div>
@@ -384,8 +384,8 @@ export const Governance = () => {
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Your Voting Power</div>
                 <Users className="h-5 w-5 text-purple-500 dark:text-purple-400" />
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">2,340</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">voting power</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">1</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">vote per proposal</div>
             </motion.div>
           </div>
         </div>

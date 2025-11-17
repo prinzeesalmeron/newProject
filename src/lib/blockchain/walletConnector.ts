@@ -23,6 +23,7 @@ export const SUPPORTED_NETWORKS = {
   1: { name: 'Ethereum Mainnet', rpc: 'https://mainnet.infura.io/v3/' },
   5: { name: 'Goerli Testnet', rpc: 'https://goerli.infura.io/v3/' },
   11155111: { name: 'Sepolia Testnet', rpc: 'https://sepolia.infura.io/v3/' },
+  4202: { name: 'Lisk Sepolia Testnet', rpc: 'https://rpc.sepolia-api.lisk.com' },
   137: { name: 'Polygon Mainnet', rpc: 'https://polygon-rpc.com' },
   80001: { name: 'Mumbai Testnet', rpc: 'https://rpc-mumbai.maticvigil.com' }
 };

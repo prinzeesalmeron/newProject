@@ -8,7 +8,7 @@ import "../contracts/Marketplace.sol";
 import "../contracts/Staking.sol";
 import "@openzeppelin/contracts/governance/TimelockController.sol";
 
-contract DeployTestnet is Script {
+contract DeployScript is Script {
     function run() external {
         // Load deployer's private key and address
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");

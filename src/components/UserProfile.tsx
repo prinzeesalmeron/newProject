@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, Settings, LogOut, Wallet, Copy, Check, CreditCard as Edit2, Save, X, Eye, EyeOff, Bell, Shield, Lock } from 'lucide-react';
 import { useAuth } from '../lib/auth';
-import { useWallet } from '../lib/wallet';
+import { useWalletConnector } from '../lib/blockchain/walletConnector';
 import { WalletButton } from './WalletButton';
+import { NetworkSwitcher } from './NetworkSwitcher';
 import { supabase } from '../lib/supabase';
 
 interface UserProfileProps {
@@ -32,7 +33,7 @@ interface PrivacyData {
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
-  const { isConnected, address, balance, provider, disconnectWallet } = useWallet();
+  const { isConnected, address, balance, disconnect } = useWalletConnector();
   const { user, profile, signOut, updateProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -100,7 +101,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
   const handleSignOut = async () => {
     try {
       await signOut();
-      disconnectWallet();
+      disconnect();
       onClose();
     } catch (error) {
       console.error('Error signing out:', error);
@@ -348,6 +349,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
               
               {isConnected && address ? (
                 <div className="space-y-4">
+                  {/* Network Switcher */}
+                  <NetworkSwitcher />
+
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-green-800 dark:text-green-400">Connected</span>
@@ -377,16 +381,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        {provider === 'phantom' ? 'SOL' : 'ETH'} Balance
+                        ETH Balance
                       </div>
                       <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {balance} {provider === 'phantom' ? 'SOL' : 'ETH'}
+                        {parseFloat(balance).toFixed(4)} ETH
                       </div>
                     </div>
                   </div>
 
                   <button
-                    onClick={disconnectWallet}
+                    onClick={disconnect}
                     className="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm font-medium"
                   >
                     Disconnect Wallet

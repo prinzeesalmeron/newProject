@@ -1,40 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, ArrowUpDown, Shield, TrendingUp, DollarSign, Zap } from 'lucide-react';
+import { CreditCard, ArrowUpDown, Shield, TrendingUp, DollarSign, Zap, Banknote } from 'lucide-react';
 import { PaymentMethodManager } from '../components/PaymentMethodManager';
 import { CryptoConverter } from '../components/CryptoConverter';
 import { EscrowManager } from '../components/EscrowManager';
+import { FiatPaymentGateway } from '../components/FiatPaymentGateway';
 import { PaymentService } from '../lib/services/paymentService';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
 
 export const Payments = () => {
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState<'methods' | 'converter' | 'escrow' | 'analytics'>('methods');
+  const [activeSection, setActiveSection] = useState<'fiat' | 'methods' | 'converter' | 'escrow' | 'analytics'>('fiat');
 
   const sections = [
-    { 
-      id: 'methods', 
-      label: 'Payment Methods', 
-      icon: CreditCard, 
-      description: 'Manage your payment methods' 
+    {
+      id: 'fiat',
+      label: 'Fiat Gateway',
+      icon: Banknote,
+      description: 'Add credit/debit cards & bank accounts'
     },
-    { 
-      id: 'converter', 
-      label: 'Crypto Converter', 
-      icon: ArrowUpDown, 
-      description: 'Convert fiat to crypto' 
+    {
+      id: 'methods',
+      label: 'Payment Methods',
+      icon: CreditCard,
+      description: 'Manage your payment methods'
     },
-    { 
-      id: 'escrow', 
-      label: 'Escrow Manager', 
-      icon: Shield, 
-      description: 'Secure transaction management' 
+    {
+      id: 'converter',
+      label: 'Crypto Converter',
+      icon: ArrowUpDown,
+      description: 'Convert fiat to crypto'
     },
-    { 
-      id: 'analytics', 
-      label: 'Payment Analytics', 
-      icon: TrendingUp, 
-      description: 'Track your payment history' 
+    {
+      id: 'escrow',
+      label: 'Escrow Manager',
+      icon: Shield,
+      description: 'Secure transaction management'
+    },
+    {
+      id: 'analytics',
+      label: 'Payment Analytics',
+      icon: TrendingUp,
+      description: 'Track your payment history'
     }
   ];
 
@@ -61,7 +68,7 @@ export const Payments = () => {
       {/* Section Navigation */}
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             {sections.map((section, index) => (
               <motion.button
                 key={section.id}
@@ -93,6 +100,7 @@ export const Payments = () => {
       {/* Active Section Content */}
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {activeSection === 'fiat' && <FiatPaymentGateway />}
           {activeSection === 'methods' && <PaymentMethodManager />}
           {activeSection === 'converter' && <CryptoConverter />}
           {activeSection === 'escrow' && <EscrowManager />}

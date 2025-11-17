@@ -5,6 +5,7 @@ import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import CookieConsent from './components/CookieConsent';
 import { useAuth } from './lib/auth';
 import { LoadingSpinner } from './components/ui';
 
@@ -17,6 +18,9 @@ const Portfolio = lazy(() => import('./pages/Portfolio').then(m => ({ default: m
 const Payments = lazy(() => import('./pages/Payments').then(m => ({ default: m.Payments })));
 const Governance = lazy(() => import('./pages/Governance').then(m => ({ default: m.Governance })));
 const Staking = lazy(() => import('./pages/Staking').then(m => ({ default: m.Staking })));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
 
 const AuthCallback = () => {
   const { initialize } = useAuth();
@@ -94,10 +98,14 @@ const AppContent = () => {
             <Route path="/payments" element={<Payments />} />
             <Route path="/governance" element={<Governance />} />
             <Route path="/staking" element={<Staking />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Suspense>
         <Footer />
+        <CookieConsent />
         <ToastContainer />
       </div>
     </Router>

@@ -13,13 +13,20 @@ contract PropertyTokenTest is Test {
 
     uint256 constant PROPERTY_ID = 1;
     uint256 constant TOKEN_AMOUNT = 1000;
+    uint256 constant TOKEN_PRICE = 0.1 ether;
 
-    event TransferSingle(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 id,
-        uint256 value
+    event PropertyTokenized(
+        uint256 indexed propertyId,
+        address indexed owner,
+        uint256 totalTokens,
+        uint256 pricePerToken
+    );
+
+    event TokensPurchased(
+        uint256 indexed propertyId,
+        address indexed buyer,
+        uint256 amount,
+        uint256 totalCost
     );
 
     function setUp() public {
@@ -28,198 +35,364 @@ contract PropertyTokenTest is Test {
         user2 = makeAddr("user2");
         attacker = makeAddr("attacker");
 
-        token = new PropertyToken();
+        token = new PropertyToken("https://api.blockestate.com/metadata/");
+
+        // Give users some ETH
+        vm.deal(user1, 100 ether);
+        vm.deal(user2, 100 ether);
+        vm.deal(attacker, 100 ether);
     }
 
     // ============================================================================
     // BASIC FUNCTIONALITY TESTS
     // ============================================================================
 
-    function testMint() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+    function testTokenizeProperty() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
 
-        assertEq(token.balanceOf(user1, PROPERTY_ID), TOKEN_AMOUNT);
-        assertEq(token.totalSupply(PROPERTY_ID), TOKEN_AMOUNT);
+        assertEq(propertyId, PROPERTY_ID);
+
+        (
+            string memory title,
+            string memory location,
+            uint256 totalTokens,
+            uint256 availableTokens,
+            uint256 pricePerToken,
+            address propertyOwner,
+            bool isActive,
+            string memory metadataURI
+        ) = token.properties(propertyId);
+
+        assertEq(title, "Sunset Tower");
+        assertEq(location, "Miami, FL");
+        assertEq(totalTokens, TOKEN_AMOUNT);
+        assertEq(availableTokens, TOKEN_AMOUNT);
+        assertEq(pricePerToken, TOKEN_PRICE);
+        assertEq(propertyOwner, owner);
+        assertTrue(isActive);
+        assertEq(metadataURI, "ipfs://QmExample");
     }
 
-    function testMintEmitsEvent() public {
-        vm.expectEmit(true, true, true, true);
-        emit TransferSingle(owner, address(0), user1, PROPERTY_ID, TOKEN_AMOUNT);
+    function testTokenizeEmitsEvent() public {
+        vm.expectEmit(true, true, false, true);
+        emit PropertyTokenized(PROPERTY_ID, owner, TOKEN_AMOUNT, TOKEN_PRICE);
 
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+        token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
     }
 
-    function testTransfer() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+    function testPurchaseTokens() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
 
         vm.prank(user1);
-        token.safeTransferFrom(user1, user2, PROPERTY_ID, 500, "");
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
 
-        assertEq(token.balanceOf(user1, PROPERTY_ID), 500);
-        assertEq(token.balanceOf(user2, PROPERTY_ID), 500);
+        assertEq(token.balanceOf(user1, propertyId), purchaseAmount);
+
+        (, , , uint256 availableTokens, , , ,) = token.properties(propertyId);
+        assertEq(availableTokens, TOKEN_AMOUNT - purchaseAmount);
+    }
+
+    function testPurchaseEmitsEvent() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
+
+        vm.expectEmit(true, true, false, true);
+        emit TokensPurchased(propertyId, user1, purchaseAmount, totalCost);
+
+        vm.prank(user1);
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
+    }
+
+    function testTransferTokens() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
+
+        vm.prank(user1);
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
+
+        // Transfer half to user2
+        vm.prank(user1);
+        token.safeTransferFrom(user1, user2, propertyId, 50, "");
+
+        assertEq(token.balanceOf(user1, propertyId), 50);
+        assertEq(token.balanceOf(user2, propertyId), 50);
     }
 
     // ============================================================================
     // SECURITY TESTS - ACCESS CONTROL
     // ============================================================================
 
-    function testOnlyOwnerCanMint() public {
+    function testOnlyAuthorizedCanTokenize() public {
+        vm.prank(attacker);
+        vm.expectRevert("Not authorized");
+        token.tokenizeProperty(
+            "Malicious Property",
+            "Nowhere",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmMalicious"
+        );
+    }
+
+    function testAuthorizedMinterCanTokenize() public {
+        token.addAuthorizedMinter(user1);
+
+        vm.prank(user1);
+        uint256 propertyId = token.tokenizeProperty(
+            "Authorized Property",
+            "Somewhere",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmAuthorized"
+        );
+
+        assertGt(propertyId, 0);
+    }
+
+    function testOnlyOwnerCanAddMinter() public {
         vm.prank(attacker);
         vm.expectRevert();
-        token.mint(attacker, PROPERTY_ID, TOKEN_AMOUNT, "");
+        token.addAuthorizedMinter(user1);
     }
 
-    function testCannotMintToZeroAddress() public {
+    function testOnlyOwnerCanRemoveMinter() public {
+        token.addAuthorizedMinter(user1);
+
+        vm.prank(attacker);
         vm.expectRevert();
-        token.mint(address(0), PROPERTY_ID, TOKEN_AMOUNT, "");
+        token.removeAuthorizedMinter(user1);
     }
 
-    function testCannotMintZeroAmount() public {
-        vm.expectRevert();
-        token.mint(user1, PROPERTY_ID, 0, "");
+    // ============================================================================
+    // SECURITY TESTS - PURCHASE VALIDATION
+    // ============================================================================
+
+    function testCannotPurchaseInactiveProperty() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        token.updatePropertyStatus(propertyId, false);
+
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
+
+        vm.prank(user1);
+        vm.expectRevert("Property not active");
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
+    }
+
+    function testCannotPurchaseZeroTokens() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        vm.prank(user1);
+        vm.expectRevert("Amount must be greater than 0");
+        token.purchaseTokens{value: 0}(propertyId, 0);
+    }
+
+    function testCannotPurchaseMoreThanAvailable() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        uint256 purchaseAmount = TOKEN_AMOUNT + 1;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
+
+        vm.prank(user1);
+        vm.expectRevert("Not enough tokens available");
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
+    }
+
+    function testCannotPurchaseWithInsufficientFunds() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
+
+        vm.prank(user1);
+        vm.expectRevert("Incorrect ETH amount");
+        token.purchaseTokens{value: totalCost - 1}(propertyId, purchaseAmount);
     }
 
     // ============================================================================
     // SECURITY TESTS - REENTRANCY
     // ============================================================================
 
-    function testNoReentrancyOnTransfer() public {
+    function testNoReentrancyOnPurchase() public {
         MaliciousReceiver malicious = new MaliciousReceiver(token);
+        vm.deal(address(malicious), 100 ether);
 
-        token.mint(address(malicious), PROPERTY_ID, TOKEN_AMOUNT, "");
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
 
-        // Should not be able to reenter
+        // Malicious contract tries to purchase
         vm.expectRevert();
-        malicious.attack(user1, PROPERTY_ID, TOKEN_AMOUNT);
+        malicious.attack(propertyId, 100);
     }
 
     // ============================================================================
-    // SECURITY TESTS - INTEGER OVERFLOW/UNDERFLOW
+    // PAUSABLE TESTS
     // ============================================================================
 
-    function testCannotOverflowTotalSupply() public {
-        uint256 maxUint = type(uint256).max;
+    function testCannotPurchaseWhenPaused() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
 
-        token.mint(user1, PROPERTY_ID, maxUint, "");
+        token.pause();
 
-        vm.expectRevert();
-        token.mint(user2, PROPERTY_ID, 1, "");
-    }
-
-    function testCannotUnderflowBalance() public {
-        token.mint(user1, PROPERTY_ID, 100, "");
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
 
         vm.prank(user1);
         vm.expectRevert();
-        token.safeTransferFrom(user1, user2, PROPERTY_ID, 101, "");
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
     }
 
-    // ============================================================================
-    // SECURITY TESTS - APPROVAL MECHANISM
-    // ============================================================================
+    function testCannotTransferWhenPaused() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
 
-    function testApprovalForAll() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+        uint256 purchaseAmount = 100;
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
 
         vm.prank(user1);
-        token.setApprovalForAll(user2, true);
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
 
-        assertTrue(token.isApprovedForAll(user1, user2));
+        token.pause();
 
-        // user2 can now transfer on behalf of user1
-        vm.prank(user2);
-        token.safeTransferFrom(user1, attacker, PROPERTY_ID, 100, "");
-
-        assertEq(token.balanceOf(attacker, PROPERTY_ID), 100);
+        vm.prank(user1);
+        vm.expectRevert();
+        token.safeTransferFrom(user1, user2, propertyId, 50, "");
     }
 
-    function testCannotTransferWithoutApproval() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+    function testOnlyOwnerCanPause() public {
+        vm.prank(attacker);
+        vm.expectRevert();
+        token.pause();
+    }
+
+    function testOnlyOwnerCanUnpause() public {
+        token.pause();
 
         vm.prank(attacker);
         vm.expectRevert();
-        token.safeTransferFrom(user1, attacker, PROPERTY_ID, 100, "");
-    }
-
-    // ============================================================================
-    // SECURITY TESTS - FRONT-RUNNING PROTECTION
-    // ============================================================================
-
-    function testBatchMintPreventsFrontRunning() public {
-        address[] memory recipients = new address[](2);
-        uint256[] memory ids = new uint256[](2);
-        uint256[] memory amounts = new uint256[](2);
-
-        recipients[0] = user1;
-        recipients[1] = user2;
-        ids[0] = PROPERTY_ID;
-        ids[1] = PROPERTY_ID;
-        amounts[0] = 500;
-        amounts[1] = 500;
-
-        // Atomic batch mint
-        for (uint256 i = 0; i < recipients.length; i++) {
-            token.mint(recipients[i], ids[i], amounts[i], "");
-        }
-
-        assertEq(token.balanceOf(user1, PROPERTY_ID), 500);
-        assertEq(token.balanceOf(user2, PROPERTY_ID), 500);
+        token.unpause();
     }
 
     // ============================================================================
     // FUZZ TESTING
     // ============================================================================
 
-    function testFuzzMint(address recipient, uint256 propertyId, uint256 amount) public {
-        vm.assume(recipient != address(0));
-        vm.assume(amount > 0 && amount < type(uint128).max);
-        vm.assume(propertyId > 0);
+    function testFuzzTokenizeProperty(
+        uint256 totalTokens,
+        uint256 pricePerToken
+    ) public {
+        vm.assume(totalTokens > 0 && totalTokens < type(uint128).max);
+        vm.assume(pricePerToken > 0 && pricePerToken < 1000 ether);
 
-        token.mint(recipient, propertyId, amount, "");
+        uint256 propertyId = token.tokenizeProperty(
+            "Fuzz Property",
+            "Fuzz Location",
+            totalTokens,
+            pricePerToken,
+            "ipfs://QmFuzz"
+        );
 
-        assertEq(token.balanceOf(recipient, propertyId), amount);
-        assertEq(token.totalSupply(propertyId), amount);
+        (, , uint256 storedTotalTokens, , uint256 storedPrice, , ,) = token.properties(propertyId);
+        assertEq(storedTotalTokens, totalTokens);
+        assertEq(storedPrice, pricePerToken);
     }
 
-    function testFuzzTransfer(uint256 mintAmount, uint256 transferAmount) public {
-        vm.assume(mintAmount > 0 && mintAmount < type(uint128).max);
-        vm.assume(transferAmount > 0 && transferAmount <= mintAmount);
+    function testFuzzPurchaseTokens(uint256 purchaseAmount) public {
+        vm.assume(purchaseAmount > 0 && purchaseAmount <= TOKEN_AMOUNT);
 
-        token.mint(user1, PROPERTY_ID, mintAmount, "");
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
 
-        vm.prank(user1);
-        token.safeTransferFrom(user1, user2, PROPERTY_ID, transferAmount, "");
-
-        assertEq(token.balanceOf(user1, PROPERTY_ID), mintAmount - transferAmount);
-        assertEq(token.balanceOf(user2, PROPERTY_ID), transferAmount);
-    }
-
-    // ============================================================================
-    // GAS OPTIMIZATION TESTS
-    // ============================================================================
-
-    function testGasOptimizedBatchTransfer() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
-
-        address[] memory recipients = new address[](10);
-        uint256[] memory amounts = new uint256[](10);
-
-        for (uint256 i = 0; i < 10; i++) {
-            recipients[i] = makeAddr(string(abi.encodePacked("recipient", i)));
-            amounts[i] = 10;
-        }
-
-        uint256 gasBefore = gasleft();
+        uint256 totalCost = purchaseAmount * TOKEN_PRICE;
+        vm.deal(user1, totalCost);
 
         vm.prank(user1);
-        for (uint256 i = 0; i < recipients.length; i++) {
-            token.safeTransferFrom(user1, recipients[i], PROPERTY_ID, amounts[i], "");
-        }
+        token.purchaseTokens{value: totalCost}(propertyId, purchaseAmount);
 
-        uint256 gasUsed = gasBefore - gasleft();
-
-        // Gas should be reasonable (adjust based on actual measurements)
-        assertLt(gasUsed, 1000000);
+        assertEq(token.balanceOf(user1, propertyId), purchaseAmount);
     }
 
     // ============================================================================
@@ -227,32 +400,52 @@ contract PropertyTokenTest is Test {
     // ============================================================================
 
     function testMultiplePropertiesPerUser() public {
-        token.mint(user1, 1, 100, "");
-        token.mint(user1, 2, 200, "");
-        token.mint(user1, 3, 300, "");
+        uint256 prop1 = token.tokenizeProperty("Property 1", "Location 1", 100, TOKEN_PRICE, "ipfs://1");
+        uint256 prop2 = token.tokenizeProperty("Property 2", "Location 2", 200, TOKEN_PRICE, "ipfs://2");
+        uint256 prop3 = token.tokenizeProperty("Property 3", "Location 3", 300, TOKEN_PRICE, "ipfs://3");
 
-        assertEq(token.balanceOf(user1, 1), 100);
-        assertEq(token.balanceOf(user1, 2), 200);
-        assertEq(token.balanceOf(user1, 3), 300);
+        vm.startPrank(user1);
+        token.purchaseTokens{value: 10 * TOKEN_PRICE}(prop1, 10);
+        token.purchaseTokens{value: 20 * TOKEN_PRICE}(prop2, 20);
+        token.purchaseTokens{value: 30 * TOKEN_PRICE}(prop3, 30);
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(user1, prop1), 10);
+        assertEq(token.balanceOf(user1, prop2), 20);
+        assertEq(token.balanceOf(user1, prop3), 30);
     }
 
-    function testTransferEntireBalance() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+    function testPurchaseAllAvailableTokens() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
+
+        uint256 totalCost = TOKEN_AMOUNT * TOKEN_PRICE;
 
         vm.prank(user1);
-        token.safeTransferFrom(user1, user2, PROPERTY_ID, TOKEN_AMOUNT, "");
+        token.purchaseTokens{value: totalCost}(propertyId, TOKEN_AMOUNT);
 
-        assertEq(token.balanceOf(user1, PROPERTY_ID), 0);
-        assertEq(token.balanceOf(user2, PROPERTY_ID), TOKEN_AMOUNT);
+        assertEq(token.balanceOf(user1, propertyId), TOKEN_AMOUNT);
+
+        (, , , uint256 availableTokens, , , ,) = token.properties(propertyId);
+        assertEq(availableTokens, 0);
     }
 
-    function testSelfTransfer() public {
-        token.mint(user1, PROPERTY_ID, TOKEN_AMOUNT, "");
+    function testURIGeneration() public {
+        uint256 propertyId = token.tokenizeProperty(
+            "Sunset Tower",
+            "Miami, FL",
+            TOKEN_AMOUNT,
+            TOKEN_PRICE,
+            "ipfs://QmExample"
+        );
 
-        vm.prank(user1);
-        token.safeTransferFrom(user1, user1, PROPERTY_ID, 100, "");
-
-        assertEq(token.balanceOf(user1, PROPERTY_ID), TOKEN_AMOUNT);
+        string memory tokenURI = token.uri(propertyId);
+        assertTrue(bytes(tokenURI).length > 0);
     }
 }
 
@@ -265,21 +458,23 @@ contract MaliciousReceiver {
         token = _token;
     }
 
-    function attack(address to, uint256 id, uint256 amount) external {
-        token.safeTransferFrom(address(this), to, id, amount, "");
+    function attack(uint256 propertyId, uint256 amount) external {
+        uint256 cost = amount * 0.1 ether;
+        token.purchaseTokens{value: cost}(propertyId, amount);
     }
 
     function onERC1155Received(
         address,
         address,
-        uint256 id,
+        uint256 propertyId,
         uint256 amount,
         bytes memory
     ) external returns (bytes4) {
         if (!attacked) {
             attacked = true;
             // Try to reenter
-            token.safeTransferFrom(address(this), msg.sender, id, amount, "");
+            uint256 cost = amount * 0.1 ether;
+            token.purchaseTokens{value: cost}(propertyId, amount);
         }
         return this.onERC1155Received.selector;
     }
@@ -293,4 +488,6 @@ contract MaliciousReceiver {
     ) external pure returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
+
+    receive() external payable {}
 }

@@ -479,7 +479,7 @@ export const Staking = () => {
                         <div className="flex gap-2">
                           <Button
                             onClick={() => handleClaimRewards(index)}
-                            disabled={loading || parseFloat(stake.rewards) === 0}
+                            disabled={loading || !stake.rewards || parseFloat(stake.rewards || '0') === 0}
                             variant="secondary"
                             className="flex-1"
                           >

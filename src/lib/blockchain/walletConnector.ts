@@ -34,7 +34,7 @@ export const useWalletConnector = create<WalletState>((set, get) => ({
   provider: null,
   signer: null,
   chainId: null,
-  balance: '0',
+  balance: '0.0000',
   connecting: false,
   error: null,
 
@@ -156,7 +156,7 @@ export const useWalletConnector = create<WalletState>((set, get) => ({
       provider: null,
       signer: null,
       chainId: null,
-      balance: '0',
+      balance: '0.0000',
       connecting: false,
       error: null,
     });

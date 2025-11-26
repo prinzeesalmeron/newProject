@@ -1,12 +1,12 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useSearchParams, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import CookieConsent from './components/CookieConsent';
-import { useAuth } from './lib/auth';
+import { useAuth, isAdmin } from './lib/auth';
 import { LoadingSpinner } from './components/ui';
 
 // Lazy load pages for better performance
@@ -21,6 +21,28 @@ const Staking = lazy(() => import('./pages/Staking').then(m => ({ default: m.Sta
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, profile } = useAuth();
+  const userIsAdmin = user && isAdmin(profile || user);
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!userIsAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h1>
+          <p className="text-gray-600 dark:text-gray-400">You do not have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
 
 const AuthCallback = () => {
   const { initialize } = useAuth();
@@ -100,7 +122,7 @@ const AppContent = () => {
             <Route path="/staking" element={<Staking />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Suspense>

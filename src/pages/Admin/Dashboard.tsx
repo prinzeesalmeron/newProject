@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, Home, TrendingUp, AlertTriangle, Activity, Shield, Mail } from 'lucide-react';
+import { Users, DollarSign, Home, TrendingUp, AlertTriangle, Activity, Shield, Mail, BookOpen, FileCheck, Settings } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { adminService } from '../../lib/services/adminService';
 
 interface DashboardStats {
   totalUsers: number;
@@ -26,10 +27,31 @@ export default function AdminDashboard() {
     systemHealth: 'healthy'
   });
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    loadDashboardStats();
+    checkAdminAccess();
   }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const isUserAdmin = await adminService.isAdmin(user.id);
+      setIsAdmin(isUserAdmin);
+
+      if (isUserAdmin) {
+        loadDashboardStats();
+      }
+    } catch (error) {
+      console.error('Failed to check admin access:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const loadDashboardStats = async () => {
     try {
@@ -101,6 +123,21 @@ export default function AdminDashboard() {
       </div>
     </Link>
   );
+
+  if (isAdmin === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Activity className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAdmin === false) {
+    return <Navigate to="/marketplace" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -215,6 +252,27 @@ export default function AdminDashboard() {
               >
                 <Mail className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 <span className="text-gray-900 dark:text-white">Email Logs</span>
+              </Link>
+              <Link
+                to="/admin/learning-hub"
+                className="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <BookOpen className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <span className="text-gray-900 dark:text-white">Learning Hub</span>
+              </Link>
+              <Link
+                to="/admin/compliance"
+                className="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <FileCheck className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                <span className="text-gray-900 dark:text-white">Compliance</span>
+              </Link>
+              <Link
+                to="/admin/settings"
+                className="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <span className="text-gray-900 dark:text-white">Settings</span>
               </Link>
             </div>
           </div>

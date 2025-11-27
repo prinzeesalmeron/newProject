@@ -21,6 +21,8 @@ const Staking = lazy(() => import('./pages/Staking').then(m => ({ default: m.Sta
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
+const AdminLearningHub = lazy(() => import('./pages/Admin/LearningHub'));
+const AdminCompliance = lazy(() => import('./pages/Admin/Compliance'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile } = useAuth();
@@ -123,6 +125,8 @@ const AppContent = () => {
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/learning-hub" element={<ProtectedRoute><AdminLearningHub /></ProtectedRoute>} />
+            <Route path="/admin/compliance" element={<ProtectedRoute><AdminCompliance /></ProtectedRoute>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Suspense>

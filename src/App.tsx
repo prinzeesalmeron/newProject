@@ -21,7 +21,7 @@ const Staking = lazy(() => import('./pages/Staking').then(m => ({ default: m.Sta
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
-const AdminLearningHub = lazy(() => import('./pages/Admin/LearningHub'));
+const AdminLearningHub = lazy(() => import('./pages/Admin/LearningHubAdmin'));
 const AdminCompliance = lazy(() => import('./pages/Admin/Compliance'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

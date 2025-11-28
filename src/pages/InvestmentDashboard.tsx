@@ -326,23 +326,32 @@ export const InvestmentDashboard = () => {
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis 
-                        dataKey="date" 
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                      <XAxis
+                        dataKey="date"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#666' }}
+                        className="fill-gray-600 dark:fill-gray-400"
+                        tick={{ fontSize: 12 }}
                       />
-                      <YAxis 
+                      <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#666' }}
+                        className="fill-gray-600 dark:fill-gray-400"
+                        tick={{ fontSize: 12 }}
                       />
-                      <Tooltip />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#3B82F6" 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--tooltip-bg)',
+                          border: '1px solid var(--tooltip-border)',
+                          borderRadius: '8px',
+                          color: 'var(--tooltip-text)'
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#3B82F6"
                         strokeWidth={2}
                         dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
                       />

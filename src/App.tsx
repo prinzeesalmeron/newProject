@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useSearchParams, Navigate } fro
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
+import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import CookieConsent from './components/CookieConsent';
 import { useAuth, isAdmin } from './lib/auth';
@@ -110,6 +111,7 @@ const AppContent = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors" data-toast-context>
+        <Navbar />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Marketplace />} />

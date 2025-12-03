@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Menu, X, User, LogIn, Settings } from 'lucide-react';
-import { useAuth, isAdmin } from '../lib/auth';
+import { Search, Menu, X, User, LogIn } from 'lucide-react';
+import { useAuth } from '../lib/auth';
 import { AuthModal } from './AuthModal';
 import { UserProfile } from './UserProfile';
 import { ThemeToggle } from './ThemeToggle';
@@ -125,30 +125,16 @@ export const Navbar = () => {
               Staking
             </Link>
             {user && (
-              <>
-                <Link
-                  to="/dashboard"
-                  className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive('/dashboard')
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                {isAdmin(profile || user) && (
-                  <Link
-                    to="/admin"
-                    className={`px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive('/admin')
-                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
-                  >
-                    Admin
-                  </Link>
-                )}
-              </>
+              <Link
+                to="/dashboard"
+                className={`px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive('/dashboard')
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
+              >
+                Dashboard
+              </Link>
             )}
           </div>
 

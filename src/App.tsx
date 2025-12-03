@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, useSearchParams, Navigate } fro
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ToastContainer, ToastProvider, useToast } from './components/ui/Toast';
 import { PaymentProvider } from './components/PaymentProvider';
-import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import CookieConsent from './components/CookieConsent';
 import { useAuth, isAdmin } from './lib/auth';
@@ -20,9 +19,6 @@ const Governance = lazy(() => import('./pages/Governance').then(m => ({ default:
 const Staking = lazy(() => import('./pages/Staking').then(m => ({ default: m.Staking })));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
-const AdminLearningHub = lazy(() => import('./pages/Admin/LearningHub'));
-const AdminCompliance = lazy(() => import('./pages/Admin/Compliance'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const Settings = lazy(() => import('./pages/Settings'));
 const KYC = lazy(() => import('./pages/KYC'));
@@ -114,14 +110,13 @@ const AppContent = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors" data-toast-context>
-        <Navbar />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Marketplace />} />
             <Route path="/blockchain" element={<Blockchain />} />
             <Route path="/learn" element={<Learn />} />
             <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/dashboard" element={<InvestmentDashboard />} />
+            <Route path="/dashboard" element={<ProtectedRoute><InvestmentDashboard /></ProtectedRoute>} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/governance" element={<Governance />} />
             <Route path="/staking" element={<Staking />} />
@@ -130,9 +125,6 @@ const AppContent = () => {
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/kyc" element={<KYC />} />
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/learning-hub" element={<ProtectedRoute><AdminLearningHub /></ProtectedRoute>} />
-            <Route path="/admin/compliance" element={<ProtectedRoute><AdminCompliance /></ProtectedRoute>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Suspense>

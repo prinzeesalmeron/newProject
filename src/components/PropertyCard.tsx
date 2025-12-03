@@ -3,6 +3,7 @@ import { Heart, TrendingUp, MapPin, Star } from 'lucide-react';
 import { Property } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 interface PropertyCardProps {
   property: Property;
@@ -46,14 +47,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onInvest }
       </div>
 
       <div className="p-6 flex flex-col flex-1 min-h-0">
-        <div className="flex items-start justify-between mb-2">
+        <Link to={`/property/${property.id}`} className="flex items-start justify-between mb-2 hover:opacity-80 transition-opacity">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 flex-1 mr-2">
             {property.title}
           </h3>
           <span className="text-xl font-bold text-blue-600 dark:text-blue-400 flex-shrink-0">
             ${(property.price_per_token * property.total_tokens).toLocaleString()}
           </span>
-        </div>
+        </Link>
 
         <div className="flex items-center text-gray-600 dark:text-gray-400 mb-3">
           <MapPin className="h-4 w-4 mr-1" />

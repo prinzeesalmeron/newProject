@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, Menu, X, User, LogIn } from 'lucide-react';
-import { useAuth } from '../lib/auth';
+import { useAuth, isAdmin } from '../lib/auth';
 import { AuthModal } from './AuthModal';
 import { UserProfile } from './UserProfile';
 import { ThemeToggle } from './ThemeToggle';
@@ -124,7 +124,7 @@ export const Navbar = () => {
             >
               Staking
             </Link>
-            {user && (
+            {user && isAdmin(profile) && (
               <Link
                 to="/dashboard"
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
@@ -286,7 +286,17 @@ export const Navbar = () => {
               >
                 🗳️ Governance
               </Link>
-              {user && (
+              <Link
+                to="/staking"
+                className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${
+                  isActive('/staking')
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-blue-600 dark:border-l-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-transparent'
+                }`}
+              >
+                💰 Staking
+              </Link>
+              {user && isAdmin(profile) && (
                 <Link
                   to="/dashboard"
                   className={`px-6 py-4 text-base font-medium transition-colors border-l-4 ${

@@ -25,6 +25,7 @@ const AdminLearningHub = lazy(() => import('./pages/Admin/LearningHub'));
 const AdminCompliance = lazy(() => import('./pages/Admin/Compliance'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const Settings = lazy(() => import('./pages/Settings'));
+const KYC = lazy(() => import('./pages/KYC'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile } = useAuth();
@@ -128,6 +129,7 @@ const AppContent = () => {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/kyc" element={<KYC />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/learning-hub" element={<ProtectedRoute><AdminLearningHub /></ProtectedRoute>} />
             <Route path="/admin/compliance" element={<ProtectedRoute><AdminCompliance /></ProtectedRoute>} />

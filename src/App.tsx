@@ -23,6 +23,9 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const Settings = lazy(() => import('./pages/Settings'));
 const KYC = lazy(() => import('./pages/KYC'));
+const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
+const AdminLearningHub = lazy(() => import('./pages/Admin/LearningHub'));
+const AdminCompliance = lazy(() => import('./pages/Admin/Compliance'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile } = useAuth();
@@ -88,17 +91,17 @@ const AppContent = () => {
   }, [initialize]);
 
   useEffect(() => {
-    (window as any).__toastAddFunction = addToast;
+    (window as Window & { __toastAddFunction?: typeof addToast }).__toastAddFunction = addToast;
 
-    const handleToastEvent = (e: any) => {
+    const handleToastEvent = (e: CustomEvent) => {
       addToast(e.detail);
     };
 
-    window.addEventListener('toast', handleToastEvent);
+    window.addEventListener('toast', handleToastEvent as EventListener);
 
     return () => {
-      window.removeEventListener('toast', handleToastEvent);
-      delete (window as any).__toastAddFunction;
+      window.removeEventListener('toast', handleToastEvent as EventListener);
+      delete (window as Window & { __toastAddFunction?: typeof addToast }).__toastAddFunction;
     };
   }, [addToast]);
 
@@ -127,6 +130,9 @@ const AppContent = () => {
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/kyc" element={<KYC />} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/learning-hub" element={<ProtectedRoute><AdminLearningHub /></ProtectedRoute>} />
+            <Route path="/admin/compliance" element={<ProtectedRoute><AdminCompliance /></ProtectedRoute>} />
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Suspense>

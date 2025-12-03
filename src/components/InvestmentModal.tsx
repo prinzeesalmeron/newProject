@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Wallet, DollarSign, Info, AlertCircle } from 'lucide-react';
+import { X, TrendingUp, Wallet, AlertCircle } from 'lucide-react';
 import { Property } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { Button, LoadingSpinner } from './ui';
 import { toast } from './ui/Toast';
 import { TransactionAPI } from '../lib/api/transactionAPI';
-import { PropertyAPI } from '../lib/api/propertyAPI';
 import { supabase } from '../lib/supabase';
 
 interface InvestmentModalProps {

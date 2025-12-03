@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowUpDown, DollarSign, Zap, TrendingUp, RefreshCw, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ArrowUpDown, Zap, RefreshCw, Loader2 } from 'lucide-react';
 import { PaymentService } from '../lib/services/paymentService';
 import { useAuth } from '../lib/auth';
 import { toast } from './ui/Toast';
@@ -12,7 +12,6 @@ export const CryptoConverter = () => {
   const [fromAmount, setFromAmount] = useState<string>('');
   const [toAmount, setToAmount] = useState<string>('');
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
   const [converting, setConverting] = useState(false);
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export const CryptoConverter = () => {
     }
   };
 
-  const calculateConversion = () => {
+  const calculateConversion = useCallback(() => {
     const rate = exchangeRates[`${fromCurrency}_${toCurrency}`];
     if (rate && fromAmount) {
       const amount = parseFloat(fromAmount);
@@ -45,7 +44,7 @@ export const CryptoConverter = () => {
       const converted = netAmount * rate;
       setToAmount(converted.toFixed(6));
     }
-  };
+  }, [exchangeRates, fromCurrency, toCurrency, fromAmount]);
 
   const handleSwapCurrencies = () => {
     if (fromCurrency === 'USD' && toCurrency === 'ETH') {

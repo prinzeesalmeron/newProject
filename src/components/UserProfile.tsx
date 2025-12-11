@@ -3,7 +3,6 @@ import { User, Settings, LogOut, Wallet, Copy, Check, CreditCard as Edit2, Save,
 import { useAuth } from '../lib/auth';
 import { useWalletConnector } from '../lib/blockchain/walletConnector';
 import { WalletButton } from './WalletButton';
-import { NetworkSwitcher } from './NetworkSwitcher';
 import { supabase } from '../lib/supabase';
 
 interface UserProfileProps {
@@ -349,9 +348,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => 
               
               {isConnected && address ? (
                 <div className="space-y-4">
-                  {/* Network Switcher */}
-                  <NetworkSwitcher />
-
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-green-800 dark:text-green-400">Connected</span>

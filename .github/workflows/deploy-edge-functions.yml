@@ -1,0 +1,24 @@
+name: Deploy Edge Functions
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'supabase/functions/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Bolt Database CLI
+      uses: supabase/setup-cli@v1
+    
+    - name: Deploy functions
+      run: |
+        Bolt Database functions deploy
+      env:
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        PROJECT_ID: ${{ secrets.PRODUCTION_SUPABASE_PROJECT_ID }}

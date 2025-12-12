@@ -1,0 +1,45 @@
+name: Deploy Smart Contracts
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Network to deploy to'
+        required: true
+        type: choice
+        options:
+          - sepolia
+          - mainnet
+          - localhost
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+    
+    - name: Run tests
+      run: forge test -vvv
+    
+    - name: Deploy contracts
+      run: |
+        forge script script/DeployTestnet.s.sol:DeployScript \
+          --rpc-url ${{ secrets[format('{0}_RPC_URL', github.event.inputs.network)] }} \
+          --private-key ${{ secrets.DEPLOYER_PRIVATE_KEY }} \
+          --broadcast \
+          --verify \
+          --etherscan-api-key ${{ secrets.ETHERSCAN_API_KEY }}
+    
+    - name: Save deployment artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: deployment-${{ github.event.inputs.network }}
+        path: |
+          broadcast/
+          deployment-addresses.json

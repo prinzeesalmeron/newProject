@@ -1,0 +1,37 @@
+name: Bolt Database Migrations
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'supabase/migrations/**'
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Bolt Database CLI
+      uses: supabase/setup-cli@v1
+      with:
+        version: latest
+    
+    - name: Run migrations (Staging)
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        Bolt Database db push
+      env:
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_SUPABASE_DB_PASSWORD }}
+        PROJECT_ID: ${{ secrets.STAGING_SUPABASE_PROJECT_ID }}
+    
+    - name: Run migrations (Production)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        Bolt Database db push
+      env:
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_SUPABASE_DB_PASSWORD }}
+        PROJECT_ID: ${{ secrets.PRODUCTION_SUPABASE_PROJECT_ID }}

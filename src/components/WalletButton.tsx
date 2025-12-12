@@ -33,10 +33,7 @@ export const WalletButton = () => {
   };
 
   const getAvailableWallets = () => {
-    return Object.entries(WALLET_PROVIDERS).filter(([key, wallet]) => {
-      // Always show all wallets, but indicate which ones are installed
-      return true;
-    });
+    return Object.entries(WALLET_PROVIDERS);
   };
 
   if (isConnected && address) {

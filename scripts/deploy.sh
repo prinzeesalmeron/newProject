@@ -9,14 +9,14 @@ echo ""
 
 if [ -z "$1" ]; then
   echo "Usage: ./scripts/deploy.sh [network]"
-  echo "Available networks: sepolia, mainnet, localhost"
+  echo "Available networks: sepolia,lisk-sepolia, mainnet, localhost"
   exit 1
 fi
 
 NETWORK=$1
 
-if [ "$NETWORK" != "sepolia" ] && [ "$NETWORK" != "mainnet" ] && [ "$NETWORK" != "localhost" ]; then
-  echo "Error: Invalid network. Choose 'sepolia', 'mainnet', or 'localhost'"
+if [ "$NETWORK" != "sepolia" ] && [ "$NETWORK" != "lisk-sepolia" ] && [ "$NETWORK" != "mainnet" ] && [ "$NETWORK" != "localhost" ]; then
+  echo "Error: Invalid network. Choose 'scleepolia', 'mainnet', or 'localhost'"
   exit 1
 fi
 
@@ -45,8 +45,11 @@ if [ "$NETWORK" == "mainnet" ]; then
     exit 0
   fi
   RPC_URL=$MAINNET_RPC_URL
-elif [ "$NETWORK" == "sepolia" ]; then
-  RPC_URL=$SEPOLIA_RPC_URL
+# elif [ "$NETWORK" == "sepolia" ]; then
+#   RPC_URL=$SEPOLIA_RPC_URL
+elif [ "$NETWORK" == "lisk-sepolia" ]; then
+  RPC_URL=$LISK_SEPOLIA_RPC_URL
+
 else
   RPC_URL="http://localhost:8545"
 fi

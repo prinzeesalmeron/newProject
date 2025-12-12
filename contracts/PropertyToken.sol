@@ -202,19 +202,16 @@ contract PropertyToken is ERC1155, Ownable, Pausable, ReentrancyGuard {
     function unpause() external onlyOwner {
         _unpause();
     }
-function _beforeTokenTransfer(
-    address operator,
-    address from,
-    address to,
-    uint256[] memory ids,
-    uint256[] memory amounts,
-    bytes memory data
-) internal whenNotPaused {
-    // Custom logic (e.g., restrict transfers to whitelisted addresses)
-    require(to != address(0), "Cannot transfer to zero address");
 
-    // Call parent logic
-    // super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-}
-
+    /**
+     * @dev Hook that is called before any token transfer
+     */
+    function _update(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values
+    ) internal override whenNotPaused {
+        super._update(from, to, ids, values);
+    }
 }

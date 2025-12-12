@@ -43,6 +43,8 @@ contract PropertyTokenTest is Test {
         vm.deal(attacker, 100 ether);
     }
 
+    receive() external payable {}
+
     // ============================================================================
     // BASIC FUNCTIONALITY TESTS
     // ============================================================================
@@ -267,7 +269,7 @@ contract PropertyTokenTest is Test {
         uint256 totalCost = purchaseAmount * TOKEN_PRICE;
 
         vm.prank(user1);
-        vm.expectRevert("Incorrect ETH amount");
+        vm.expectRevert("Insufficient payment");
         token.purchaseTokens{value: totalCost - 1}(propertyId, purchaseAmount);
     }
 

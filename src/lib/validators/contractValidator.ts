@@ -22,15 +22,6 @@ export class ContractValidator {
       return { valid: false, error: 'Cannot use zero address' };
     }
 
-    // Optionally use ethers.utils.isAddress for checksum validation if available
-    try {
-      if (ethers && ethers.utils && ethers.utils.isAddress && !ethers.utils.isAddress(address)) {
-        return { valid: false, error: 'Invalid address checksum' };
-      }
-    } catch (e) {
-      // If ethers is not available, fallback to regex validation only
-    }
-
     return { valid: true };
   }
 

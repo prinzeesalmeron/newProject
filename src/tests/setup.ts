@@ -52,7 +52,11 @@ vi.mock('../lib/supabase', () => {
       signUp: () => Promise.resolve({ data: { user: { id: 'test-user-id', email: 'test@example.com' }, session: null }, error: null }),
       signInWithPassword: () => Promise.resolve({ data: { user: { id: 'test-user-id' }, session: null }, error: null }),
       signOut: () => Promise.resolve({ error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      admin: {
+        deleteUser: () => Promise.resolve({ data: null, error: null }),
+        createUser: () => Promise.resolve({ data: { user: { id: 'test-user-id' } }, error: null })
+      }
     },
     rpc: () => Promise.resolve({ data: null, error: null }),
     storage: {

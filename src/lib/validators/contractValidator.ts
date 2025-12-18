@@ -10,13 +10,25 @@ export class ContractValidator {
       return { valid: false, error: 'Address is required' };
     }
 
-    if (!ethers.utils.isAddress(address)) {
+    // Basic Ethereum address format check: 0x followed by 40 hex characters
+    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+    if (!addressRegex.test(address)) {
       return { valid: false, error: 'Invalid Ethereum address format' };
     }
 
     // Check for zero address
-    if (address === ethers.constants.AddressZero) {
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
+    if (address.toLowerCase() === zeroAddress) {
       return { valid: false, error: 'Cannot use zero address' };
+    }
+
+    // Optionally use ethers.utils.isAddress for checksum validation if available
+    try {
+      if (ethers && ethers.utils && ethers.utils.isAddress && !ethers.utils.isAddress(address)) {
+        return { valid: false, error: 'Invalid address checksum' };
+      }
+    } catch (e) {
+      // If ethers is not available, fallback to regex validation only
     }
 
     return { valid: true };

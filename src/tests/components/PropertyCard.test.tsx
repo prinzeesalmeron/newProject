@@ -1,28 +1,39 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { PropertyCard } from '../../components/PropertyCard';
 import { createMockProperty } from '../setup';
 
-// Mock the wallet hook
-vi.mock('../../lib/wallet', () => ({
-  useWallet: () => ({
-    isConnected: true,
-    address: '0x123...',
-    balance: '1.5',
-    blockBalance: 2500
-  })
+const mockUseAuth = vi.fn();
+
+vi.mock('../../lib/auth', () => ({
+  useAuth: () => mockUseAuth()
 }));
 
 describe('PropertyCard', () => {
   const mockProperty = createMockProperty();
   const mockOnInvest = vi.fn();
 
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      session: null,
+      initialized: true,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      initialize: vi.fn()
+    });
+  });
+
   it('renders property information correctly', () => {
     render(
-      <PropertyCard 
-        property={mockProperty} 
-        onInvest={mockOnInvest} 
-      />
+      <BrowserRouter>
+        <PropertyCard
+          property={mockProperty}
+          onInvest={mockOnInvest}
+        />
+      </BrowserRouter>
     );
 
     expect(screen.getByText(mockProperty.title)).toBeInTheDocument();
@@ -32,31 +43,38 @@ describe('PropertyCard', () => {
 
   it('calls onInvest when invest button is clicked', () => {
     render(
-      <PropertyCard 
-        property={mockProperty} 
-        onInvest={mockOnInvest} 
-      />
+      <BrowserRouter>
+        <PropertyCard
+          property={mockProperty}
+          onInvest={mockOnInvest}
+        />
+      </BrowserRouter>
     );
 
     fireEvent.click(screen.getByText('Invest Now'));
     expect(mockOnInvest).toHaveBeenCalledWith(mockProperty.id);
   });
 
-  it('shows connect wallet when wallet not connected', () => {
-    vi.mocked(useWallet).mockReturnValue({
-      isConnected: false,
-      address: null,
-      balance: '0',
-      blockBalance: 0
+  it('shows sign in when user not authenticated', () => {
+    mockUseAuth.mockReturnValue({
+      user: null,
+      session: null,
+      initialized: true,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+      initialize: vi.fn()
     });
 
     render(
-      <PropertyCard 
-        property={mockProperty} 
-        onInvest={mockOnInvest} 
-      />
+      <BrowserRouter>
+        <PropertyCard
+          property={mockProperty}
+          onInvest={mockOnInvest}
+        />
+      </BrowserRouter>
     );
 
-    expect(screen.getByText('Connect Wallet')).toBeInTheDocument();
+    expect(screen.getByText('Sign In to Invest')).toBeInTheDocument();
   });
 });

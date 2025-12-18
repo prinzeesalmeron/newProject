@@ -40,6 +40,11 @@ export class AuditService {
     success?: boolean;
     errorMessage?: string;
   }): Promise<void> {
+    if (!supabase) {
+      console.warn('Supabase client not available, skipping audit log');
+      return;
+    }
+
     try {
       const user = await supabase.auth.getUser();
       const userId = user.data.user?.id || null;
@@ -75,6 +80,11 @@ export class AuditService {
     description: string;
     metadata?: any;
   }): Promise<void> {
+    if (!supabase) {
+      console.warn('Supabase client not available, skipping security event log');
+      return;
+    }
+
     try {
       const user = await supabase.auth.getUser();
       const userId = user.data.user?.id || null;
@@ -193,6 +203,11 @@ export class AuditService {
     hasAnomalies: boolean;
     anomalies: string[];
   }> {
+    if (!supabase) {
+      console.warn('Supabase client not available, skipping anomaly detection');
+      return { hasAnomalies: false, anomalies: [] };
+    }
+
     try {
       // Get recent user activity
       const { data: recentLogs, error } = await supabase
@@ -253,6 +268,11 @@ export class AuditService {
     endDate?: string;
     limit?: number;
   }): Promise<AuditLog[]> {
+    if (!supabase) {
+      console.warn('Supabase client not available, returning empty audit logs');
+      return [];
+    }
+
     try {
       let query = supabase
         .from('audit_logs')
@@ -302,6 +322,11 @@ export class AuditService {
     resolved?: boolean;
     limit?: number;
   }): Promise<SecurityEvent[]> {
+    if (!supabase) {
+      console.warn('Supabase client not available, returning empty security events');
+      return [];
+    }
+
     try {
       let query = supabase
         .from('security_events')

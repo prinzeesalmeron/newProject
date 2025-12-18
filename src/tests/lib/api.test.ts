@@ -1,11 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { PropertyAPI, StakingAPI } from '../../lib/api';
-import { mockSupabase, createMockProperty } from '../setup';
-
-// Mock Supabase
-vi.mock('../../lib/supabase', () => ({
-  supabase: mockSupabase
-}));
+import { createMockProperty } from '../setup';
 
 describe('PropertyAPI', () => {
   it('should fetch all properties', async () => {

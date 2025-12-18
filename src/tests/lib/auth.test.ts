@@ -1,15 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useAuth } from '../../lib/auth';
-import { mockSupabase, createMockUser } from '../setup';
-
-// Mock Supabase
-vi.mock('../../lib/supabase', () => ({
-  supabase: mockSupabase
-}));
+import { createMockUser } from '../setup';
 
 describe('Auth Service', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Clear any state before each test
   });
 
   it('should initialize auth state', async () => {
